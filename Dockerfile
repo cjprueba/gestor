@@ -16,7 +16,8 @@ FROM nginx:1.25-alpine
 RUN rm -rf /usr/share/nginx/html/*
 
 # Copy React build output
-COPY --from=build /app/dist /usr/share/nginx/html
+#COPY --from=build /app/dist /usr/share/nginx/html
+RUN cp -r ./dist/. /usr/share/nginx/html
 
 # Remove default config and use a custom one
 RUN rm /etc/nginx/conf.d/default.conf
