@@ -21,7 +21,7 @@ RUN cp -r /app/dist /usr/share/nginx/html
 
 # Remove default config and use a custom one
 RUN rm /etc/nginx/conf.d/default.conf
-COPY nginx.conf /etc/nginx/conf.d/my-app.conf
+RUN cp nginx.conf /etc/nginx/conf.d/my-app.conf
 
 # Fix permission for client_temp
 RUN mkdir -p /var/cache/nginx/client_temp && \
