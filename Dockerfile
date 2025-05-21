@@ -12,16 +12,17 @@ RUN npm run build
 # Stage 2: Serve the app with Nginx
 FROM nginx:1.25-alpine
 
-# Remove default nginx website
+# Clean default content
 RUN rm -rf /usr/share/nginx/html/*
 
-# Copy the React build from the previous stage
+# Copy React build output
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# Copy custom nginx config (make sure it's in the same directory)
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Remove default config and use a custom one
+RUN rm /etc/nginx/conf.d/default.conf
+COPY nginx.conf /etc/nginx/conf.d/my-app.conf
 
-# Create necessary cache directory with correct permissions
+# Fix permission for client_temp
 RUN mkdir -p /var/cache/nginx/client_temp && \
     chown -R nginx:nginx /var/cache/nginx
 
