@@ -27,8 +27,8 @@ RUN rm /etc/nginx/conf.d/default.conf
 COPY nginx.conf /etc/nginx/conf.d/my-app.conf
 
 # Fix permission for client_temp
-RUN mkdir -p /var/cache/nginx/client_temp && \
-    chown -R nginx:nginx /var/cache/nginx
+#RUN mkdir -p /var/cache/nginx/client_temp && \
+#    chown -R nginx:nginx /var/cache/nginx
 
 EXPOSE 8080
 
