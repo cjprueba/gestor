@@ -1,4 +1,5 @@
 {
+  "name": "gestor_app",
   "private": true,
   "scripts": {
     "build": "turbo run build",
@@ -7,10 +8,7 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },
   "devDependencies": {
-    "eslint": "^8.57.0",
-    "prettier": "^3.2.5",
     "turbo": "^2.5.3"
   },
-  "packageManager": "pnpm@8.15.6",
-  "name": "with-vite"
+  "packageManager": "pnpm@8.15.6"
 }
