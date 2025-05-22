@@ -13,6 +13,8 @@ RUN npm run build
 
 # Stage 2: Serve with NGINX
 FROM nginx:alpine
+# Run as root (remove for production)
+USER root
 
 # Copy built files to NGINX public folder
 COPY --from=builder /app/dist /usr/share/nginx/html
