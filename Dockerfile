@@ -12,16 +12,27 @@ COPY . .
 RUN npm run build
 
 # Stage 2: Serve with NGINX
-FROM nginx:alpine
-# Run as root (remove for production)
-USER root
+FROM nginx:latest
+
+# Create directories with permissions that work with random UIDs
+RUN mkdir -p /var/cache/nginx/client_temp && \
+    chmod -R 777 /var/cache/nginx && \
+    chmod -R 777 /var/run && \
+    chmod -R 777 /var/log/nginx
+
+# Copy your custom configuration that works with read-only filesystem
+COPY nginx.conf /etc/nginx/nginx.conf
+COPY default.conf.template /etc/nginx/templates/default.conf.template
+
+# Ensure the entrypoint can run with random UID
+RUN chmod -R 777 /docker-entrypoint.d/ && \
+    chmod 777 /docker-entrypoint.sh
+
+USER 1001
 
 # Copy built files to NGINX public folder
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-RUN mkdir -p /var/cache/nginx/client_temp && \
-    chown -R nginx:nginx /var/cache/nginx && \
-    chmod -R 755 /var/cache/nginx
     
 # Copy custom NGINX config (optional, see below)
 COPY nginx.conf /etc/nginx/conf.d/default.conf
