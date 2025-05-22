@@ -1,35 +1,26 @@
-# Stage 1: Build the React app
-FROM node:18-alpine AS build
+# Stage 1: Build
+FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-COPY package.json ./
+# Copy files and install dependencies
+COPY package*.json ./
 RUN npm install
 
+# Copy the rest of the app and build
 COPY . .
 RUN npm run build
 
-# Stage 2: Serve the app with Nginx
-FROM nginx:1.25-alpine
-RUN chmod -R g+rwx /var/cache/nginx /var/run /var/log/nginx
-RUN chown -R nginx:0 /usr/share/nginx/html && \
-    chmod -R g+rwX /usr/share/nginx/html
-    
-# Clean default content
-RUN rm -rf /usr/share/nginx/html/*
+# Stage 2: Serve with NGINX
+FROM nginx:alpine
 
-# Copy React build output
-COPY --from=build /app/dist /usr/share/nginx/html
-#RUN cp -r /app/dist /usr/share/nginx/html
+# Copy built files to NGINX public folder
+COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Remove default config and use a custom one
-RUN rm /etc/nginx/conf.d/default.conf
-COPY nginx.conf /etc/nginx/conf.d/my-app.conf
+# Copy custom NGINX config (optional, see below)
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Fix permission for client_temp
-#RUN mkdir -p /var/cache/nginx/client_temp && \
-#    chown -R nginx:nginx /var/cache/nginx
-
-EXPOSE 8080
+# Expose port 80
+EXPOSE 80
 
 CMD ["nginx", "-g", "daemon off;"]
