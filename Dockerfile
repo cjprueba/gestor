@@ -17,6 +17,10 @@ FROM nginx:alpine
 # Copy built files to NGINX public folder
 COPY --from=builder /app/dist /usr/share/nginx/html
 
+RUN mkdir -p /var/cache/nginx/client_temp && \
+    chown -R nginx:nginx /var/cache/nginx && \
+    chmod -R 755 /var/cache/nginx
+    
 # Copy custom NGINX config (optional, see below)
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
