@@ -22,7 +22,6 @@ RUN mkdir -p /var/cache/nginx/client_temp && \
 
 # Copy your custom configuration that works with read-only filesystem
 COPY nginx.conf /etc/nginx/nginx.conf
-COPY default.conf.template /etc/nginx/templates/default.conf.template
 
 # Ensure the entrypoint can run with random UID
 RUN chmod -R 777 /docker-entrypoint.d/ && \
