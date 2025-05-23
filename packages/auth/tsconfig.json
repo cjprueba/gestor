@@ -1,0 +1,4 @@
+{
+  "extends": "@gestor/ts-config/library.json",
+  "include": ["src/**/*"]
+}

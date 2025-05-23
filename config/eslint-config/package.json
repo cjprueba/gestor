@@ -1,0 +1,22 @@
+{
+  "name": "@gestor/eslint-config",
+  "version": "0.0.0",
+  "preferGlobal": true,
+  "files": [
+    "library.js",
+    "web.js",
+    "node.js"
+  ],
+  "devDependencies": {
+    "@rocketseat/eslint-config": "^2.2.2",
+    "eslint": "^9.26.0",
+    "eslint-plugin-simple-import-sort": "^12.1.1",
+    "@gestor/prettier": "workspace:*"
+  },
+  "prettier": "@gestor/prettier",
+  "eslintConfig": {
+    "extends": [
+      "./library.js"
+    ]
+  }
+}
