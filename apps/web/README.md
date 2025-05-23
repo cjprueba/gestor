@@ -59,3 +59,16 @@ export default tseslint.config({
 [] TanStack Router
 [] TanStack Query (React query)
 [] Error boundary
+[] code-based-splitting - lazyloading router
+
+[] Collections feature? 
+Agrupaciones virtuales que pueden incluir archivos desde diferentes carpetas. Un mismo archivo puede estar en varias collections a la vez.
+
+Beneficios clave de las Collections
+Organización transversal: Agrupan archivos relacionados, aunque estén en carpetas distintas.
+
+Flujos de trabajo por proyecto: Puedes crear una colección para cada cliente o proyecto.
+
+Categorización flexible: Un archivo puede estar en múltiples colecciones sin duplicarse.
+
+Acceso contextual: Permiten ver archivos según el trabajo que estás haciendo, no por dónde están guardados.
