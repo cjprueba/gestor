@@ -18,6 +18,8 @@ RUN npm run build
 #FROM registry.access.redhat.com/ubi8/nginx-120:latest
 FROM registry.access.redhat.com/ubi8/nginx-122
 
+USER 1001
+
 # Create directories with permissions that work with random UIDs
 RUN mkdir -p /var/cache/nginx/client_temp && \
     chmod -R 777 /var/cache/nginx && \
@@ -31,7 +33,7 @@ COPY nginx.conf /etc/nginx/nginx.conf
 RUN chmod -R 777 /docker-entrypoint.d/ && \
     chmod 777 /docker-entrypoint.sh
 
-USER 1001
+
 
 # Copy built files to NGINX public folder
 COPY --from=builder /app/dist /usr/share/nginx/html
