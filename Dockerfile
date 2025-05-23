@@ -12,7 +12,7 @@ COPY . .
 RUN npm run build
 
 # Stage 2: Serve with NGINX
-FROM nginx:latest
+FROM docker.io/library/nginx:latest
 
 # Create directories with permissions that work with random UIDs
 RUN mkdir -p /var/cache/nginx/client_temp && \
