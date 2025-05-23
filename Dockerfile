@@ -5,13 +5,11 @@ FROM registry.access.redhat.com/ubi8/nodejs-20:latest AS builder
 
 WORKDIR /app
 
-# Copy files and install dependencies
 COPY package*.json ./
-RUN npm install
+RUN npm install -g pnpm && pnpm install --frozen-lockfile
 
-# Copy the rest of the app and build
 COPY . .
-RUN npm run build
+RUN pnpm run build
 
 # Stage 2: Serve with NGINX
 #FROM docker.io/library/nginx:latest
