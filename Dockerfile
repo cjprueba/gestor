@@ -18,7 +18,8 @@ RUN npm run build
 #FROM registry.access.redhat.com/ubi8/nginx-120:latest
 FROM registry.access.redhat.com/ubi8/nginx-120:latest
 
-USER root  # Add this
+# para crear carpeta
+USER root
 
 # Create directories with permissions that work with random UIDs
 RUN mkdir -p /var/cache/nginx/client_temp && \
