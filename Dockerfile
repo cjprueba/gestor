@@ -18,13 +18,15 @@ RUN npm run build
 #FROM registry.access.redhat.com/ubi8/nginx-120:latest
 FROM registry.access.redhat.com/ubi8/nginx-120:latest
 
+USER root  # Add this
+
 # Create directories with permissions that work with random UIDs
 RUN mkdir -p /var/cache/nginx/client_temp && \
     chmod -R 777 /var/cache/nginx && \
     chmod -R 777 /var/run && \
     chmod -R 777 /var/log/nginx
 
-USER 1001
+#USER 1001
 
 # Copy your custom configuration that works with read-only filesystem
 COPY nginx.conf /etc/nginx/nginx.conf
