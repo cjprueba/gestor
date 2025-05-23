@@ -1,0 +1,92 @@
+apiVersion: v1
+kind: ImageStream
+metadata:
+  name: gestor
+  labels:
+    app: gestor
+---
+apiVersion: v1
+kind: BuildConfig
+metadata:
+  name: gestor-build
+  labels:
+    app: gestor
+spec:
+  source:
+    git:
+      uri: https://github.com/cjprueba/gestor.git
+      ref: main
+    type: Git
+  strategy:
+    type: Source
+    sourceStrategy:
+      from:
+        kind: ImageStreamTag
+        namespace: openshift
+        name: nodejs:18-ubi8
+  output:
+    to:
+      kind: ImageStreamTag
+      name: gestor:latest
+  triggers:
+    - type: GitHub
+      github:
+        secret: secret123
+    - type: ConfigChange
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gestor-app
+  labels:
+    app: gestor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gestor
+  template:
+    metadata:
+      labels:
+        app: gestor
+    spec:
+      containers:
+      - name: gestor
+        image: gestor:latest
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 1001
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gestor-service
+spec:
+  selector:
+    app: gestor
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+  type: ClusterIP
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: gestor-route
+spec:
+  to:
+    kind: Service
+    name: gestor-service
+  port:
+    targetPort: 8080
