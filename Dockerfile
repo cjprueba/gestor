@@ -1,6 +1,7 @@
 # Stage 1: Build
 #FROM node:18-alpine AS builder
-FROM registry.access.redhat.com/ubi8/nodejs-18:latest AS builder
+FROM registry.access.redhat.com/ubi8/nodejs-20:latest
+#FROM registry.access.redhat.com/ubi8/nodejs-18:latest AS builder
 
 WORKDIR /app
 
@@ -14,7 +15,8 @@ RUN npm run build
 
 # Stage 2: Serve with NGINX
 #FROM docker.io/library/nginx:latest
-FROM registry.access.redhat.com/ubi8/nginx-120:latest
+#FROM registry.access.redhat.com/ubi8/nginx-120:latest
+FROM registry.access.redhat.com/ubi8/nginx-122
 
 # Create directories with permissions that work with random UIDs
 RUN mkdir -p /var/cache/nginx/client_temp && \
