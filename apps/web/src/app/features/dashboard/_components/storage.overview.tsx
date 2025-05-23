@@ -8,7 +8,6 @@ import { Progress } from "@/shared/components/ui/progress";
 import { formatFileSize } from "@/shared/lib/file-utils";
 import { HardDrive } from "lucide-react";
 import { Collection, FileItem } from "@/shared/types/types";
-import { useMemo } from "react";
 
 interface StorageOverViewProps{
   files: FileItem[]

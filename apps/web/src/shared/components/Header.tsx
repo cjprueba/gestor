@@ -1,6 +1,6 @@
 import { Separator } from "@radix-ui/react-separator";
 import { SidebarTrigger } from "./ui/sidebar";
-import { Search, Grid, Bell } from "lucide-react";
+import { Search, Bell } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { useState } from "react";

@@ -1,24 +1,17 @@
-import * as React from "react"
 import {
   AudioWaveform,
   BookOpen,
-  Bot,
   Command,
   Files,
   Frame,
   GalleryVerticalEnd,
   Home,
-  Link,
   Map,
   PieChart,
-  Settings2,
-  SquareTerminal,
+  Settings2
 } from "lucide-react"
+import * as React from "react"
 
-import { NavMain } from "./nav-main"
-import { NavProjects } from "./nav-projects"
-import { NavUser } from "./nav-user"
-import { TeamSwitcher } from "./team-switcher"
 import {
   Sidebar,
   SidebarContent,
@@ -26,7 +19,11 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/shared/components/ui/sidebar"
-import { cn } from "@/shared/lib/utils"
+import { NavMain } from "./nav-main"
+import { NavProjects } from "./nav-projects"
+import { NavUser } from "./nav-user"
+import { TeamSwitcher } from "./team-switcher"
+// import { cn } from "@/shared/lib/utils"
 
 // This is sample data.
 const data = {
@@ -155,26 +152,26 @@ const data = {
   ],
 }
 
-interface NavItemProps {
-  href: string
-  icon: React.ReactNode
-  children: React.ReactNode
-  active?: boolean
-  onClick?: () => void
-}
+// interface NavItemProps {
+//   href: string
+//   icon: React.ReactNode
+//   children: React.ReactNode
+//   active?: boolean
+//   onClick?: () => void
+// }
 
-function NavItem({ href, icon, children, active, onClick }: NavItemProps) {
-  return (
-    <Link
-      href={href}
-      className={cn("flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-lg", active && "bg-gray-100")}
-      onClick={onClick}
-    >
-      {icon}
-      <span>{children}</span>
-    </Link>
-  )
-}
+// function NavItem({ href, icon, children, active, onClick }: NavItemProps) {
+//   return (
+//     <Link
+//       href={href}
+//       className={cn("flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-lg", active && "bg-gray-100")}
+//       onClick={onClick}
+//     >
+//       {icon}
+//       <span>{children}</span>
+//     </Link>
+//   )
+// }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (

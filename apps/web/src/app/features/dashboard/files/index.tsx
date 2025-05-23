@@ -2,7 +2,7 @@ import { Button } from "@/shared/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
 import { createFileItem, createFolder, getFileTypeFromExtension } from "@/shared/lib/file-utils";
 import { Collection, FileItem, FileType, Folder } from "@/shared/types/types";
-import { File, FileCode, FileImage, FileIcon as FilePdf, FileText, Folder as FolderIcon, FolderPlus, Grid, Plus } from "lucide-react";
+import { FolderPlus, Grid, Plus } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { CreateCollectionDialog } from "./_components/create-collection-dialog";
@@ -14,20 +14,20 @@ import { UploadDialog } from "./_components/upload-dialog";
 
 export default function FilesPage() {
   // View state
-  const [currentView, setCurrentView] = useState<"overview" | "files">("overview")
+  // const [currentView, setCurrentView] = useState<"overview" | "files">("overview")
 
   // State for dialogs
   const [createFileOpen, setCreateFileOpen] = useState(false)
   const [createFolderOpen, setCreateFolderOpen] = useState(false)
   const [createCollectionOpen, setCreateCollectionOpen] = useState(false)
   const [uploadOpen, setUploadOpen] = useState(false)
-  const [recordOpen, setRecordOpen] = useState(false)
+  // const [recordOpen, setRecordOpen] = useState(false)
 
   // State for files and folders
   const [files, setFiles] = useState<FileItem[]>([])
   const [folders, setFolders] = useState<Folder[]>([])
   const [currentFolder, setCurrentFolder] = useState<string | null>(null)
-  const [searchQuery, setSearchQuery] = useState("")
+  const [searchQuery] = useState("")
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [activeTab, setActiveTab] = useState("recent")
   const [collections, setCollections] = useState<Collection[]>([])
@@ -173,37 +173,37 @@ export default function FilesPage() {
     })
   }, [files, currentFolder, searchQuery, activeTab, activeCollection, collections])
 
-  const getFileIcon = (type: FileType) => {
-    switch (type) {
-      case "folder":
-        return <FolderIcon className="h-5 w-5 text-blue-500" />
-      case "pdf":
-        return <FilePdf className="h-5 w-5 text-red-500" />
-      case "image":
-        return <FileImage className="h-5 w-5 text-green-500" />
-      case "document":
-        return <FileText className="h-5 w-5 text-yellow-500" />
-      case "code":
-        return <FileCode className="h-5 w-5 text-purple-500" />
-      default:
-        return <File className="h-5 w-5 text-gray-500" />
-    }
-  }
+  // const getFileIcon = (type: FileType) => {
+  //   switch (type) {
+  //     case "folder":
+  //       return <FolderIcon className="h-5 w-5 text-blue-500" />
+  //     case "pdf":
+  //       return <FilePdf className="h-5 w-5 text-red-500" />
+  //     case "image":
+  //       return <FileImage className="h-5 w-5 text-green-500" />
+  //     case "document":
+  //       return <FileText className="h-5 w-5 text-yellow-500" />
+  //     case "code":
+  //       return <FileCode className="h-5 w-5 text-purple-500" />
+  //     default:
+  //       return <File className="h-5 w-5 text-gray-500" />
+  //   }
+  // }
 
   const handleFileClick = (file: FileItem) => {
     if (file.type === "folder") {
       setCurrentFolder(file.id)
-      setCurrentView("files")
+      // setCurrentView("files")
     } else {
       alert(`Opening file: ${file.name}`)
     }
   }
 
-  const handleCollectionClick = (collectionId: string) => {
-    setActiveCollection(collectionId)
-    setCurrentFolder(null)
-    setCurrentView("files")
-  }
+  // const handleCollectionClick = (collectionId: string) => {
+  //   setActiveCollection(collectionId)
+  //   setCurrentFolder(null)
+  //   // setCurrentView("files")
+  // }
 
   const navigateToParent = () => {
     if (currentFolder) {

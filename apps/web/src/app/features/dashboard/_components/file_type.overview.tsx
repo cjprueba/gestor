@@ -1,6 +1,6 @@
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/shared/components/ui/card";
 import { getFileIcon } from "@/shared/lib/file-utils";
-import { Progress } from "@radix-ui/react-progress";
+import { Progress } from "@/shared/components/ui/progress";
 
 interface FileTypeOverviewProps {
   storageStats: {
@@ -31,17 +31,18 @@ export function FileTypeOverview({ storageStats }: FileTypeOverviewProps) {
                 <Progress
                   value={(count / storageStats.totalFiles) * 100}
                   className="h-2"
-                  indicatorClassName={
-                    type === "document"
-                      ? "bg-blue-500"
-                      : type === "presentation"
-                        ? "bg-orange-500"
-                        : type === "spreadsheet"
-                          ? "bg-green-500"
-                          : type === "image"
-                            ? "bg-purple-500"
-                            : "bg-red-500"
-                  }
+                  
+                  // indicatorClassName={
+                  //   type === "document"
+                  //     ? "bg-blue-500"
+                  //     : type === "presentation"
+                  //       ? "bg-orange-500"
+                  //       : type === "spreadsheet"
+                  //         ? "bg-green-500"
+                  //         : type === "image"
+                  //           ? "bg-purple-500"
+                  //           : "bg-red-500"
+                  // }
                 />
               </div>
             </div>

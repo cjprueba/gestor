@@ -1,7 +1,7 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 import { format } from "date-fns"
-import { FileType } from "../types/types"
+// import { FileType } from "../types/types"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
