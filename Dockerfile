@@ -33,8 +33,8 @@ RUN mkdir -p /var/cache/nginx/client_temp && \
 COPY nginx.conf /etc/nginx/nginx.conf
 
 # Ensure the entrypoint can run with random UID
-RUN chmod -R 777 /docker-entrypoint.d/ && \
-    chmod 777 /docker-entrypoint.sh
+#RUN chmod -R 777 /docker-entrypoint.d/ && \
+#    chmod 777 /docker-entrypoint.sh
 
 
 
