@@ -7,10 +7,7 @@ WORKDIR /app
 
 COPY package*.json ./
 RUN npm install -g pnpm && pnpm install --no-frozen-lockfile
-<<<<<<< HEAD
 RUN npm install -g typescript
-=======
->>>>>>> 00d656217ff05988f0cbe4e4121af92b0cbb5982
 
 COPY . .
 RUN pnpm run build
