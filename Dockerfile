@@ -18,7 +18,7 @@ RUN npm install -g pnpm@8.15.6 && \
 COPY . .
 
 # Add types for Node.js
-RUN pnpm add -D @types/node
+RUN cd apps/web && pnpm add -D @types/node
 
 # Build the application
 RUN pnpm run build
