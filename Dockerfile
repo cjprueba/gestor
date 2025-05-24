@@ -17,8 +17,11 @@ RUN npm install -g pnpm@8.15.6 && \
 # Copy the rest of the application
 COPY . .
 
-# Add types for Node.js
+# Add types for Node.js to the web app specifically
 RUN cd apps/web && pnpm add -D @types/node
+
+# Add missing dependencies to the web app
+RUN cd apps/web && pnpm add -D path-browserify @tailwindcss/vite @vitejs/plugin-react @tanstack/router-plugin
 
 # Build the application
 RUN pnpm run build
@@ -36,8 +39,8 @@ RUN mkdir -p /var/cache/nginx/client_temp && \
 # Copy your custom configuration
 COPY nginx.conf /etc/nginx/nginx.conf
 
-# Copy built files to NGINX public folder
-COPY --from=builder /app/dist /usr/share/nginx/html
+# Copy built files to NGINX public folder - use the correct path
+COPY --from=builder /app/apps/web/dist /usr/share/nginx/html
     
 # Copy custom NGINX config
 COPY nginx.conf /etc/nginx/conf.d/default.conf
