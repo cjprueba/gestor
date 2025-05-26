@@ -49,7 +49,7 @@ export function FileContextMenu({
       <DropdownMenu>
         <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
           <Button variant="ghost" className="h-8 w-8 p-0">
-            <span className="sr-only">Open menu</span>
+            <span className="sr-only">Abrir menú</span>
             <MoreVertical className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
@@ -63,7 +63,7 @@ export function FileContextMenu({
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onStar(file.id)}>
               <Star className="mr-2 h-4 w-4" />
-              <span>{file.starred ? "Unstar" : "Star"}</span>
+              <span>{file.starred ? "Quitar favorito" : "Marcar favorito"}</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onShare(file.id)}>
               <Share2 className="mr-2 h-4 w-4" />
@@ -72,14 +72,14 @@ export function FileContextMenu({
           </DropdownMenuGroup>
 
           <DropdownMenuSeparator />
-          <DropdownMenuLabel>Collections</DropdownMenuLabel>
+          <DropdownMenuLabel>Colecciones</DropdownMenuLabel>
 
           {availableCollections.length > 0 && (
             <DropdownMenuGroup>
               {availableCollections.map((collection) => (
                 <DropdownMenuItem key={collection.id} onClick={() => onAddToCollection(file.id, collection.id)}>
                   <FolderPlus className="mr-2 h-4 w-4" />
-                  <span>Add to {collection.name}</span>
+                  <span>Agregar a {collection.name}</span>
                 </DropdownMenuItem>
               ))}
             </DropdownMenuGroup>
@@ -88,7 +88,7 @@ export function FileContextMenu({
           {fileCollections.length > 0 && (
             <>
               <DropdownMenuSeparator />
-              <DropdownMenuLabel>Remove from</DropdownMenuLabel>
+              <DropdownMenuLabel>Remover de</DropdownMenuLabel>
               <DropdownMenuGroup>
                 {fileCollections.map((collection) => (
                   <DropdownMenuItem key={collection.id} onClick={() => onRemoveFromCollection(file.id, collection.id)}>
@@ -103,7 +103,7 @@ export function FileContextMenu({
           <DropdownMenuSeparator />
           <DropdownMenuItem className="text-red-600" onClick={() => onDelete(file.id)}>
             <Trash className="mr-2 h-4 w-4" />
-            <span>Delete</span>
+            <span>Eliminar</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

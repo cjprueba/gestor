@@ -64,8 +64,7 @@ export function OverviewDashboard({ files, collections, onFileClick, onCollectio
   return (
     <main className="space-y-6 px-12">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Dashboard</h1>
-        <div className="text-sm text-gray-500">Last updated: {new Date().toLocaleString()}</div>
+        <h1 className="text-2xl font-bold">Panel de Control</h1>
       </div>
 
       {/* Storage overview */}

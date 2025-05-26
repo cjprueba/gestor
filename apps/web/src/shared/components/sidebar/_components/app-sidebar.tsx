@@ -44,25 +44,25 @@ const data = {
       plan: "Startup",
     },
     {
-      name: "Evil Corp.",
+      name: "Another Corp.",
       logo: Command,
       plan: "Free",
     },
   ],
   navMain: [
     {
-      title: "Overview",
+      title: "Resumen",
       url: "/app",
       icon: Home,
       isActive: true,
       items: [
         
         {
-          title: "Collections",
+          title: "Colecciones",
           url: "/app/collections",
         },
         {
-          title: "Settings",
+          title: "Configuración",
           url: "#",
         },
       ],
@@ -80,37 +80,33 @@ const data = {
           title: "Colecciones",
           url: "#",
         },
-        {
-          title: "Quantum",
-          url: "#",
-        },
       ],
     },
     {
-      title: "Documentation",
+      title: "Documentación",
       url: "#",
       icon: BookOpen,
       items: [
         {
-          title: "Introduction",
+          title: "Introducción",
           url: "#",
         },
         {
-          title: "Get Started",
+          title: "Comenzar",
           url: "#",
         },
         {
-          title: "Tutorials",
+          title: "Tutoriales",
           url: "#",
         },
         {
-          title: "Changelog",
+          title: "Registro de cambios",
           url: "#",
         },
       ],
     },
     {
-      title: "Settings",
+      title: "Configuración",
       url: "#",
       icon: Settings2,
       items: [
@@ -119,15 +115,15 @@ const data = {
           url: "#",
         },
         {
-          title: "Team",
+          title: "Equipo",
           url: "#",
         },
         {
-          title: "Billing",
+          title: "Facturación",
           url: "#",
         },
         {
-          title: "Limits",
+          title: "Límites",
           url: "#",
         },
       ],
@@ -135,17 +131,17 @@ const data = {
   ],
   projects: [
     {
-      name: "Design Engineering",
+      name: "Ingeniería de Diseño",
       url: "#",
       icon: Frame,
     },
     {
-      name: "Sales & Marketing",
+      name: "Ventas y Marketing",
       url: "#",
       icon: PieChart,
     },
     {
-      name: "Travel",
+      name: "Viajes",
       url: "#",
       icon: Map,
     },

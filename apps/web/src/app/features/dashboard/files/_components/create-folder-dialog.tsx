@@ -34,13 +34,13 @@ export function CreateFolderDialog({ open, onOpenChange, onCreateFolder }: Creat
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Create New Folder</DialogTitle>
-          <DialogDescription>Enter a name for your new folder.</DialogDescription>
+          <DialogTitle>Crear Nueva Carpeta</DialogTitle>
+          <DialogDescription>Ingresa un nombre para tu nueva carpeta.</DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="name" className="text-right">
-              Name
+              Nombre
             </Label>
             <Input
               id="name"
@@ -53,7 +53,7 @@ export function CreateFolderDialog({ open, onOpenChange, onCreateFolder }: Creat
         </div>
         <DialogFooter>
           <Button type="submit" onClick={handleCreate}>
-            Create
+            Crear
           </Button>
         </DialogFooter>
       </DialogContent>

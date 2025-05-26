@@ -17,8 +17,8 @@ export function RecentsPopularOverview({ recentFiles, mostUsedFiles, onFileClick
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <div>
-            <CardTitle>Recent Files</CardTitle>
-            <CardDescription>Your recently modified files</CardDescription>
+            <CardTitle>Archivos Recientes</CardTitle>
+            <CardDescription>Tus archivos modificados recientemente</CardDescription>
           </div>
           <Clock className="h-4 w-4 text-gray-500" />
         </CardHeader>
@@ -48,7 +48,7 @@ export function RecentsPopularOverview({ recentFiles, mostUsedFiles, onFileClick
                 <div className="text-xs text-gray-500">{file.modified.toLocaleDateString()}</div>
               </div>
             ))}
-            {recentFiles.length === 0 && <div className="text-center py-6 text-gray-500">No recent files</div>}
+            {recentFiles.length === 0 && <div className="text-center py-6 text-gray-500">No hay archivos recientes</div>}
           </div>
         </CardContent>
       </Card>
@@ -56,8 +56,8 @@ export function RecentsPopularOverview({ recentFiles, mostUsedFiles, onFileClick
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <div>
-            <CardTitle>Most Used Files</CardTitle>
-            <CardDescription>Your frequently accessed files</CardDescription>
+            <CardTitle>Archivos Más Usados</CardTitle>
+            <CardDescription>Tus archivos de acceso frecuente</CardDescription>
           </div>
           <TrendingUp className="h-4 w-4 text-gray-500" />
         </CardHeader>
@@ -90,7 +90,7 @@ export function RecentsPopularOverview({ recentFiles, mostUsedFiles, onFileClick
                 <div className="text-xs text-gray-500">{file.modified.toLocaleDateString()}</div>
               </div>
             ))}
-            {mostUsedFiles.length === 0 && <div className="text-center py-6 text-gray-500">No starred files</div>}
+            {mostUsedFiles.length === 0 && <div className="text-center py-6 text-gray-500">No hay archivos favoritos</div>}
           </div>
         </CardContent>
       </Card>

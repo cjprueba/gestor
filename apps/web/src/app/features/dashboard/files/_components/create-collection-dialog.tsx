@@ -34,13 +34,13 @@ export function CreateCollectionDialog({ open, onOpenChange, onCreateCollection 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Create New Collection</DialogTitle>
-          <DialogDescription>Collections help you organize related files across different folders.</DialogDescription>
+          <DialogTitle>Crear Nueva Colección</DialogTitle>
+          <DialogDescription>Las colecciones te ayudan a organizar archivos relacionados en diferentes carpetas.</DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="name" className="text-right">
-              Name
+              Nombre
             </Label>
             <Input
               id="name"
@@ -53,7 +53,7 @@ export function CreateCollectionDialog({ open, onOpenChange, onCreateCollection 
         </div>
         <DialogFooter>
           <Button type="submit" onClick={handleCreate}>
-            Create Collection
+            Crear Colección
           </Button>
         </DialogFooter>
       </DialogContent>
