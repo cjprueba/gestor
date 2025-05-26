@@ -1,0 +1,29 @@
+# Dockerfile para el backend Node.js
+FROM registry.access.redhat.com/ubi8/nodejs-20:latest
+
+WORKDIR /app
+
+# Copiar archivos de configuración del proyecto
+COPY package*.json ./
+COPY pnpm-lock.yaml ./
+COPY pnpm-workspace.yaml ./
+COPY turbo.json ./
+
+# Instalar dependencias globales
+RUN npm install -g pnpm@8.15.6 && \
+    npm install -g typescript
+
+# Instalar dependencias del proyecto
+RUN pnpm install --frozen-lockfile
+
+# Copiar el código fuente
+COPY . .
+
+# Instalar dependencias específicas para la API
+RUN cd apps/api && pnpm add express cors dotenv mongoose
+
+# Exponer el puerto para la API
+EXPOSE 3000
+
+# Comando para iniciar la API
+CMD ["node", "apps/api/index.js"]
