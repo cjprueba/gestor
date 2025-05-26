@@ -1,50 +1,51 @@
 # Stage 1: Build
-#FROM node:18-alpine AS builder
 FROM registry.access.redhat.com/ubi8/nodejs-20:latest AS builder
-#FROM registry.access.redhat.com/ubi8/nodejs-18:latest AS builder
 
 WORKDIR /app
 
+# Copy package files
 COPY package*.json ./
-RUN npm install -g pnpm && pnpm install --no-frozen-lockfile
-RUN npm install -g typescript
+COPY pnpm-lock.yaml ./
+COPY pnpm-workspace.yaml ./
+COPY turbo.json ./
 
+# Install pnpm and dependencies
+RUN npm install -g pnpm@8.15.6 && \
+    npm install -g typescript && \
+    pnpm install --frozen-lockfile
+
+# Copy the rest of the application
 COPY . .
+
+# Add types for Node.js to the web app specifically
+RUN cd apps/web && pnpm add -D @types/node
+
+# Add missing dependencies to the web app
+RUN cd apps/web && pnpm add -D path-browserify @tailwindcss/vite @vitejs/plugin-react @tanstack/router-plugin
+
+# Build the application
 RUN pnpm run build
 
 # Stage 2: Serve with NGINX
-#FROM docker.io/library/nginx:latest
-#FROM registry.access.redhat.com/ubi8/nginx-120:latest
 FROM registry.access.redhat.com/ubi8/nginx-120:latest
 
-# para crear carpeta
-USER root
-
 # Create directories with permissions that work with random UIDs
+USER root
 RUN mkdir -p /var/cache/nginx/client_temp && \
     chmod -R 777 /var/cache/nginx && \
     chmod -R 777 /var/run && \
     chmod -R 777 /var/log/nginx
 
-#USER 1001
-
-# Copy your custom configuration that works with read-only filesystem
+# Copy your custom configuration
 COPY nginx.conf /etc/nginx/nginx.conf
 
-# Ensure the entrypoint can run with random UID
-#RUN chmod -R 777 /docker-entrypoint.d/ && \
-#    chmod 777 /docker-entrypoint.sh
-
-
-
-# Copy built files to NGINX public folder
-COPY --from=builder /app/dist /usr/share/nginx/html
-
+# Copy built files to NGINX public folder - use the correct path
+COPY --from=builder /app/apps/web/dist /usr/share/nginx/html
     
-# Copy custom NGINX config (optional, see below)
+# Copy custom NGINX config
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Expose port 80
+# Expose port 8080
 EXPOSE 8080
 
 CMD ["nginx", "-g", "daemon off;"]
