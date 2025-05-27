@@ -6,6 +6,7 @@ import {
 import AuthLayout from '@/app/layouts/AuthLayout';
 import MainLayout from '@/app/layouts/MainLayout';
 import Root from './__root';
+import UserLayout from '../layouts/UserLayout';
 
 export const rootRoute = createRootRouteWithContext()({
   component: Root
@@ -21,6 +22,12 @@ export const mainRoute = createRoute({
   path: '/app',
   getParentRoute: () => rootRoute,
   component: MainLayout,
+});
+
+export const userRoute = createRoute({
+  path: '/dashboard_user',
+  getParentRoute: () => rootRoute,
+  component: UserLayout,
 });
 
 // Ejemplo: authRoutes deberían colgar de authRoute

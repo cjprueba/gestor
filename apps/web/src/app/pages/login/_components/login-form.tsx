@@ -11,7 +11,9 @@ export function LoginForm({
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card className="overflow-hidden">
-        <CardContent className="grid p-0 md:grid-cols-2">
+        <CardContent
+        //  className="grid p-0 md:grid-cols-2"
+         >
           <form className="p-6 md:p-8">
             <div className="flex flex-col gap-6">
               <div className="flex flex-col items-center text-center">
@@ -49,7 +51,7 @@ export function LoginForm({
                   O continúa con
                 </span>
               </div>
-              <div className="grid grid-cols-3 gap-4">
+              {/* <div className="grid grid-cols-3 gap-4">
                 <Button variant="outline" className="w-full">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                     <path
@@ -77,7 +79,7 @@ export function LoginForm({
                   </svg>
                   <span className="sr-only">Iniciar sesión con Meta</span>
                 </Button>
-              </div>
+              </div> */}
               <div className="text-center text-sm">
                 ¿No tienes una cuenta?{" "}
                 <a href="#" className="underline underline-offset-4">
@@ -86,13 +88,13 @@ export function LoginForm({
               </div>
             </div>
           </form>
-          <div className="relative hidden bg-muted md:block">
+          {/* <div className="relative hidden bg-muted md:block">
             <img
               src="/placeholder.svg"
               alt="Imagen"
               className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
             />
-          </div>
+          </div> */}
         </CardContent>
       </Card>
       <div className="text-balance text-center text-xs text-muted-foreground [&_a]:underline [&_a]:underline-offset-4 hover:[&_a]:text-primary">
