@@ -195,7 +195,7 @@ export default function FilesPage() {
       setCurrentFolder(file.id)
       // setCurrentView("files")
     } else {
-      alert(`Opening file: ${file.name}`)
+      alert(`Abriendo archivo: ${file.name}`)
     }
   }
 
@@ -214,9 +214,9 @@ export default function FilesPage() {
   }
 
   const getCurrentFolderName = () => {
-    if (!currentFolder) return "All content"
+    if (!currentFolder) return "Todo el contenido"
     const folder = folders.find((f) => f.id === currentFolder)
-    return folder ? folder.name : "All content"
+    return folder ? folder.name : "Todo el contenido"
   }
 
   const addFileToCollection = (fileId: string, collectionId: string) => {
@@ -288,7 +288,7 @@ export default function FilesPage() {
       }),
     )
 
-    alert(`Sharing options for: ${files.find((f) => f.id === fileId)?.name}`)
+    alert(`Opciones de compartir para: ${files.find((f) => f.id === fileId)?.name}`)
   }
 
   return (
@@ -301,7 +301,7 @@ export default function FilesPage() {
                 <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
-                Back to parent folder
+                Volver
               </Button>
               <h2 className="text-xl font-semibold mt-2">{getCurrentFolderName()}</h2>
             </div>
@@ -312,10 +312,10 @@ export default function FilesPage() {
                 <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
-                Back to all files
+                Volver
               </Button>
               <h2 className="text-xl font-semibold mt-2">
-                Collection: {collections.find((c) => c.id === activeCollection)?.name}
+                Colección: {collections.find((c) => c.id === activeCollection)?.name}
               </h2>
             </div>
           )}
@@ -323,7 +323,7 @@ export default function FilesPage() {
           <div className="mb-6 flex items-center gap-4">
             <Button className="gap-2" onClick={() => setCreateFileOpen(true)}>
               <Plus className="h-4 w-4" />
-              Create
+              Crear
             </Button>
             <Button variant="outline" className="gap-2" onClick={() => setUploadOpen(true)}>
               <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -334,7 +334,7 @@ export default function FilesPage() {
                   strokeLinejoin="round"
                 />
               </svg>
-              Upload
+              Subir
             </Button>
             <Button variant="outline" className="gap-2" onClick={() => setCreateFolderOpen(true)}>
               <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -345,11 +345,11 @@ export default function FilesPage() {
                   strokeLinejoin="round"
                 />
               </svg>
-              Create folder
+              Crear carpeta
             </Button>
             <Button variant="outline" className="gap-2" onClick={() => setCreateCollectionOpen(true)}>
               <FolderPlus className="h-4 w-4" />
-              New Collection
+              Nueva Colección
             </Button>
             <div className="flex justify-end">
               <Button className="self-end" variant="ghost" size="icon" onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}>
@@ -361,9 +361,9 @@ export default function FilesPage() {
           <div className="mb-6 w-1/4">
             <Tabs defaultValue={activeTab} onValueChange={(value) => setActiveTab(value)}>
               <TabsList className="w-full">
-                <TabsTrigger value="recent">Recent</TabsTrigger>
-                <TabsTrigger value="starred">Starred</TabsTrigger>
-                <TabsTrigger value="shared">Shared</TabsTrigger>
+                <TabsTrigger value="recent">Recientes</TabsTrigger>
+                <TabsTrigger value="starred">Favoritos</TabsTrigger>
+                <TabsTrigger value="shared">Compartidos</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
@@ -386,8 +386,8 @@ export default function FilesPage() {
               {filteredFiles.length === 0 && (
                 <div className="col-span-3 text-center p-8 text-gray-500">
                   {activeCollection
-                    ? "No files in this collection yet. Add files using the context menu."
-                    : "No files found in this location."}
+                    ? "Aún no hay archivos en esta colección. Agrega archivos usando el menú contextual."
+                    : "No se encontraron archivos en esta ubicación."}
                 </div>
               )}
             </div>
@@ -409,8 +409,8 @@ export default function FilesPage() {
               {filteredFiles.length === 0 && (
                 <div className="text-center p-8 text-gray-500">
                   {activeCollection
-                    ? "No files in this collection yet. Add files using the context menu."
-                    : "No files found in this location."}
+                    ? "Aún no hay archivos en esta colección. Agrega archivos usando el menú contextual."
+                    : "No se encontraron archivos en esta ubicación."}
                 </div>
               )}
             </div>

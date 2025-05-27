@@ -1,9 +1,10 @@
-import { Separator } from "@radix-ui/react-separator";
 import { SidebarTrigger } from "./ui/sidebar";
 import { Search, Bell } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { useState } from "react";
+import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from "./ui/breadcrumb";
+import { Separator } from "./ui/separator";
 
 export default function Header() {
   const [searchQuery, setSearchQuery] = useState("")
@@ -13,14 +14,30 @@ export default function Header() {
       <div className="flex items-center px-4 gap-2">
         <SidebarTrigger />
         <Separator orientation="vertical" className="mr-2 h-4" />
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem className="hidden md:block">
+              <BreadcrumbLink href="/">Dashboard</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator className="hidden md:block" />
+            <BreadcrumbItem className="hidden md:block">
+              <BreadcrumbLink href="/admin">Administración</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator className="hidden md:block" />
+            <BreadcrumbItem>
+              <BreadcrumbPage>Gestión de Usuarios</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
       </div>
+
       <div className="flex items-center gap-4">
         <div className="w-96">
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
             <Input
               type="search"
-              placeholder="Search files..."
+              placeholder="Buscar archivos..."
               className="pl-9"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}

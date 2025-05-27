@@ -31,8 +31,8 @@ export function CollectionsOverview({ collections, files, onCollectionClick }: C
     <Card>
     <CardHeader className="flex flex-row items-center justify-between space-y-0">
       <div>
-        <CardTitle>Popular Collections</CardTitle>
-        <CardDescription>Your most active collections</CardDescription>
+        <CardTitle>Colecciones Populares</CardTitle>
+        <CardDescription>Tus colecciones más activas</CardDescription>
       </div>
       <LayoutGrid className="h-4 w-4 text-gray-500" />
     </CardHeader>
@@ -55,12 +55,12 @@ export function CollectionsOverview({ collections, files, onCollectionClick }: C
             </div>
             <div className="p-4">
               <h3 className="font-medium">{collection.name}</h3>
-              <p className="text-sm text-gray-500">{collection.fileCount} files</p>
+              <p className="text-sm text-gray-500">{collection.fileCount} archivos</p>
             </div>
           </div>
         ))}
         {popularCollections.length === 0 && (
-          <div className="col-span-3 text-center py-6 text-gray-500">No collections yet</div>
+          <div className="col-span-3 text-center py-6 text-gray-500">Aún no hay colecciones</div>
         )}
       </div>
     </CardContent>

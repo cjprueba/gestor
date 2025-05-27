@@ -1,4 +1,4 @@
-"use client"
+
 
 import type React from "react"
 
@@ -45,8 +45,8 @@ export function UploadDialog({ open, onOpenChange, onUploadFiles }: UploadDialog
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Upload Files</DialogTitle>
-          <DialogDescription>Select files from your computer to upload.</DialogDescription>
+          <DialogTitle>Subir Archivos</DialogTitle>
+          <DialogDescription>Selecciona archivos de tu computadora para subir.</DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-6">
@@ -60,14 +60,14 @@ export function UploadDialog({ open, onOpenChange, onUploadFiles }: UploadDialog
               />
             </svg>
             <p className="mb-2 text-sm text-gray-500">
-              <span className="font-semibold">Click to upload</span> or drag and drop
+              <span className="font-semibold">Haz clic para subir</span> o arrastra y suelta
             </p>
             <Button variant="outline" size="sm" onClick={handleBrowseClick} className="mb-2">
-              Browse Files
+              Explorar Archivos
             </Button>
             {selectedFiles.length > 0 && (
               <div className="w-full mt-4">
-                <p className="text-sm font-medium text-gray-700 mb-1">Selected Files:</p>
+                <p className="text-sm font-medium text-gray-700 mb-1">Archivos Seleccionados:</p>
                 <ul className="text-sm text-gray-500 space-y-1 max-h-32 overflow-y-auto">
                   {selectedFiles.map((file, index) => (
                     <li key={index} className="truncate">
@@ -81,7 +81,7 @@ export function UploadDialog({ open, onOpenChange, onUploadFiles }: UploadDialog
         </div>
         <DialogFooter>
           <Button type="submit" onClick={handleUpload} disabled={selectedFiles.length === 0}>
-            Upload
+            Subir
           </Button>
         </DialogFooter>
       </DialogContent>

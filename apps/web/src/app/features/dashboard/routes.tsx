@@ -1,7 +1,8 @@
 import { createRoute } from '@tanstack/react-router';
-import { mainRoute } from '@/app/routes/routes';
+import { mainRoute } from '@/app/routes';
 import DashboardPage from '@/app/features/dashboard';
-import FilesPage from './files';
+import FilesPage from './resources';
+import UsersManagementPage from './users';
 
 export const dashboardRoutes = [
   createRoute({
@@ -11,8 +12,12 @@ export const dashboardRoutes = [
   }),
   createRoute({
     getParentRoute: () => mainRoute,
-    path: '/files',
+    path: '/resources',
     component: FilesPage,
   }),
-
+  createRoute({
+    getParentRoute: () => mainRoute,
+    path: '/users',
+    component: UsersManagementPage,
+  }),
 ];
