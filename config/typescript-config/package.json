@@ -5,7 +5,7 @@
   "license": "MIT",
   "files": [
     "library.json",
-    "tsconfig.node.json",
+    "node.json",
     "tsconfig.app.json"
   ]
 }
