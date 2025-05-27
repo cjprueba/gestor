@@ -20,5 +20,4 @@ export const dashboardRoutes = [
     path: '/users',
     component: UsersManagementPage,
   }),
-
 ];
