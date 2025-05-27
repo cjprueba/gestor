@@ -1,4 +1,4 @@
-"use client"
+
 
 import { formatFileSize } from "@/shared/lib/file-utils"
 import type { Collection, FileItem } from "@/shared/types/types"

@@ -1,4 +1,4 @@
-"use client"
+
 
 import { Button } from "@/shared/components/ui/button"
 import {
@@ -13,19 +13,19 @@ import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
 import { useState } from "react"
 
-interface CreateFolderDialogProps {
+interface CreateCollectionDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onCreateFolder: (name: string) => void
+  onCreateCollection: (name: string) => void
 }
 
-export function CreateFolderDialog({ open, onOpenChange, onCreateFolder }: CreateFolderDialogProps) {
-  const [folderName, setFolderName] = useState("")
+export function CreateCollectionDialog({ open, onOpenChange, onCreateCollection }: CreateCollectionDialogProps) {
+  const [collectionName, setCollectionName] = useState("")
 
   const handleCreate = () => {
-    if (folderName.trim()) {
-      onCreateFolder(folderName)
-      setFolderName("")
+    if (collectionName.trim()) {
+      onCreateCollection(collectionName)
+      setCollectionName("")
       onOpenChange(false)
     }
   }
@@ -34,8 +34,8 @@ export function CreateFolderDialog({ open, onOpenChange, onCreateFolder }: Creat
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Crear Nueva Carpeta</DialogTitle>
-          <DialogDescription>Ingresa un nombre para tu nueva carpeta.</DialogDescription>
+          <DialogTitle>Crear Nueva Colección</DialogTitle>
+          <DialogDescription>Las colecciones te ayudan a organizar archivos relacionados en diferentes carpetas.</DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
@@ -44,8 +44,8 @@ export function CreateFolderDialog({ open, onOpenChange, onCreateFolder }: Creat
             </Label>
             <Input
               id="name"
-              value={folderName}
-              onChange={(e) => setFolderName(e.target.value)}
+              value={collectionName}
+              onChange={(e) => setCollectionName(e.target.value)}
               className="col-span-3"
               autoFocus
             />
@@ -53,7 +53,7 @@ export function CreateFolderDialog({ open, onOpenChange, onCreateFolder }: Creat
         </div>
         <DialogFooter>
           <Button type="submit" onClick={handleCreate}>
-            Crear
+            Crear Colección
           </Button>
         </DialogFooter>
       </DialogContent>
