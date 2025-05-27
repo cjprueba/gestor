@@ -1,7 +1,7 @@
 import { createRouter } from '@tanstack/react-router';
-import { authRoute, mainRoute, rootRoute } from './routes';
 import { authRoutes } from '@/app/features/auth/routes';
 import { dashboardRoutes } from '@/app/features/dashboard/routes';
+import { authRoute, mainRoute, rootRoute } from '@/app/routes';
 
 const routeTree = rootRoute.addChildren([
   authRoute.addChildren(authRoutes),

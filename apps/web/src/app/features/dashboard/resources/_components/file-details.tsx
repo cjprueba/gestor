@@ -21,10 +21,10 @@ export function FileDetails({
 }) {
 
   const activities = [
-    { id: 1, action: "Created", date: new Date(file.modified.getTime() - 86400000 * 5), user: "John Doe" },
-    { id: 2, action: "Modified", date: new Date(file.modified.getTime() - 86400000 * 3), user: "Jane Smith" },
-    { id: 3, action: "Shared", date: new Date(file.modified.getTime() - 86400000 * 2), user: "John Doe" },
-    { id: 4, action: "Modified", date: file.modified, user: "Current User" },
+    { id: 1, action: "Creado", date: new Date(file.modified.getTime() - 86400000 * 5), user: "John Doe" },
+    { id: 2, action: "Modificado", date: new Date(file.modified.getTime() - 86400000 * 3), user: "Jane Smith" },
+    { id: 3, action: "Compartido", date: new Date(file.modified.getTime() - 86400000 * 2), user: "John Doe" },
+    { id: 4, action: "Modificado", date: file.modified, user: "Usuario Actual" },
   ]
 
   const getFileCollections = (fileId: string) => {
@@ -39,41 +39,41 @@ export function FileDetails({
       <SheetHeader>
         <SheetTitle>{file.name}</SheetTitle>
         <SheetDescription>
-          {file.type === "folder" ? "Folder" : file.type} • {file.size ? formatFileSize(file.size) : ""}
+          {file.type === "folder" ? "Carpeta" : file.type} • {file.size ? formatFileSize(file.size) : ""}
         </SheetDescription>
       </SheetHeader>
       <div className="py-6">
         <Tabs defaultValue="details">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="details">Details</TabsTrigger>
-            <TabsTrigger value="activities">Activities</TabsTrigger>
+            <TabsTrigger value="details">Detalles</TabsTrigger>
+            <TabsTrigger value="activities">Actividades</TabsTrigger>
           </TabsList>
           <TabsContent value="details" className="mt-4 space-y-4">
             <div className="grid grid-cols-2 gap-2 text-sm">
-              <div className="text-gray-500">Type</div>
+              <div className="text-gray-500">Tipo</div>
               <div className="font-medium">{file.type}</div>
 
-              <div className="text-gray-500">Size</div>
+              <div className="text-gray-500">Tamaño</div>
               <div className="font-medium">{file.size ? formatFileSize(file.size) : "N/A"}</div>
 
-              <div className="text-gray-500">Created</div>
+              <div className="text-gray-500">Creado</div>
               <div className="font-medium">{new Date(file.modified.getTime() - 86400000 * 5).toLocaleString()}</div>
 
-              <div className="text-gray-500">Modified</div>
+              <div className="text-gray-500">Modificado</div>
               <div className="font-medium">{file.modified.toLocaleString()}</div>
 
-              <div className="text-gray-500">Path</div>
+              <div className="text-gray-500">Ruta</div>
               <div className="font-medium truncate">{file.path}</div>
 
-              <div className="text-gray-500">Starred</div>
-              <div className="font-medium">{file.starred ? "Yes" : "No"}</div>
+              <div className="text-gray-500">Favorito</div>
+              <div className="font-medium">{file.starred ? "Sí" : "No"}</div>
 
-              <div className="text-gray-500">Shared</div>
-              <div className="font-medium">{file.shared ? "Yes" : "No"}</div>
+              <div className="text-gray-500">Compartido</div>
+              <div className="font-medium">{file.shared ? "Sí" : "No"}</div>
 
-              <div className="text-gray-500">Collections</div>
+              <div className="text-gray-500">Colecciones</div>
               <div className="font-medium">
-                {fileCollections.length > 0 ? fileCollections.map((c) => c.name).join(", ") : "None"}
+                {fileCollections.length > 0 ? fileCollections.map((c) => c.name).join(", ") : "Ninguna"}
               </div>
             </div>
           </TabsContent>
@@ -86,7 +86,7 @@ export function FileDetails({
                   </div>
                   <div className="flex-1">
                     <p className="font-medium">
-                      {activity.action} by {activity.user}
+                      {activity.action} por {activity.user}
                     </p>
                     <p className="text-sm text-gray-500">{activity.date.toLocaleString()}</p>
                   </div>
