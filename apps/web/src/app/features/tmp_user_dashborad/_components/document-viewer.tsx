@@ -122,7 +122,7 @@ export function DocumentViewer({ open, onOpenChange, document }: DocumentViewerP
               </CardContent>
             </Card>
 
-            <Card>
+            {/* <Card>
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Eye className="w-5 h-5" />
@@ -135,7 +135,7 @@ export function DocumentViewer({ open, onOpenChange, document }: DocumentViewerP
                   {document.userPermissions && getPermissionBadges(document.userPermissions)}
                 </div>
               </CardContent>
-            </Card>
+            </Card> */}
           </div>
 
           {/* Document Preview */}

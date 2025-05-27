@@ -530,10 +530,10 @@ export default function UserDashboard() {
                     </div>
 
                     {/* User permissions */}
-                    <div>
+                    {/* <div>
                       <div className="text-sm font-medium mb-1">Mis permisos:</div>
                       <div className="flex flex-wrap gap-1">{getPermissionBadges(item.userPermissions)}</div>
-                    </div>
+                    </div> */}
 
                     {/* Additional info */}
                     {currentView === "projects" && (
@@ -582,7 +582,7 @@ export default function UserDashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    <div className="flex flex-wrap gap-1">{getPermissionBadges(item.userPermissions)}</div>
+                    {/* <div className="flex flex-wrap gap-1">{getPermissionBadges(item.userPermissions)}</div> */}
                     <div className="text-sm text-muted-foreground">Último acceso: {item.lastAccessed}</div>
                   </div>
                 </CardContent>
@@ -604,7 +604,7 @@ export default function UserDashboard() {
                         <p className="text-sm text-muted-foreground">
                           {doc.project} → {doc.contract}
                         </p>
-                        <div className="flex gap-1 mt-1">{getPermissionBadges(doc.userPermissions)}</div>
+                        {/* <div className="flex gap-1 mt-1">{getPermissionBadges(doc.userPermissions)}</div> */}
                       </div>
                     </div>
                     <div className="flex items-center gap-2">

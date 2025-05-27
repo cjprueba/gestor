@@ -176,11 +176,6 @@ const navigationData = {
   ],
   main: [
     {
-      title: "Dashboard",
-      url: "/app",
-      icon: Home,
-    },
-    {
       title: "Archivos",
       // url: "/app/files",
       icon: Files,
