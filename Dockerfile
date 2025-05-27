@@ -12,7 +12,7 @@ COPY turbo.json ./
 # Install pnpm and dependencies
 RUN npm install -g pnpm@8.15.6 && \
     npm install -g typescript && \
-    pnpm install --frozen-lockfile
+    pnpm install --force
 
 # Copy the rest of the application
 COPY . .
