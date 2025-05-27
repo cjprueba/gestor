@@ -12,7 +12,7 @@ COPY pnpm-workspace.yaml ./
 COPY turbo.json ./
 
 # Install pnpm and dependencies
-RUN npm install -g pnpm@9.15.9 && \
+RUN npm install -g pnpm@9.0.0 && \
     npm install -g typescript && \
     pnpm install --frozen-lockfile
 
