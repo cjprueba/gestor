@@ -1,5 +1,5 @@
 # Dockerfile para el backend Node.js
-FROM registry.access.redhat.com/ubi8/nodejs-20:latest
+FROM node:20-alpine
 
 WORKDIR /app
 
@@ -9,12 +9,11 @@ COPY pnpm-lock.yaml ./
 COPY pnpm-workspace.yaml ./
 COPY turbo.json ./
 
-# Instalar dependencias globales
-RUN npm install -g pnpm@8.15.6 && \
-    npm install -g typescript
-
-# Instalar dependencias del proyecto
-RUN pnpm install --frozen-lockfile
+# Instalar dependencias globales - split into separate commands
+# Install pnpm and dependencies
+RUN npm install -g --unsafe-perm=true --allow-root pnpm@8.15.6 && \
+    npm install -g  --unsafe-perm=true --allow-root typescript && \
+    pnpm install --frozen-lockfile
 
 # Copiar el código fuente
 COPY . .

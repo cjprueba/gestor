@@ -58,6 +58,15 @@ spec:
     type: Docker
     dockerStrategy:
       dockerfilePath: Dockerfile.backend
+      env:
+      - name: NPM_CONFIG_PREFIX
+        value: /opt/app-root/src/.npm-global
+      - name: PATH
+        value: $PATH:/opt/app-root/src/.npm-global/bin
+      - name: TMPDIR
+        value: /tmp
+      - name: HOME
+        value: /tmp
   output:
     to:
       kind: ImageStreamTag
@@ -99,7 +108,11 @@ spec:
         securityContext:
           allowPrivilegeEscalation: false
           runAsNonRoot: true
-          runAsUser: 1001
+          runAsUser: 1009490000  # Changed from 1001 to an allowed value
+          capabilities:
+            drop: ["ALL"]
+          seccompProfile:
+            type: "RuntimeDefault"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -132,7 +145,11 @@ spec:
         securityContext:
           allowPrivilegeEscalation: false
           runAsNonRoot: true
-          runAsUser: 1001
+          runAsUser: 1009490000  # Changed from 1001 to an allowed value
+          capabilities:
+            drop: ["ALL"]
+          seccompProfile:
+            type: "RuntimeDefault"
 ---
 apiVersion: v1
 kind: Service
