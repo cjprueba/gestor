@@ -1,8 +1,7 @@
 "use client"
 
-import { Calendar, Download, Eye, FileText, Heart, Share, User } from "lucide-react"
+import { Calendar, Download, FileText, Heart, Share, User } from "lucide-react"
 
-import { Badge } from "@/shared/components/ui/badge"
 import { Button } from "@/shared/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog"
@@ -36,23 +35,23 @@ export function DocumentViewer({ open, onOpenChange, document }: DocumentViewerP
     return icons[type as keyof typeof icons] || icons.default
   }
 
-  const getPermissionBadges = (permissions: string[]) => {
-    const permissionLabels = {
-      view: { label: "Ver", color: "bg-blue-100 text-blue-800" },
-      edit: { label: "Editar", color: "bg-green-100 text-green-800" },
-      download: { label: "Descargar", color: "bg-purple-100 text-purple-800" },
-      share: { label: "Compartir", color: "bg-orange-100 text-orange-800" },
-    }
+  // const getPermissionBadges = (permissions: string[]) => {
+  //   const permissionLabels = {
+  //     view: { label: "Ver", color: "bg-blue-100 text-blue-800" },
+  //     edit: { label: "Editar", color: "bg-green-100 text-green-800" },
+  //     download: { label: "Descargar", color: "bg-purple-100 text-purple-800" },
+  //     share: { label: "Compartir", color: "bg-orange-100 text-orange-800" },
+  //   }
 
-    return permissions.map((perm) => {
-      const config = permissionLabels[perm as keyof typeof permissionLabels]
-      return (
-        <Badge key={perm} variant="outline" className={`text-xs ${config.color}`}>
-          {config.label}
-        </Badge>
-      )
-    })
-  }
+  //   return permissions.map((perm) => {
+  //     const config = permissionLabels[perm as keyof typeof permissionLabels]
+  //     return (
+  //       <Badge key={perm} variant="outline" className={`text-xs ${config.color}`}>
+  //         {config.label}
+  //       </Badge>
+  //     )
+  //   })
+  // }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

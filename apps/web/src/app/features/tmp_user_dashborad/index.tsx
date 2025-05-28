@@ -214,33 +214,15 @@ export default function UserDashboard() {
 
   const getStatusBadge = (status: string) => {
     const colors = {
-      active: "bg-green-100 text-green-800",
-      approved: "bg-green-100 text-green-800",
-      draft: "bg-yellow-100 text-yellow-800",
+      active: "text-green-800 bg-green-100",
+      approved: "text-blue-800 bg-blue-100",
+      draft: "text-gray-800 bg-gray-100",
     }
     return (
       <Badge variant="outline" className={colors[status as keyof typeof colors]}>
         {status === "active" ? "Activo" : status === "approved" ? "Aprobado" : "Borrador"}
       </Badge>
     )
-  }
-
-  const getPermissionBadges = (permissions: string[]) => {
-    const permissionLabels = {
-      view: { label: "Ver", color: "bg-blue-100 text-blue-800" },
-      edit: { label: "Editar", color: "bg-green-100 text-green-800" },
-      download: { label: "Descargar", color: "bg-purple-100 text-purple-800" },
-      share: { label: "Compartir", color: "bg-orange-100 text-orange-800" },
-    }
-
-    return permissions.map((perm) => {
-      const config = permissionLabels[perm as keyof typeof permissionLabels]
-      return (
-        <Badge key={perm} variant="outline" className={`text-xs ${config.color}`}>
-          {config.label}
-        </Badge>
-      )
-    })
   }
 
   const getFileIcon = (type: string) => {
@@ -380,7 +362,7 @@ export default function UserDashboard() {
                     <BreadcrumbItem>
                       <BreadcrumbLink
                         onClick={handleBackToProjects}
-                        className={currentView === "projects" ? "font-semibold" : "cursor-pointer"}
+                        // className={currentView === "projects" ? "font-semibold" : "cursor-pointer"}
                       >
                         Mis Proyectos
                       </BreadcrumbLink>
@@ -531,12 +513,6 @@ export default function UserDashboard() {
                       <div className="text-sm text-muted-foreground">Último acceso: {item.lastAccessed}</div>
                     </div>
 
-                    {/* User permissions */}
-                    {/* <div>
-                      <div className="text-sm font-medium mb-1">Mis permisos:</div>
-                      <div className="flex flex-wrap gap-1">{getPermissionBadges(item.userPermissions)}</div>
-                    </div> */}
-
                     {/* Additional info */}
                     {currentView === "projects" && (
                       <div className="text-sm text-muted-foreground">
@@ -584,7 +560,6 @@ export default function UserDashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    {/* <div className="flex flex-wrap gap-1">{getPermissionBadges(item.userPermissions)}</div> */}
                     <div className="text-sm text-muted-foreground">Último acceso: {item.lastAccessed}</div>
                   </div>
                 </CardContent>
@@ -606,7 +581,6 @@ export default function UserDashboard() {
                         <p className="text-sm text-muted-foreground">
                           {doc.project} → {doc.contract}
                         </p>
-                        {/* <div className="flex gap-1 mt-1">{getPermissionBadges(doc.userPermissions)}</div> */}
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
