@@ -1,8 +1,8 @@
-import { cn } from "@/shared/lib/utils"
 import { Button } from "@/shared/components/ui/button"
 import { Card, CardContent } from "@/shared/components/ui/card"
 import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
+import { cn } from "@/shared/lib/utils"
 
 export function LoginForm({
   className,

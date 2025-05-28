@@ -1,7 +1,8 @@
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/shared/components/ui/card";
 import { LayoutGrid } from "lucide-react";
-import { Collection, FileItem } from "@/shared/types/types";
 import { useMemo } from "react";
+
+import { Card, CardContent,CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import { Collection, FileItem } from "@/shared/types/types";
 
 interface CollectionsOverviewProps {
   collections: Collection[]

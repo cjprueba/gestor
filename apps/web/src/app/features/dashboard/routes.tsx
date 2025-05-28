@@ -1,6 +1,8 @@
 import { createRoute } from '@tanstack/react-router';
-import { mainRoute } from '@/app/routes';
+
 import DashboardPage from '@/app/features/dashboard';
+import { mainRoute } from '@/app/routes';
+
 import FilesPage from './resources';
 import UsersManagementPage from './users';
 

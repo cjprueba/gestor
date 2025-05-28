@@ -1,8 +1,6 @@
 /** @type {import("eslint").Linter.Config} */
 module.exports = [
   {
-    // Como estamos usando "extends", necesitamos usar el utilitario de compatibilidad
-    // Ver: https://eslint.org/docs/latest/use/configure/migration-guide#using-eslintrc-configs-in-flat-config
     files: ['**/*.{js,jsx,ts,tsx}'],
     languageOptions: {
       ecmaVersion: 'latest',
@@ -22,21 +20,13 @@ module.exports = [
     rules: {
       "simple-import-sort/imports": "error",
       "simple-import-sort/exports": "error",
-      "react-refresh/only-export-components": [
-        "warn",
-        { allowConstantExport: true }
-      ]
+      "react-refresh/only-export-components": ["warn", { allowConstantExport: true }]
     },
     settings: {
       react: {
         version: "detect"
       }
     },
-    ignores: [
-      "dist/**",
-      ".turbo/**",
-      "node_modules/**",
-      "public/**"
-    ]
+    ignores: ["dist/**", ".turbo/**", "node_modules/**", "public/**"]
   }
 ];

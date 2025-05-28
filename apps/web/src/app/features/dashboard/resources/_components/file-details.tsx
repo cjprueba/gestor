@@ -1,10 +1,10 @@
-import { Collection } from "@/shared/types/types"
+import { Clock } from "lucide-react"
 
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/shared/components/ui/sheet"
-import { formatFileSize } from "@/shared/lib/file-utils"
-import { FileItem } from "@/shared/types/types"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs"
-import { Clock } from "lucide-react"
+import { formatFileSize } from "@/shared/lib/file-utils"
+import { Collection } from "@/shared/types/types"
+import { FileItem } from "@/shared/types/types"
 
 
 

@@ -2,6 +2,7 @@
   "name": "@gestor/eslint-config",
   "version": "0.0.0",
   "preferGlobal": true,
+  "type": "module",
   "files": [
     "library.js",
     "web.js",
@@ -9,8 +10,11 @@
   ],
   "devDependencies": {
     "@rocketseat/eslint-config": "^2.2.2",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
     "eslint": "^9.26.0",
     "eslint-plugin-simple-import-sort": "^12.1.1",
+    "eslint-plugin-react-refresh": "^0.4.19",
     "@gestor/prettier": "workspace:*"
   },
   "prettier": "@gestor/prettier",

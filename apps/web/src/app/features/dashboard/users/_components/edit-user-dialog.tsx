@@ -1,8 +1,8 @@
 
 
 import type React from "react"
+import { useEffect,useState } from "react"
 
-import { useState, useEffect } from "react"
 import { Button } from "@/shared/components/ui/button"
 import {
   Dialog,
@@ -16,6 +16,7 @@ import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
 import { Textarea } from "@/shared/components/ui/textarea"
+
 import { ResourcePermissionsDialog } from "./resource-permissions-dialog"
 
 interface EditUserDialogProps {

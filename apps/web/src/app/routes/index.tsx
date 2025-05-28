@@ -5,8 +5,9 @@ import {
 
 import AuthLayout from '@/app/layouts/AuthLayout';
 import MainLayout from '@/app/layouts/MainLayout';
-import Root from './__root';
+
 import UserLayout from '../layouts/UserLayout';
+import Root from './__root';
 
 export const rootRoute = createRootRouteWithContext()({
   component: Root

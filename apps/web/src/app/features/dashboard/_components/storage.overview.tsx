@@ -1,12 +1,11 @@
 import { Users } from "lucide-react";
-
 import { Folder } from "lucide-react";
+import { FileText } from "lucide-react";
+import { HardDrive } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
-import { FileText } from "lucide-react";
 import { Progress } from "@/shared/components/ui/progress";
 import { formatFileSize } from "@/shared/lib/file-utils";
-import { HardDrive } from "lucide-react";
 import { Collection, FileItem } from "@/shared/types/types";
 
 interface StorageOverViewProps{

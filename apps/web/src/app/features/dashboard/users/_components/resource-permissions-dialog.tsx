@@ -1,5 +1,23 @@
-import { useState, useEffect } from "react"
+import {
+  ChevronDown,
+  ChevronRight,
+  Download,
+  Edit,
+  Eye,
+  File,
+  FileText,
+  FolderOpen,
+  Search,
+  Share,
+  Trash2,
+} from "lucide-react"
+import { useEffect,useState } from "react"
+
+import { Badge } from "@/shared/components/ui/badge"
 import { Button } from "@/shared/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
+import { Checkbox } from "@/shared/components/ui/checkbox"
+import { Collapsible, CollapsibleContent } from "@/shared/components/ui/collapsible"
 import {
   Dialog,
   DialogContent,
@@ -9,25 +27,8 @@ import {
   DialogTitle,
 } from "@/shared/components/ui/dialog"
 import { Input } from "@/shared/components/ui/input"
-import { Badge } from "@/shared/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs"
-import { Checkbox } from "@/shared/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
-import { Collapsible, CollapsibleContent } from "@/shared/components/ui/collapsible"
-import {
-  Search,
-  ChevronDown,
-  ChevronRight,
-  FolderOpen,
-  FileText,
-  File,
-  Eye,
-  Edit,
-  Download,
-  Trash2,
-  Share,
-} from "lucide-react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs"
 
 interface ResourcePermissionsDialogProps {
   open: boolean

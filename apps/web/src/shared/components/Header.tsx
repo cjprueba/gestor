@@ -1,10 +1,11 @@
-import { SidebarTrigger } from "./ui/sidebar";
-import { Search, Bell } from "lucide-react";
+import { Bell,Search } from "lucide-react";
+import { useState } from "react";
+
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage,BreadcrumbSeparator } from "./ui/breadcrumb";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { useState } from "react";
-import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from "./ui/breadcrumb";
 import { Separator } from "./ui/separator";
+import { SidebarTrigger } from "./ui/sidebar";
 
 export default function Header() {
   const [searchQuery, setSearchQuery] = useState("")

@@ -1,8 +1,9 @@
-import { SidebarProvider } from '@/shared/components/ui/sidebar';
+import { Outlet } from '@tanstack/react-router';
+
 import Header from '@/shared/components/Header';
 import { AppSidebar } from '@/shared/components/sidebar/app-sidebar';
+import { SidebarProvider } from '@/shared/components/ui/sidebar';
 import { SidebarInset } from '@/shared/components/ui/sidebar';
-import { Outlet } from '@tanstack/react-router';
 
 export default function MainLayout() {
   return (

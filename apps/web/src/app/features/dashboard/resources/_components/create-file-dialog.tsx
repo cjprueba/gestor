@@ -1,5 +1,7 @@
 
 
+import { useState } from "react"
+
 import { Button } from "@/shared/components/ui/button"
 import {
   Dialog,
@@ -12,7 +14,6 @@ import {
 import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
 import type { FileType } from "@/shared/types/types"
-import { useState } from "react"
 
 interface CreateFileDialogProps {
   open: boolean
