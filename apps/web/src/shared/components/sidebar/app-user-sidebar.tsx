@@ -6,7 +6,6 @@ import {
   Files,
   FolderOpen,
   GalleryVerticalEnd,
-  Home,
   Shield,
   Star,
   Trash2,

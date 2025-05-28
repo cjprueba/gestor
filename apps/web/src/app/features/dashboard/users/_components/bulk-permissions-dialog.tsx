@@ -1,5 +1,3 @@
-
-
 import { File,FileText, FolderOpen, Users } from "lucide-react"
 import { useState } from "react"
 
@@ -180,7 +178,10 @@ export function BulkPermissionsDialog({ open, onOpenChange }: BulkPermissionsDia
 
                 {resourceType && resourceType !== "document" && (
                   <div className="flex items-center space-x-2">
-                    <Checkbox checked={applyToChildren} onCheckedChange={setApplyToChildren} />
+                    <Checkbox 
+                      checked={applyToChildren} 
+                      onCheckedChange={(checked) => setApplyToChildren(checked === true)} 
+                    />
                     <Label className="text-sm">
                       Aplicar permisos a todos los{" "}
                       {resourceType === "project" ? "contratos y documentos" : "documentos"} contenidos

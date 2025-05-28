@@ -57,15 +57,13 @@ const roles = [
 
 export default function UsersManagementPage() {
   const [searchTerm, setSearchTerm] = useState("")
-  const [selectedRole, setSelectedRole] = useState("all")
-  const [selectedStatus, setSelectedStatus] = useState("all")
   const [createUserOpen, setCreateUserOpen] = useState(false)
   const [inviteUserOpen, setInviteUserOpen] = useState(false)
   const [editUserOpen, setEditUserOpen] = useState(false)
   const [rolePermissionsOpen, setRolePermissionsOpen] = useState(false)
   const [userDetailsOpen, setUserDetailsOpen] = useState(false)
-  const [selectedUser, setSelectedUser] = useState(null)
-  const [selectedRoleForEdit, setSelectedRoleForEdit] = useState(null)
+  const [selectedUser, setSelectedUser] = useState<any>(null)
+  const [selectedRoleForEdit, setSelectedRoleForEdit] = useState<any>(null)
   const [bulkPermissionsOpen, setBulkPermissionsOpen] = useState(false)
 
   const [users] = useState([

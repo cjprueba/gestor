@@ -1,12 +1,12 @@
 import { Outlet } from "@tanstack/react-router";
 
-import Sidebar from "@/shared/components/sidebar/Sidebar";
+import { AppSidebar } from "@/shared/components/sidebar/app-sidebar";
 
 
 export default function AuthLayoutPage() {
   return (
     <main className="flex">
-      <Sidebar />
+      <AppSidebar />
       <div className="flex-1">
         <Outlet />
       </div>
