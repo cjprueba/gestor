@@ -1,6 +1,7 @@
-import type { FileItem, FileType, Folder } from "@/shared/types/types"
-import { v4 as uuidv4 } from "uuid"
 import type React from "react"
+import { v4 as uuidv4 } from "uuid"
+
+import type { FileItem, FileType, Folder } from "@/shared/types/types"
 
 // Helper function to format file size
 export function formatFileSize(bytes: number): string {

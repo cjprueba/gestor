@@ -1,5 +1,8 @@
 
 
+import { FolderPlus, Info, MoreVertical,Share2, Star, Trash } from "lucide-react"
+import { useState } from "react"
+
 import { Button } from "@/shared/components/ui/button"
 import {
   DropdownMenu,
@@ -11,8 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu"
 import type { Collection, FileItem } from "@/shared/types/types"
-import { Star, Trash, FolderPlus, Share2, Info, MoreVertical } from "lucide-react"
-import { useState } from "react"
+
 import { FileDetails } from "./file-details"
 
 interface FileContextMenuProps {

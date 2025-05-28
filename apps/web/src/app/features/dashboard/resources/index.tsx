@@ -1,10 +1,12 @@
+import { FolderPlus, Grid, Plus } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { v4 as uuidv4 } from "uuid";
+
 import { Button } from "@/shared/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
 import { createFileItem, createFolder, getFileTypeFromExtension } from "@/shared/lib/file-utils";
 import { Collection, FileItem, FileType, Folder } from "@/shared/types/types";
-import { FolderPlus, Grid, Plus } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-import { v4 as uuidv4 } from "uuid";
+
 import { CreateCollectionDialog } from "./_components/create-collection-dialog";
 import { CreateFileDialog } from "./_components/create-file-dialog";
 import { CreateFolderDialog } from "./_components/create-folder-dialog";

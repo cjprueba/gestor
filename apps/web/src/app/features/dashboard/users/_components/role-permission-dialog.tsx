@@ -1,7 +1,8 @@
 import type React from "react"
+import { useEffect,useState } from "react"
 
-import { useState, useEffect } from "react"
 import { Button } from "@/shared/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import {
   Dialog,
   DialogContent,
@@ -12,10 +13,9 @@ import {
 } from "@/shared/components/ui/dialog"
 import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
-import { Textarea } from "@/shared/components/ui/textarea"
-import { Switch } from "@/shared/components/ui/switch"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Separator } from "@/shared/components/ui/separator"
+import { Switch } from "@/shared/components/ui/switch"
+import { Textarea } from "@/shared/components/ui/textarea"
 
 interface RolePermissionsDialogProps {
   open: boolean

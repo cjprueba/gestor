@@ -1,9 +1,10 @@
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog"
-import { Badge } from "@/shared/components/ui/badge"
+import { Activity, Building, Calendar, Clock,FolderOpen, Mail, Phone, Shield, User } from "lucide-react"
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avatar"
+import { Badge } from "@/shared/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog"
 import { Separator } from "@/shared/components/ui/separator"
-import { User, Mail, Phone, Building, Calendar, Shield, FolderOpen, Activity, Clock } from "lucide-react"
 
 interface UserDetailsDialogProps {
   open: boolean

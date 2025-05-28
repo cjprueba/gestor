@@ -1,7 +1,12 @@
 
 
+import { Copy,Edit, LayoutTemplateIcon as Template, Plus, Trash2 } from "lucide-react"
 import { useState } from "react"
+
+import { Badge } from "@/shared/components/ui/badge"
 import { Button } from "@/shared/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card"
+import { Checkbox } from "@/shared/components/ui/checkbox"
 import {
   Dialog,
   DialogContent,
@@ -12,13 +17,9 @@ import {
 } from "@/shared/components/ui/dialog"
 import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
-import { Textarea } from "@/shared/components/ui/textarea"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card"
-import { Badge } from "@/shared/components/ui/badge"
-import { Checkbox } from "@/shared/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs"
-import { LayoutTemplateIcon as Template, Plus, Edit, Trash2, Copy } from "lucide-react"
+import { Textarea } from "@/shared/components/ui/textarea"
 
 interface PermissionTemplatesDialogProps {
   open: boolean

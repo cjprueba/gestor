@@ -1,7 +1,8 @@
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/shared/components/ui/card";
+import { Clock, Star,TrendingUp } from "lucide-react";
+
+import { Card, CardContent,CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { formatFileSize } from "@/shared/lib/file-utils";
 import { FileItem } from "@/shared/types/types";
-import { Clock, TrendingUp, Star } from "lucide-react";
 
 interface RecentsPopularOverviewProps {
   recentFiles: FileItem[]

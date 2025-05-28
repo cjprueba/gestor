@@ -22,6 +22,7 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/shared/components/ui/sidebar"
+
 import { NavMain } from "./nav-main"
 import { NavUser } from "./nav-user"
 import { TeamSwitcher } from "./team-switcher"
@@ -175,11 +176,6 @@ const navigationData = {
     },
   ],
   main: [
-    {
-      title: "Dashboard",
-      url: "/app",
-      icon: Home,
-    },
     {
       title: "Archivos",
       // url: "/app/files",

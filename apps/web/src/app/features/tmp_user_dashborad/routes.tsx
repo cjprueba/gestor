@@ -1,5 +1,7 @@
-import { userRoute } from '@/app/routes';
 import { createRoute } from '@tanstack/react-router';
+
+import { userRoute } from '@/app/routes';
+
 import UserDashboard from '.';
 
 export const userRoutes = [

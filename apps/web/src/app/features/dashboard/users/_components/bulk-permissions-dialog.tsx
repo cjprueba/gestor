@@ -1,7 +1,12 @@
 
 
+import { File,FileText, FolderOpen, Users } from "lucide-react"
 import { useState } from "react"
+
+import { Badge } from "@/shared/components/ui/badge"
 import { Button } from "@/shared/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card"
+import { Checkbox } from "@/shared/components/ui/checkbox"
 import {
   Dialog,
   DialogContent,
@@ -12,10 +17,6 @@ import {
 } from "@/shared/components/ui/dialog"
 import { Label } from "@/shared/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
-import { Checkbox } from "@/shared/components/ui/checkbox"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card"
-import { Badge } from "@/shared/components/ui/badge"
-import { Users, FolderOpen, FileText, File } from "lucide-react"
 
 interface BulkPermissionsDialogProps {
   open: boolean

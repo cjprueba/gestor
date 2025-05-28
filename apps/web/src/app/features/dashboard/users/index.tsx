@@ -1,3 +1,6 @@
+import { Calendar, Edit, Mail, MoreHorizontal, Plus, Search, Shield, UserPlus, Users } from "lucide-react"
+import { useState } from "react"
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avatar"
 import { Badge } from "@/shared/components/ui/badge"
 import { Button } from "@/shared/components/ui/button"
@@ -13,14 +16,13 @@ import {
 import { Input } from "@/shared/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs"
-import { Calendar, Edit, Mail, MoreHorizontal, Plus, Search, Shield, UserPlus, Users } from "lucide-react"
-import { useState } from "react"
-import { UserDetailsDialog } from "./_components/user-detail-dialog"
+
 import { BulkPermissionsDialog } from "./_components/bulk-permissions-dialog"
 import { CreateUserDialog } from "./_components/create-user-dialog"
 import { EditUserDialog } from "./_components/edit-user-dialog"
 import { InviteUserDialog } from "./_components/invite-user-dialog"
 import { RolePermissionsDialog } from "./_components/role-permission-dialog"
+import { UserDetailsDialog } from "./_components/user-detail-dialog"
 
 const roles = [
   {

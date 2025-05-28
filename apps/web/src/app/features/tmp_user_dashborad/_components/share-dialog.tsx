@@ -1,7 +1,12 @@
 "use client"
 
+import { Clock,Copy, Link, Mail, Users } from "lucide-react"
 import { useState } from "react"
+
+import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avatar"
+import { Badge } from "@/shared/components/ui/badge"
 import { Button } from "@/shared/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import {
   Dialog,
   DialogContent,
@@ -12,12 +17,8 @@ import {
 } from "@/shared/components/ui/dialog"
 import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
-import { Textarea } from "@/shared/components/ui/textarea"
-import { Badge } from "@/shared/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avatar"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
-import { Copy, Mail, Users, Link, Clock } from "lucide-react"
+import { Textarea } from "@/shared/components/ui/textarea"
 
 interface ShareDialogProps {
   open: boolean

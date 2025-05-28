@@ -1,18 +1,24 @@
 "use client"
 
-import { useState } from "react"
-import { Button } from "@/shared/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card"
-import { Input } from "@/shared/components/ui/input"
-import { Badge } from "@/shared/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avatar"
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "@/shared/components/ui/dropdown-menu"
+  ArrowLeft,
+  Clock,
+  Download,
+  Eye,
+  File,
+  FileText,
+  FolderOpen,
+  Grid,
+  Heart,
+  List,
+  MoreHorizontal,
+  Search,
+  Share,
+} from "lucide-react"
+import { useState } from "react"
+
+import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avatar"
+import { Badge } from "@/shared/components/ui/badge"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -20,22 +26,18 @@ import {
   BreadcrumbList,
   BreadcrumbSeparator,
 } from "@/shared/components/ui/breadcrumb"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs"
+import { Button } from "@/shared/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import {
-  Search,
-  FolderOpen,
-  FileText,
-  File,
-  MoreHorizontal,
-  Download,
-  Eye,
-  Share,
-  Clock,
-  ArrowLeft,
-  Grid,
-  List,
-  Heart,
-} from "lucide-react"
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/shared/components/ui/dropdown-menu"
+import { Input } from "@/shared/components/ui/input"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs"
+
 import { DocumentViewer } from "./_components/document-viewer"
 import { ShareDialog } from "./_components/share-dialog"
 
@@ -530,10 +532,10 @@ export default function UserDashboard() {
                     </div>
 
                     {/* User permissions */}
-                    <div>
+                    {/* <div>
                       <div className="text-sm font-medium mb-1">Mis permisos:</div>
                       <div className="flex flex-wrap gap-1">{getPermissionBadges(item.userPermissions)}</div>
-                    </div>
+                    </div> */}
 
                     {/* Additional info */}
                     {currentView === "projects" && (
@@ -582,7 +584,7 @@ export default function UserDashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    <div className="flex flex-wrap gap-1">{getPermissionBadges(item.userPermissions)}</div>
+                    {/* <div className="flex flex-wrap gap-1">{getPermissionBadges(item.userPermissions)}</div> */}
                     <div className="text-sm text-muted-foreground">Último acceso: {item.lastAccessed}</div>
                   </div>
                 </CardContent>
@@ -604,7 +606,7 @@ export default function UserDashboard() {
                         <p className="text-sm text-muted-foreground">
                           {doc.project} → {doc.contract}
                         </p>
-                        <div className="flex gap-1 mt-1">{getPermissionBadges(doc.userPermissions)}</div>
+                        {/* <div className="flex gap-1 mt-1">{getPermissionBadges(doc.userPermissions)}</div> */}
                       </div>
                     </div>
                     <div className="flex items-center gap-2">

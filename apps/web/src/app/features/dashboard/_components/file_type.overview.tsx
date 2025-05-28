@@ -1,6 +1,6 @@
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/shared/components/ui/card";
-import { getFileIcon } from "@/shared/lib/file-utils";
+import { Card, CardContent,CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Progress } from "@/shared/components/ui/progress";
+import { getFileIcon } from "@/shared/lib/file-utils";
 
 interface FileTypeOverviewProps {
   storageStats: {

@@ -1,5 +1,7 @@
 
 
+import { useState } from "react"
+
 import { Button } from "@/shared/components/ui/button"
 import {
   Dialog,
@@ -11,7 +13,6 @@ import {
 } from "@/shared/components/ui/dialog"
 import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
-import { useState } from "react"
 
 interface CreateCollectionDialogProps {
   open: boolean

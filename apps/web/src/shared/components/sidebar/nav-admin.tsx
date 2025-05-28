@@ -3,6 +3,7 @@ import {
   type LucideIcon
 } from "lucide-react"
 
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/shared/components/ui/collapsible"
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -14,7 +15,6 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/shared/components/ui/sidebar"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/shared/components/ui/collapsible"
 
 interface AdminSubItem {
   title: string

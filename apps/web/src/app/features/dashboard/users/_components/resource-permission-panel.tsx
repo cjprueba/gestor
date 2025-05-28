@@ -1,7 +1,13 @@
 
 
-import { useState, useEffect } from "react"
+import { Download, Edit, Eye, Search, Share, Shield, Trash2, UserPlus, X } from "lucide-react"
+import { useEffect,useState } from "react"
+
+import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avatar"
+import { Badge } from "@/shared/components/ui/badge"
 import { Button } from "@/shared/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
+import { Checkbox } from "@/shared/components/ui/checkbox"
 import {
   Dialog,
   DialogContent,
@@ -11,13 +17,8 @@ import {
   DialogTitle,
 } from "@/shared/components/ui/dialog"
 import { Input } from "@/shared/components/ui/input"
-import { Badge } from "@/shared/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avatar"
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs"
-import { Checkbox } from "@/shared/components/ui/checkbox"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/components/ui/table"
-import { Search, UserPlus, Eye, Edit, Download, Share, Trash2, Shield, X } from "lucide-react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs"
 
 interface ResourcePermissionsPanelProps {
   open: boolean

@@ -1,10 +1,11 @@
 "use client"
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog"
-import { Button } from "@/shared/components/ui/button"
+import { Calendar, Download, Eye, FileText, Heart, Share, User } from "lucide-react"
+
 import { Badge } from "@/shared/components/ui/badge"
+import { Button } from "@/shared/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card"
-import { Download, Share, Heart, Eye, FileText, Calendar, User } from "lucide-react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog"
 
 interface DocumentViewerProps {
   open: boolean
@@ -122,7 +123,7 @@ export function DocumentViewer({ open, onOpenChange, document }: DocumentViewerP
               </CardContent>
             </Card>
 
-            <Card>
+            {/* <Card>
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Eye className="w-5 h-5" />
@@ -135,7 +136,7 @@ export function DocumentViewer({ open, onOpenChange, document }: DocumentViewerP
                   {document.userPermissions && getPermissionBadges(document.userPermissions)}
                 </div>
               </CardContent>
-            </Card>
+            </Card> */}
           </div>
 
           {/* Document Preview */}

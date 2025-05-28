@@ -1,10 +1,11 @@
-import { Collection } from "@/shared/types/types"
-
-import { FileItem } from "@/shared/types/types"
-import { FileContextMenu } from "./file-context-menu"
 import { StarIcon } from "lucide-react"
+
 import { formatFileSize } from "@/shared/lib/file-utils"
 import { getFileIcon } from "@/shared/lib/file-utils"
+import { Collection } from "@/shared/types/types"
+import { FileItem } from "@/shared/types/types"
+
+import { FileContextMenu } from "./file-context-menu"
 
 export function FileCard({
   file,

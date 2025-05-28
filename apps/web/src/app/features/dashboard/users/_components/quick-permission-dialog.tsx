@@ -1,7 +1,13 @@
 
 
+import { Download, Edit, Eye, Search, Share, Trash2,UserPlus } from "lucide-react"
 import { useState } from "react"
+
+import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avatar"
+import { Badge } from "@/shared/components/ui/badge"
 import { Button } from "@/shared/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card"
+import { Checkbox } from "@/shared/components/ui/checkbox"
 import {
   Dialog,
   DialogContent,
@@ -12,11 +18,6 @@ import {
 } from "@/shared/components/ui/dialog"
 import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
-import { Badge } from "@/shared/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avatar"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card"
-import { Checkbox } from "@/shared/components/ui/checkbox"
-import { Search, UserPlus, Eye, Edit, Download, Share, Trash2 } from "lucide-react"
 
 interface QuickPermissionDialogProps {
   open: boolean
