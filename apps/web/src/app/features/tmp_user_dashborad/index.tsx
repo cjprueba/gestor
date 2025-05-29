@@ -362,7 +362,7 @@ export default function UserDashboard() {
                     <BreadcrumbItem>
                       <BreadcrumbLink
                         onClick={handleBackToProjects}
-                        // className={currentView === "projects" ? "font-semibold" : "cursor-pointer"}
+                      // className={currentView === "projects" ? "font-semibold" : "cursor-pointer"}
                       >
                         Mis Proyectos
                       </BreadcrumbLink>
@@ -402,13 +402,12 @@ export default function UserDashboard() {
                   <div className="relative">
                     <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
-                      placeholder={`Buscar ${
-                        currentView === "projects"
+                      placeholder={`Buscar ${currentView === "projects"
                           ? "proyectos"
                           : currentView === "contracts"
                             ? "contratos"
                             : "documentos"
-                      }...`}
+                        }...`}
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="pl-8"
