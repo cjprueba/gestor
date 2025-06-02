@@ -78,12 +78,12 @@ export function DocumentViewer({ open, onOpenChange, document }: DocumentViewerP
               </Button>
             )}
             {document.userPermissions?.includes("share") && (
-              <Button variant="outline" onClick={handleShare}>
+              <Button variant="secundario" onClick={handleShare}>
                 <Share className="w-4 h-4 mr-2" />
                 Compartir
               </Button>
             )}
-            <Button variant="outline">
+            <Button variant="secundario">
               <Heart className="w-4 h-4 mr-2" />
               Favorito
             </Button>

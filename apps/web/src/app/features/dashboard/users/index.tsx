@@ -214,7 +214,7 @@ export default function UsersManagementPage() {
                       className="pl-8"
                     />
                   </div>
-                  <Button variant="outline">
+                  <Button variant="secundario">
                     <Plus className="mr-2 h-4 w-4" />
                     Filtros
                   </Button>

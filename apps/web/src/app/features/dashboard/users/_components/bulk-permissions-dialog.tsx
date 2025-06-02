@@ -264,7 +264,7 @@ export function BulkPermissionsDialog({ open, onOpenChange }: BulkPermissionsDia
         </div>
 
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          <Button type="button" variant="secundario" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
           <Button

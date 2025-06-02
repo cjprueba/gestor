@@ -417,7 +417,7 @@ export default function UserDashboard() {
                 <div className="flex gap-2">
                   {currentView !== "projects" && (
                     <Button
-                      variant="outline"
+                      variant="secundario"
                       onClick={currentView === "contracts" ? handleBackToProjects : handleBackToContracts}
                     >
                       <ArrowLeft className="w-4 h-4 mr-2" />
@@ -425,7 +425,7 @@ export default function UserDashboard() {
                     </Button>
                   )}
                   <Button
-                    variant="outline"
+                    variant="secundario"
                     size="sm"
                     onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}
                   >

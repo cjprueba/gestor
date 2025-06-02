@@ -178,7 +178,7 @@ export function EditUserDialog({ open, onOpenChange, user }: EditUserDialogProps
               <Label>Acceso a Recursos</Label>
               <Button
                 type="button"
-                variant="outline"
+                variant="secundario"
                 onClick={() => setResourcePermissionsOpen(true)}
                 className="w-full"
               >
@@ -203,7 +203,7 @@ export function EditUserDialog({ open, onOpenChange, user }: EditUserDialogProps
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="secundario" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
             <Button type="submit">Guardar Cambios</Button>

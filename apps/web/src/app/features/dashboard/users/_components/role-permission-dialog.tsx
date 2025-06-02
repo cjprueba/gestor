@@ -202,7 +202,7 @@ export function RolePermissionsDialog({ open, onOpenChange, role }: RolePermissi
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="secundario" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
             <Button type="submit">Guardar Configuración</Button>

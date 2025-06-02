@@ -280,7 +280,7 @@ export function PermissionTemplatesDialog({ open, onOpenChange }: PermissionTemp
         </Tabs>
 
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          <Button type="button" variant="secundario" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
           {selectedTab === "templates" ? (

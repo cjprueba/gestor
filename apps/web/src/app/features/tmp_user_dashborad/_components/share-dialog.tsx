@@ -96,7 +96,7 @@ export function ShareDialog({ open, onOpenChange, document }: ShareDialogProps) 
           {/* Share Method Selection */}
           <div className="flex gap-2">
             <Button
-              variant={shareMethod === "email" ? "default" : "outline"}
+              variant={shareMethod === "email" ? "default" : "secundario"}
               onClick={() => setShareMethod("email")}
               className="flex-1"
             >
@@ -104,7 +104,7 @@ export function ShareDialog({ open, onOpenChange, document }: ShareDialogProps) 
               Por Email
             </Button>
             <Button
-              variant={shareMethod === "link" ? "default" : "outline"}
+              variant={shareMethod === "link" ? "default" : "secundario"}
               onClick={() => setShareMethod("link")}
               className="flex-1"
             >
@@ -207,7 +207,7 @@ export function ShareDialog({ open, onOpenChange, document }: ShareDialogProps) 
                     <Label>Enlace generado</Label>
                     <div className="flex gap-2">
                       <Input value={shareLink} readOnly className="flex-1" />
-                      <Button variant="outline" onClick={copyToClipboard}>
+                      <Button variant="secundario" onClick={copyToClipboard}>
                         <Copy className="w-4 h-4" />
                       </Button>
                     </div>
@@ -258,7 +258,7 @@ export function ShareDialog({ open, onOpenChange, document }: ShareDialogProps) 
         </div>
 
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          <Button type="button" variant="secundario" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
           <Button onClick={handleShare} disabled={shareMethod === "email" && selectedUsers.length === 0}>

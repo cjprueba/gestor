@@ -13,7 +13,7 @@ import {
 } from "@/shared/components/ui/dialog"
 import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
-import type { FileType } from "@/shared/types/types"
+import type { FileType } from "@/shared/types/file.type"
 
 interface CreateFileDialogProps {
   open: boolean

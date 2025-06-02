@@ -233,7 +233,7 @@ export function CreateUserDialog({ open, onOpenChange }: CreateUserDialogProps) 
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="secundario" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
             <Button type="submit">Crear Usuario</Button>

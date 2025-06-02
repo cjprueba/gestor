@@ -316,7 +316,7 @@ export function ResourcePermissionsPanel({ open, onOpenChange, resource }: Resou
                         {permissionTypes.map((perm) => (
                           <Button
                             key={perm.key}
-                            variant="outline"
+                            variant="secundario"
                             size="sm"
                             onClick={() => handleBulkPermissionAssign(perm.key)}
                           >
@@ -420,7 +420,7 @@ export function ResourcePermissionsPanel({ open, onOpenChange, resource }: Resou
         </div>
 
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          <Button type="button" variant="secundario" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
           <Button onClick={handleSave}>Guardar Cambios</Button>

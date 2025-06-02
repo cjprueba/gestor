@@ -62,7 +62,7 @@ export function UploadDialog({ open, onOpenChange, onUploadFiles }: UploadDialog
             <p className="mb-2 text-sm text-gray-500">
               <span className="font-semibold">Haz clic para subir</span> o arrastra y suelta
             </p>
-            <Button variant="outline" size="sm" onClick={handleBrowseClick} className="mb-2">
+            <Button variant="secundario" size="sm" onClick={handleBrowseClick} className="mb-2">
               Explorar Archivos
             </Button>
             {selectedFiles.length > 0 && (

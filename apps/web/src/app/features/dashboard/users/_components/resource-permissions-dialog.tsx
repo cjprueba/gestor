@@ -523,7 +523,7 @@ export function ResourcePermissionsDialog({ open, onOpenChange, user }: Resource
         </div>
 
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          <Button type="button" variant="secundario" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
           <Button onClick={handleSubmit}>Guardar Permisos</Button>
