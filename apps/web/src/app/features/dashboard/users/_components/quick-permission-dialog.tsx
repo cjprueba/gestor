@@ -239,8 +239,8 @@ export function QuickPermissionDialog({ open, onOpenChange, resource }: QuickPer
                   <div
                     key={preset.id}
                     className={`p-4 border rounded-lg cursor-pointer transition-all ${selectedPreset === preset.id
-                        ? "ring-2 ring-blue-500 bg-blue-50"
-                        : "hover:bg-gray-50 hover:border-gray-300"
+                      ? "ring-2 ring-blue-500 bg-blue-50"
+                      : "hover:bg-gray-50 hover:border-gray-300"
                       }`}
                     onClick={() => handlePresetSelect(preset.id)}
                   >
@@ -333,7 +333,7 @@ export function QuickPermissionDialog({ open, onOpenChange, resource }: QuickPer
         </div>
 
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          <Button type="button" variant="secundario" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
           <Button onClick={handleAssign} disabled={selectedUsers.length === 0 || customPermissions.length === 0}>

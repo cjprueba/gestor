@@ -96,7 +96,7 @@ export function InviteUserDialog({ open, onOpenChange }: InviteUserDialogProps) 
                     }
                   }}
                 />
-                <Button type="button" onClick={addEmail} variant="outline">
+                <Button type="button" onClick={addEmail} variant="secundario">
                   <Plus className="w-4 h-4" />
                 </Button>
               </div>
@@ -170,7 +170,7 @@ export function InviteUserDialog({ open, onOpenChange }: InviteUserDialogProps) 
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="secundario" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
             <Button type="submit" disabled={emails.length === 0 || !role}>
