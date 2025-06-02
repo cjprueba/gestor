@@ -25,133 +25,6 @@ import {
 
 import { NavAdmin } from "./nav-admin"
 import { NavMain } from "./nav-main"
-import { NavUser } from "./nav-user"
-import { TeamSwitcher } from "./team-switcher"
-// import { cn } from "@/shared/lib/utils"
-
-// This is sample data.
-// const data = {
-//   user: {
-//     name: "Juan",
-//     email: "juan@example.com",
-//     avatar: "/avatars/juan.jpg",
-//   },
-//   teams: [
-//     {
-//       name: "Acme Inc",
-//       logo: GalleryVerticalEnd,
-//       plan: "Enterprise",
-//     },
-//     {
-//       name: "Acme Corp.",
-//       logo: AudioWaveform,
-//       plan: "Startup",
-//     },
-//     {
-//       name: "Another Corp.",
-//       logo: Command,
-//       plan: "Free",
-//     },
-//   ],
-//   navMain: [
-//     {
-//       title: "Resumen",
-//       url: "/app",
-//       icon: Home,
-//       isActive: true,
-//       items: [
-
-//         {
-//           title: "Colecciones",
-//           url: "/app/collections",
-//         },
-//         {
-//           title: "Configuración",
-//           url: "#",
-//         },
-//       ],
-//     },
-//     {
-//       title: "Archivos",
-//       url: "/app/files",
-//       icon: Files,
-//       items: [
-//         {
-//           title: "Ver todos",
-//           url: "/app/files",
-//         },
-//         {
-//           title: "Colecciones",
-//           url: "#",
-//         },
-//       ],
-//     },
-//     {
-//       title: "Documentación",
-//       url: "#",
-//       icon: BookOpen,
-//       items: [
-//         {
-//           title: "Introducción",
-//           url: "#",
-//         },
-//         {
-//           title: "Comenzar",
-//           url: "#",
-//         },
-//         {
-//           title: "Tutoriales",
-//           url: "#",
-//         },
-//         {
-//           title: "Registro de cambios",
-//           url: "#",
-//         },
-//       ],
-//     },
-//     {
-//       title: "Configuración",
-//       url: "#",
-//       icon: Settings2,
-//       items: [
-//         {
-//           title: "General",
-//           url: "#",
-//         },
-//         {
-//           title: "Equipo",
-//           url: "#",
-//         },
-//         {
-//           title: "Facturación",
-//           url: "#",
-//         },
-//         {
-//           title: "Límites",
-//           url: "#",
-//         },
-//       ],
-//     },
-//   ],
-//   projects: [
-//     {
-//       name: "Ingeniería de Diseño",
-//       url: "#",
-//       icon: Frame,
-//     },
-//     {
-//       name: "Ventas y Marketing",
-//       url: "#",
-//       icon: PieChart,
-//     },
-//     {
-//       name: "Viajes",
-//       url: "#",
-//       icon: Map,
-//     },
-//   ],
-// }
-
 
 const navigationData = {
   user: {
@@ -213,7 +86,7 @@ const navigationData = {
       title: "Subir archivos",
       url: "/upload",
       icon: Upload,
-    } 
+    }
   ],
   admin: [
     {
@@ -272,39 +145,29 @@ const navigationData = {
   ],
 }
 
-// interface NavItemProps {
-//   href: string
-//   icon: React.ReactNode
-//   children: React.ReactNode
-//   active?: boolean
-//   onClick?: () => void
-// }
-
-// function NavItem({ href, icon, children, active, onClick }: NavItemProps) {
-//   return (
-//     <Link
-//       href={href}
-//       className={cn("flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-lg", active && "bg-gray-100")}
-//       onClick={onClick}
-//     >
-//       {icon}
-//       <span>{children}</span>
-//     </Link>
-//   )
-// }
-
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader>
-        <TeamSwitcher teams={navigationData.teams} />
+      <SidebarHeader
+        className="flex items-center flex-row gap-3 group-data-[state=collapsed]:justify-center transition-[padding,justify-content] duration-300 ease-in-out" >
+        <img
+          src="/logo_cl.png"
+          alt="logo"
+          className="w-14 h-auto group-data-[state=collapsed]:w-10 transition-all duration-200" />
+
+        <div className=" flex flex-col group-data-[state=collapsed]:hidden transition-all duration-300 ease-in-out">
+          <h1 className="text-md font-medium">MOP</h1>
+          <h2 className="text-xs font-medium">Gestor de Proyectos</h2>
+        </div>
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={navigationData.main} />
         <NavAdmin items={navigationData.admin} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={navigationData.user} />
+        <div className="absolute bottom-0 right-5 group-data-[state=collapsed]:hidden">
+          <img src="/franja.svg" alt="logo" className="w-full h-full" />
+        </div>
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

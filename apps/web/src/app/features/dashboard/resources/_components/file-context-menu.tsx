@@ -1,9 +1,9 @@
 
 
-import { FolderPlus, Info, MoreVertical,Share2, Star, Trash } from "lucide-react"
+import { Info, MoreVertical, Share2, Star, Trash } from "lucide-react"
 import { useState } from "react"
 
-import { Button } from "@/shared/components/ui/button"
+import { Button } from "@/shared/components/design-system/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu"
-import type { Collection, FileItem } from "@/shared/types/types"
+import type { Collection, FileItem } from "@/shared/types/file.type"
 
 import { FileDetails } from "./file-details"
 
@@ -30,8 +30,6 @@ interface FileContextMenuProps {
 export function FileContextMenu({
   file,
   collections,
-  onAddToCollection,
-  onRemoveFromCollection,
   onDelete,
   onStar,
   onShare,
@@ -39,18 +37,18 @@ export function FileContextMenu({
   const [detailsOpen, setDetailsOpen] = useState(false)
 
   // Check which collections this file is already in
-  const getFileCollections = (fileId: string) => {
-    return collections.filter((collection) => collection.fileIds.includes(fileId))
-  }
+  // const getFileCollections = (fileId: string) => {
+  //   return collections.filter((collection) => collection.fileIds.includes(fileId))
+  // }
 
-  const fileCollections = getFileCollections(file.id)
-  const availableCollections = collections.filter((collection) => !collection.fileIds.includes(file.id))
+  // const fileCollections = getFileCollections(file.id)
+  // const availableCollections = collections.filter((collection) => !collection.fileIds.includes(file.id))
 
   return (
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-          <Button variant="ghost" className="h-8 w-8 p-0">
+          <Button variant="ghost">
             <span className="sr-only">Abrir menú</span>
             <MoreVertical className="h-4 w-4" />
           </Button>
@@ -74,7 +72,7 @@ export function FileContextMenu({
           </DropdownMenuGroup>
 
           <DropdownMenuSeparator />
-          <DropdownMenuLabel>Colecciones</DropdownMenuLabel>
+          {/* <DropdownMenuLabel>Colecciones</DropdownMenuLabel>
 
           {availableCollections.length > 0 && (
             <DropdownMenuGroup>
@@ -85,9 +83,9 @@ export function FileContextMenu({
                 </DropdownMenuItem>
               ))}
             </DropdownMenuGroup>
-          )}
+          )} */}
 
-          {fileCollections.length > 0 && (
+          {/* {fileCollections.length > 0 && (
             <>
               <DropdownMenuSeparator />
               <DropdownMenuLabel>Remover de</DropdownMenuLabel>
@@ -100,9 +98,9 @@ export function FileContextMenu({
                 ))}
               </DropdownMenuGroup>
             </>
-          )}
+          )} */}
 
-          <DropdownMenuSeparator />
+          {/* <DropdownMenuSeparator /> */}
           <DropdownMenuItem className="text-red-600" onClick={() => onDelete(file.id)}>
             <Trash className="mr-2 h-4 w-4" />
             <span>Eliminar</span>

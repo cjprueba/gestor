@@ -7,12 +7,17 @@ import { SidebarInset } from '@/shared/components/ui/sidebar';
 
 export default function MainLayout() {
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
-        <Header />
-        <Outlet />
-      </SidebarInset>
-    </SidebarProvider>
+    <div className="min-h-screen flex flex-col">
+      <div className="flex-1 sidebar-container">
+        <SidebarProvider>
+          <AppSidebar />
+          <SidebarInset>
+            <Header />
+            <Outlet />
+          </SidebarInset>
+        </SidebarProvider>
+      </div>
+    </div>
+
   );
 }

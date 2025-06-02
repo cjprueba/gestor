@@ -1,11 +1,11 @@
 
 
-import { Plus,X } from "lucide-react"
+import { Plus, X } from "lucide-react"
 import type React from "react"
 import { useState } from "react"
 
 import { Badge } from "@/shared/components/ui/badge"
-import { Button } from "@/shared/components/ui/button"
+import { Button } from "@/shared/components/design-system/button"
 import {
   Dialog,
   DialogContent,

@@ -1,10 +1,9 @@
-import { StarIcon } from "lucide-react"
+import { ArrowRightIcon } from "lucide-react"
 
-import { formatFileSize } from "@/shared/lib/file-utils"
-import { getFileIcon } from "@/shared/lib/file-utils"
-import { Collection } from "@/shared/types/types"
-import { FileItem } from "@/shared/types/types"
+import { formatFileSize, getFileIcon } from "@/shared/lib/file-utils"
+import type { Collection, FileItem } from "@/shared/types/file.type"
 
+import { Button } from "@/shared/components/design-system/button"
 import { FileContextMenu } from "./file-context-menu"
 
 export function FileCard({
@@ -28,58 +27,45 @@ export function FileCard({
 }) {
   return (
     <div className="group relative overflow-hidden rounded-lg border bg-white cursor-pointer" onClick={onClick}>
-      <div className="absolute top-2 right-1 z-10">
-        <FileContextMenu
-          file={file}
-          collections={collections}
-          onAddToCollection={onAddToCollection}
-          onRemoveFromCollection={onRemoveFromCollection}
-          onDelete={onDeleteFile}
-          onStar={onStarFile}
-          onShare={onShareFile}
-        />
-      </div>
 
-      {file.starred && (
+      {/* {file.starred && (
         <div className="absolute bottom-2 right-2 z-10">
           <div className="rounded-full p-1">
             <StarIcon className="h-3 w-3 text-white" />
           </div>
         </div>
-      )}
+      )} */}
 
-      {/* <div className="aspect-[4/3] overflow-hidden">
-        {file.type === "folder" ? (
-          <div className="h-full w-full flex items-center justify-center bg-gray-100">
-            <svg className="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
-              />
-            </svg>
+      <div className="pt-4 px-4">
+        <div className="flex items-center gap-2 justify-between">
+          <div className="flex items-center gap-2">
+            {getFileIcon(file.type)}
+            <h4 className=" text-gray-900 truncate">{file.name}</h4>
           </div>
-        ) : (
-          <img
-            src={file.thumbnail || "/placeholder.svg?height=300&width=400"}
-            alt={file.name}
-            width={400}
-            height={300}
-            className="h-full w-full object-cover transition-transform group-hover:scale-105"
+          <FileContextMenu
+            file={file}
+            collections={collections}
+            onAddToCollection={onAddToCollection}
+            onRemoveFromCollection={onRemoveFromCollection}
+            onDelete={onDeleteFile}
+            onStar={onStarFile}
+            onShare={onShareFile}
           />
-        )}
-      </div> */}
-      <div className="p-4">
-        <div className="flex items-center gap-2">
-          {getFileIcon(file.type)}
-          <h3 className="font-medium text-gray-900 truncate">{file.name}</h3>
         </div>
         <p className="text-sm text-gray-500 mt-1">
           {file.type === "folder" ? "Folder" : `${file.type} • ${file.size ? formatFileSize(file.size) : ""}`}
         </p>
         <p className="text-xs text-gray-400 mt-1">Modified {file.modified.toLocaleDateString()}</p>
+        <div className="flex justify-end mb-2 mt-4">
+          <Button
+            variant="primario"
+            className="inline-flex items-center gap-2 justify-center transform translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 w-1/2 h-10">
+            Ver
+            <ArrowRightIcon className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
+
     </div>
   )
 }

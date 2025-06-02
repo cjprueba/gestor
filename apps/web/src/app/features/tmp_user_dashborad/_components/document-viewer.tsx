@@ -2,7 +2,7 @@
 
 import { Calendar, Download, FileText, Heart, Share, User } from "lucide-react"
 
-import { Button } from "@/shared/components/ui/button"
+import { Button } from "@/shared/components/design-system/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog"
 

@@ -1,11 +1,11 @@
 "use client"
 
-import { Clock,Copy, Link, Mail, Users } from "lucide-react"
+import { Clock, Copy, Link, Mail, Users } from "lucide-react"
 import { useState } from "react"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avatar"
 import { Badge } from "@/shared/components/ui/badge"
-import { Button } from "@/shared/components/ui/button"
+import { Button } from "@/shared/components/design-system/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import {
   Dialog,
@@ -125,15 +125,14 @@ export function ShareDialog({ open, onOpenChange, document }: ShareDialogProps) 
                   {availableUsers.map((user) => (
                     <div
                       key={user.id}
-                      className={`flex items-center space-x-3 p-3 border rounded-lg cursor-pointer transition-colors ${
-                        selectedUsers.includes(user.id) ? "bg-blue-50 border-blue-200" : "hover:bg-gray-50"
-                      }`}
+                      className={`flex items-center space-x-3 p-3 border rounded-lg cursor-pointer transition-colors ${selectedUsers.includes(user.id) ? "bg-blue-50 border-blue-200" : "hover:bg-gray-50"
+                        }`}
                       onClick={() => handleUserToggle(user.id)}
                     >
                       <input
                         type="checkbox"
                         checked={selectedUsers.includes(user.id)}
-                        onChange={() => {}}
+                        onChange={() => { }}
                         className="rounded"
                       />
                       <Avatar className="h-8 w-8">

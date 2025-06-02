@@ -8,9 +8,9 @@ export function App() {
     // <ThemeProvider>
     //   <AuthProvider>
     //     <ErrorBoundary>
-          // {/* Outlet renderiza las rutas */}
-          <Outlet /> 
-        // {/* </ErrorBoundary>
+    // {/* Outlet renderiza las rutas */}
+    <Outlet />
+    // {/* </ErrorBoundary>
     //   </AuthProvider>
     // </ThemeProvider> */}
   );

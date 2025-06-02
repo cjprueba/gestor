@@ -2,8 +2,7 @@ import { StarIcon } from "lucide-react"
 
 import { formatFileSize } from "@/shared/lib/file-utils"
 import { getFileIcon } from "@/shared/lib/file-utils"
-import { FileItem } from "@/shared/types/types"
-import { Collection } from "@/shared/types/types"
+import type { FileItem, Collection } from "@/shared/types/file.type"
 
 import { FileContextMenu } from "./file-context-menu"
 

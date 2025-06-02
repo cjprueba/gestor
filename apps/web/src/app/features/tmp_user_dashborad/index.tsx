@@ -26,7 +26,7 @@ import {
   BreadcrumbList,
   BreadcrumbSeparator,
 } from "@/shared/components/ui/breadcrumb"
-import { Button } from "@/shared/components/ui/button"
+import { Button } from "@/shared/components/design-system/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import {
   DropdownMenu,
@@ -403,10 +403,10 @@ export default function UserDashboard() {
                     <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
                       placeholder={`Buscar ${currentView === "projects"
-                          ? "proyectos"
-                          : currentView === "contracts"
-                            ? "contratos"
-                            : "documentos"
+                        ? "proyectos"
+                        : currentView === "contracts"
+                          ? "contratos"
+                          : "documentos"
                         }...`}
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}

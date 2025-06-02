@@ -3,7 +3,7 @@
 import { useMemo } from "react"
 
 import { formatFileSize } from "@/shared/lib/file-utils"
-import type { Collection, FileItem } from "@/shared/types/types"
+import type { Collection, FileItem } from "@/shared/types/file.type"
 
 import { CollectionsOverview } from "./collections.overview"
 import { RecentsPopularOverview } from "./recents_popular.overview"
@@ -64,7 +64,7 @@ export function OverviewDashboard({ files, collections, onFileClick, onCollectio
 
 
   return (
-    <main className="space-y-6 px-12">
+    <main className="space-y-6 px-12 pb-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Panel de Control</h1>
       </div>

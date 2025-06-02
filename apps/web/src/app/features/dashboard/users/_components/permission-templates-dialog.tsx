@@ -1,10 +1,10 @@
 
 
-import { Copy,Edit, LayoutTemplateIcon as Template, Plus, Trash2 } from "lucide-react"
+import { Copy, Edit, LayoutTemplateIcon as Template, Plus, Trash2 } from "lucide-react"
 import { useState } from "react"
 
 import { Badge } from "@/shared/components/ui/badge"
-import { Button } from "@/shared/components/ui/button"
+import { Button } from "@/shared/components/design-system/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Checkbox } from "@/shared/components/ui/checkbox"
 import {
@@ -170,9 +170,8 @@ export function PermissionTemplatesDialog({ open, onOpenChange }: PermissionTemp
               {templates.map((template) => (
                 <Card
                   key={template.id}
-                  className={`cursor-pointer transition-all ${
-                    selectedTemplate === template.id ? "ring-2 ring-blue-500" : ""
-                  }`}
+                  className={`cursor-pointer transition-all ${selectedTemplate === template.id ? "ring-2 ring-blue-500" : ""
+                    }`}
                   onClick={() => setSelectedTemplate(template.id)}
                 >
                   <CardHeader>

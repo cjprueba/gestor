@@ -1,9 +1,8 @@
 import type React from "react"
 import { v4 as uuidv4 } from "uuid"
 
-import type { FileItem, FileType, Folder } from "@/shared/types/types"
+import type { FileItem, FileType, Folder } from "@/shared/types/file.type"
 
-// Helper function to format file size
 export function formatFileSize(bytes: number): string {
   if (bytes === 0) return "0 Bytes"
 
@@ -14,7 +13,6 @@ export function formatFileSize(bytes: number): string {
   return Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i]
 }
 
-// Helper function to get file type from extension
 export function getFileTypeFromExtension(filename: string): FileType {
   const extension = filename.split(".").pop()?.toLowerCase() || ""
 
@@ -33,7 +31,6 @@ export function getFileTypeFromExtension(filename: string): FileType {
   return "document"
 }
 
-// Create a new file item
 export function createFileItem(
   name: string,
   type: FileType,

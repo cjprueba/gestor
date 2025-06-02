@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 
-import { Button } from "@/shared/components/ui/button"
+import { Button } from "@/shared/components/design-system/button"
 import {
   Dialog,
   DialogContent,
