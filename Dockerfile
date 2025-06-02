@@ -1,6 +1,6 @@
 # Stage 1: Build
-#FROM node:20-alpine AS builder
-FROM registry.access.redhat.com/ubi8/nodejs-20:latest AS builder
+FROM node:20-alpine AS builder
+#FROM registry.access.redhat.com/ubi8/nodejs-20:latest AS builder
 
 
 WORKDIR /app
