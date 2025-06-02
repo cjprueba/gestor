@@ -1,9 +1,9 @@
 
 
 import type React from "react"
-import { useRef,useState } from "react"
+import { useRef, useState } from "react"
 
-import { Button } from "@/shared/components/ui/button"
+import { Button } from "@/shared/components/design-system/button"
 import {
   Dialog,
   DialogContent,

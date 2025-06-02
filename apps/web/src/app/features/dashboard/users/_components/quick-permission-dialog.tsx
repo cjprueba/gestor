@@ -1,11 +1,11 @@
 
 
-import { Download, Edit, Eye, Search, Share, Trash2,UserPlus } from "lucide-react"
+import { Download, Edit, Eye, Search, Share, Trash2, UserPlus } from "lucide-react"
 import { useState } from "react"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avatar"
 import { Badge } from "@/shared/components/ui/badge"
-import { Button } from "@/shared/components/ui/button"
+import { Button } from "@/shared/components/design-system/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Checkbox } from "@/shared/components/ui/checkbox"
 import {
@@ -193,12 +193,11 @@ export function QuickPermissionDialog({ open, onOpenChange, resource }: QuickPer
                 {filteredUsers.map((user) => (
                   <div
                     key={user.id}
-                    className={`flex items-center space-x-3 p-3 border rounded-lg cursor-pointer transition-colors ${
-                      selectedUsers.includes(user.id) ? "bg-blue-50 border-blue-200" : "hover:bg-gray-50"
-                    }`}
+                    className={`flex items-center space-x-3 p-3 border rounded-lg cursor-pointer transition-colors ${selectedUsers.includes(user.id) ? "bg-blue-50 border-blue-200" : "hover:bg-gray-50"
+                      }`}
                     onClick={() => handleUserToggle(user.id)}
                   >
-                    <Checkbox checked={selectedUsers.includes(user.id)} onChange={() => {}} />
+                    <Checkbox checked={selectedUsers.includes(user.id)} onChange={() => { }} />
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={user.avatar || "/placeholder.svg"} alt={user.name} />
                       <AvatarFallback>
@@ -239,11 +238,10 @@ export function QuickPermissionDialog({ open, onOpenChange, resource }: QuickPer
                 {permissionPresets.map((preset) => (
                   <div
                     key={preset.id}
-                    className={`p-4 border rounded-lg cursor-pointer transition-all ${
-                      selectedPreset === preset.id
+                    className={`p-4 border rounded-lg cursor-pointer transition-all ${selectedPreset === preset.id
                         ? "ring-2 ring-blue-500 bg-blue-50"
                         : "hover:bg-gray-50 hover:border-gray-300"
-                    }`}
+                      }`}
                     onClick={() => handlePresetSelect(preset.id)}
                   >
                     <div className="flex items-center justify-between mb-2">
@@ -275,12 +273,11 @@ export function QuickPermissionDialog({ open, onOpenChange, resource }: QuickPer
                   {Object.entries(permissionIcons).map(([perm, Icon]) => (
                     <div
                       key={perm}
-                      className={`flex items-center space-x-2 p-3 border rounded-lg cursor-pointer transition-colors ${
-                        customPermissions.includes(perm) ? "bg-green-50 border-green-200" : "hover:bg-gray-50"
-                      }`}
+                      className={`flex items-center space-x-2 p-3 border rounded-lg cursor-pointer transition-colors ${customPermissions.includes(perm) ? "bg-green-50 border-green-200" : "hover:bg-gray-50"
+                        }`}
                       onClick={() => handleCustomPermissionToggle(perm)}
                     >
-                      <Checkbox checked={customPermissions.includes(perm)} onChange={() => {}} />
+                      <Checkbox checked={customPermissions.includes(perm)} onChange={() => { }} />
                       <Icon className="w-4 h-4" />
                       <span className="text-sm capitalize">{perm}</span>
                     </div>

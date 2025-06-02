@@ -41,7 +41,7 @@ export function NavAdmin({
       <SidebarGroupContent>
         <SidebarMenu>
           {items.map((item) => (
-            <SidebarMenuItem key={item.title}>
+            <SidebarMenuItem className="font-sans font-medium rounded-md transition-colors" key={item.title}>
               <Collapsible className="group/collapsible">
                 <CollapsibleTrigger asChild>
                   <SidebarMenuButton>

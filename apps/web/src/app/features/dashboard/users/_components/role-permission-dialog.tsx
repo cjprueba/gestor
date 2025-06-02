@@ -1,7 +1,7 @@
 import type React from "react"
-import { useEffect,useState } from "react"
+import { useEffect, useState } from "react"
 
-import { Button } from "@/shared/components/ui/button"
+import { Button } from "@/shared/components/design-system/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import {
   Dialog,

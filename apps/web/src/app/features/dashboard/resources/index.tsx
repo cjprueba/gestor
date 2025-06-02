@@ -1,11 +1,11 @@
-import { FolderPlus, Grid, Plus } from "lucide-react";
+import { FolderPlus, Grid, Plus, Upload } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 
-import { Button } from "@/shared/components/ui/button";
+import { Button } from "@/shared/components/design-system/button";
 import { Tabs, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
 import { createFileItem, createFolder, getFileTypeFromExtension } from "@/shared/lib/file-utils";
-import { Collection, FileItem, FileType, Folder } from "@/shared/types/types";
+import type { Collection, FileItem, FileType, Folder } from "@/shared/types/file.type";
 
 import { CreateCollectionDialog } from "./_components/create-collection-dialog";
 import { CreateFileDialog } from "./_components/create-file-dialog";
@@ -139,7 +139,7 @@ export default function FilesPage() {
 
     setFiles([...files, ...newFiles])
   }
-  
+
   const handleCreateCollection = (name: string) => {
     const newCollection: Collection = {
       id: uuidv4(),
@@ -299,7 +299,7 @@ export default function FilesPage() {
         <>
           {currentFolder && (
             <div className="mb-4">
-              <Button variant="ghost" onClick={navigateToParent} className="text-sm text-gray-500">
+              <Button variant="primario" onClick={navigateToParent} className="text-sm text-gray-500">
                 <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
@@ -310,7 +310,7 @@ export default function FilesPage() {
           )}
           {activeCollection && (
             <div className="mb-4">
-              <Button variant="ghost" onClick={() => setActiveCollection(null)} className="text-sm text-gray-500">
+              <Button variant="iconoSecundario" onClick={() => setActiveCollection(null)} className="text-sm text-gray-500">
                 <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
@@ -322,39 +322,29 @@ export default function FilesPage() {
             </div>
           )}
 
-          <div className="mb-6 flex items-center gap-4">
-            <Button className="gap-2" onClick={() => setCreateFileOpen(true)}>
-              <Plus className="h-4 w-4" />
-              Crear
-            </Button>
-            <Button variant="outline" className="gap-2" onClick={() => setUploadOpen(true)}>
-              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path
-                  d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              Subir
-            </Button>
-            <Button variant="outline" className="gap-2" onClick={() => setCreateFolderOpen(true)}>
-              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path
-                  d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              Crear carpeta
-            </Button>
-            <Button variant="outline" className="gap-2" onClick={() => setCreateCollectionOpen(true)}>
+          <div className="mb-6 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+
+              <Button variant="primario" className="gap-2" onClick={() => setCreateFileOpen(true)}>
+                Crear
+                <Plus className="h-4 w-4" strokeWidth={2.5} />
+              </Button>
+              <Button variant="secundario" className="gap-2" onClick={() => setUploadOpen(true)}>
+                <Upload className="h-4 w-4" strokeWidth={2.5} />
+                Subir
+              </Button>
+              <Button variant="secundario" className="gap-2" onClick={() => setCreateFolderOpen(true)}>
+                <FolderPlus className="h-4 w-4" strokeWidth={2.5} />
+                Crear carpeta
+              </Button>
+              {/* <Button variant="secundario" className="gap-2" onClick={() => setCreateCollectionOpen(true)}>
               <FolderPlus className="h-4 w-4" />
               Nueva Colección
-            </Button>
-            <div className="flex justify-end">
-              <Button className="self-end" variant="ghost" size="icon" onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}>
+            </Button> */}
+            </div>
+
+            <div className="flex items-center">
+              <Button variant="iconoSecundario" size="md" onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}>
                 <Grid className="h-4 w-4" />
               </Button>
             </div>
@@ -371,7 +361,7 @@ export default function FilesPage() {
           </div>
 
           {viewMode === "grid" ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 p-4">
+            <section className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4 p-4">
               {filteredFiles.map((file) => (
                 <FileCard
                   key={file.id}
@@ -392,7 +382,7 @@ export default function FilesPage() {
                     : "No se encontraron archivos en esta ubicación."}
                 </div>
               )}
-            </div>
+            </section>
           ) : (
             <div className="border rounded-lg overflow-hidden">
               {filteredFiles.map((file) => (
