@@ -1,22 +1,19 @@
 "use client"
 
 import {
-  ArrowLeft,
   Clock,
   Download,
   Eye,
   File,
   FileText,
   FolderOpen,
-  Grid,
   Heart,
-  List,
   MoreHorizontal,
-  Search,
-  Share,
+  Share
 } from "lucide-react"
 import { useState } from "react"
 
+import { Button } from "@/shared/components/design-system/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avatar"
 import { Badge } from "@/shared/components/ui/badge"
 import {
@@ -26,7 +23,6 @@ import {
   BreadcrumbList,
   BreadcrumbSeparator,
 } from "@/shared/components/ui/breadcrumb"
-import { Button } from "@/shared/components/design-system/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import {
   DropdownMenu,
@@ -35,7 +31,6 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu"
-import { Input } from "@/shared/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs"
 
 import { DocumentViewer } from "./_components/document-viewer"
@@ -346,10 +341,10 @@ export default function UserDashboard() {
 
       {/* Main Content */}
       <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="all">Todos los Recursos</TabsTrigger>
-          <TabsTrigger value="favorites">Favoritos</TabsTrigger>
-          <TabsTrigger value="recent">Recientes</TabsTrigger>
+        <TabsList className="w-full gap-4 flex justify-center">
+          <TabsTrigger value="all" className="text-neutral-400">Todos los Recursos</TabsTrigger>
+          <TabsTrigger value="favorites" className="text-neutral-400">Favoritos</TabsTrigger>
+          <TabsTrigger value="recent" className="text-neutral-400">Recientes</TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="space-y-4">
@@ -395,46 +390,46 @@ export default function UserDashboard() {
           )}
 
           {/* Search and View Controls */}
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="flex-1">
-                  <div className="relative">
-                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder={`Buscar ${currentView === "projects"
-                        ? "proyectos"
-                        : currentView === "contracts"
-                          ? "contratos"
-                          : "documentos"
-                        }...`}
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-8"
-                    />
+          {/* <Card>
+              <CardContent className="pt-6">
+                <div className="flex flex-col md:flex-row gap-4">
+                  <div className="flex-1">
+                    <div className="relative">
+                      <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder={`Buscar ${currentView === "projects"
+                          ? "proyectos"
+                          : currentView === "contracts"
+                            ? "contratos"
+                            : "documentos"
+                          }...`}
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-8"
+                      />
+                    </div>
                   </div>
-                </div>
-                <div className="flex gap-2">
-                  {currentView !== "projects" && (
+                  <div className="flex gap-2">
+                    {currentView !== "projects" && (
+                      <Button
+                        variant="secundario"
+                        onClick={currentView === "contracts" ? handleBackToProjects : handleBackToContracts}
+                      >
+                        <ArrowLeft className="w-4 h-4 mr-2" />
+                        Volver
+                      </Button>
+                    )}
                     <Button
                       variant="secundario"
-                      onClick={currentView === "contracts" ? handleBackToProjects : handleBackToContracts}
+                      size="sm"
+                      onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}
                     >
-                      <ArrowLeft className="w-4 h-4 mr-2" />
-                      Volver
+                      {viewMode === "grid" ? <List className="w-4 h-4" /> : <Grid className="w-4 h-4" />}
                     </Button>
-                  )}
-                  <Button
-                    variant="secundario"
-                    size="sm"
-                    onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}
-                  >
-                    {viewMode === "grid" ? <List className="w-4 h-4" /> : <Grid className="w-4 h-4" />}
-                  </Button>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card> */}
 
           {/* Content Grid */}
           <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" : "space-y-4"}>
@@ -443,65 +438,63 @@ export default function UserDashboard() {
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3 flex-1">
-                      {currentView === "projects" && <FolderOpen className="w-8 h-8 text-blue-600" />}
-                      {currentView === "contracts" && <FileText className="w-8 h-8 text-green-600" />}
-                      {currentView === "documents" && <div className="text-2xl">{getFileIcon(item.type)}</div>}
+
                       <div className="flex-1">
                         <CardTitle
-                          className="text-lg cursor-pointer hover:text-blue-600"
+                          className="text-md cursor-pointer hover:text-blue-500 flex items-center gap-2 justify-between"
                           onClick={() => {
                             if (currentView === "projects") handleProjectClick(item)
                             else if (currentView === "contracts") handleContractClick(item)
                             else if (currentView === "documents") handleDocumentView(item)
                           }}
                         >
-                          {item.name}
+                          <div className="flex items-center gap-2">
+                            <div>
+                              {currentView === "projects" && <FolderOpen className="w-5 h-5 text-blue-500" />}
+                              {currentView === "contracts" && <FileText className="w-5 h-5 text-green-500" />}
+                              {currentView === "documents" && <div className="text-2xl">{getFileIcon(item.type)}</div>}
+                            </div>
+                            {item.name}
+                          </div>
+                          <div className="flex items-center gap-2 justify-end">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="iconoSecundario">
+                                  <MoreHorizontal className="h-5 w-5" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                                {item.userPermissions.includes("view") && (
+                                  <DropdownMenuItem
+                                    onClick={() => {
+                                      if (currentView === "documents") handleDocumentView(item)
+                                    }}
+                                  >
+                                    <Eye className="w-4 h-4 mr-2" />
+                                    Ver
+                                  </DropdownMenuItem>
+                                )}
+                                {item.userPermissions.includes("download") && (
+                                  <DropdownMenuItem onClick={() => handleDocumentDownload(item)}>
+                                    <Download className="w-4 h-4 mr-2" />
+                                    Descargar
+                                  </DropdownMenuItem>
+                                )}
+                                {item.userPermissions.includes("share") && (
+                                  <DropdownMenuItem onClick={() => handleDocumentShare(item)}>
+                                    <Share className="w-4 h-4 mr-2" />
+                                    Compartir
+                                  </DropdownMenuItem>
+                                )}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
                         </CardTitle>
                         {item.description && <CardDescription>{item.description}</CardDescription>}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => toggleFavorite(item, currentView.slice(0, -1))}
-                        className={item.isFavorite ? "text-red-500" : "text-gray-400"}
-                      >
-                        <Heart className={`w-4 h-4 ${item.isFavorite ? "fill-current" : ""}`} />
-                      </Button>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                          {item.userPermissions.includes("view") && (
-                            <DropdownMenuItem
-                              onClick={() => {
-                                if (currentView === "documents") handleDocumentView(item)
-                              }}
-                            >
-                              <Eye className="w-4 h-4 mr-2" />
-                              Ver
-                            </DropdownMenuItem>
-                          )}
-                          {item.userPermissions.includes("download") && (
-                            <DropdownMenuItem onClick={() => handleDocumentDownload(item)}>
-                              <Download className="w-4 h-4 mr-2" />
-                              Descargar
-                            </DropdownMenuItem>
-                          )}
-                          {item.userPermissions.includes("share") && (
-                            <DropdownMenuItem onClick={() => handleDocumentShare(item)}>
-                              <Share className="w-4 h-4 mr-2" />
-                              Compartir
-                            </DropdownMenuItem>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
+
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -616,11 +609,11 @@ export default function UserDashboard() {
             ))}
           </div>
         </TabsContent>
-      </Tabs>
+      </Tabs >
 
       {/* Dialogs */}
-      <DocumentViewer open={documentViewerOpen} onOpenChange={setDocumentViewerOpen} document={selectedDocument} />
+      < DocumentViewer open={documentViewerOpen} onOpenChange={setDocumentViewerOpen} document={selectedDocument} />
       <ShareDialog open={shareDialogOpen} onOpenChange={setShareDialogOpen} document={selectedDocument} />
-    </div>
+    </div >
   )
 }

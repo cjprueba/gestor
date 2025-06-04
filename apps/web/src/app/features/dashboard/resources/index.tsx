@@ -10,9 +10,11 @@ import type { Collection, FileItem, FileType, Folder } from "@/shared/types/file
 import { CreateCollectionDialog } from "./_components/create-collection-dialog";
 import { CreateFileDialog } from "./_components/create-file-dialog";
 import { CreateFolderDialog } from "./_components/create-folder-dialog";
-import { FileListItem } from "./_components/file-list-item";
+// import { FileListItem } from "./_components/file-list-item";
 import { FileCard } from "./_components/files-card";
 import { UploadDialog } from "./_components/upload-dialog";
+import { DataTable } from "@/shared/components/data-table/data-table";
+import { getFileColumns } from "@/shared/components/data-table/columns";
 
 export default function FilesPage() {
   // View state
@@ -23,6 +25,8 @@ export default function FilesPage() {
   const [createFolderOpen, setCreateFolderOpen] = useState(false)
   const [createCollectionOpen, setCreateCollectionOpen] = useState(false)
   const [uploadOpen, setUploadOpen] = useState(false)
+  const [selected, setSelected] = useState<string[]>([])
+
   // const [recordOpen, setRecordOpen] = useState(false)
 
   // State for files and folders
@@ -201,6 +205,15 @@ export default function FilesPage() {
     }
   }
 
+  const handleDeleteSelected = () => {
+    setFiles(files.filter(file => !selected.includes(file.id)))
+    setCollections(collections.map(c => ({
+      ...c,
+      fileIds: c.fileIds.filter(id => !selected.includes(id)),
+    })))
+    setSelected([])
+  }
+
   // const handleCollectionClick = (collectionId: string) => {
   //   setActiveCollection(collectionId)
   //   setCurrentFolder(null)
@@ -352,7 +365,7 @@ export default function FilesPage() {
 
           <div className="mb-6 w-1/4">
             <Tabs defaultValue={activeTab} onValueChange={(value) => setActiveTab(value)}>
-              <TabsList className="w-full">
+              <TabsList className="flex w-full border-b border-gray-300">
                 <TabsTrigger value="recent">Recientes</TabsTrigger>
                 <TabsTrigger value="starred">Favoritos</TabsTrigger>
                 <TabsTrigger value="shared">Compartidos</TabsTrigger>
@@ -384,28 +397,17 @@ export default function FilesPage() {
               )}
             </section>
           ) : (
-            <div className="border rounded-lg overflow-hidden">
-              {filteredFiles.map((file) => (
-                <FileListItem
-                  key={file.id}
-                  file={file}
-                  collections={collections}
-                  onClick={() => handleFileClick(file)}
-                  onAddToCollection={addFileToCollection}
-                  onRemoveFromCollection={removeFileFromCollection}
-                  onDeleteFile={handleDeleteFile}
-                  onStarFile={handleStarFile}
-                  onShareFile={handleShareFile}
-                />
-              ))}
-              {filteredFiles.length === 0 && (
-                <div className="text-center p-8 text-gray-500">
-                  {activeCollection
-                    ? "Aún no hay archivos en esta colección. Agrega archivos usando el menú contextual."
-                    : "No se encontraron archivos en esta ubicación."}
-                </div>
-              )}
-            </div>
+            <DataTable
+              data={filteredFiles}
+              selected={selected}
+              onDeleteSelected={handleDeleteSelected}
+              columns={getFileColumns(selected, setSelected, {
+                onClick: handleFileClick,
+                onDeleteFile: handleDeleteFile,
+                onStarFile: handleStarFile,
+                onShareFile: handleShareFile,
+              })}
+            />
           )}
         </>
       </div>
