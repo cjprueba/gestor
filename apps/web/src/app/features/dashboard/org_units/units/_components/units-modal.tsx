@@ -32,7 +32,6 @@ interface UnitModalProps {
 export function UnitModal({ open, onOpenChange, unit, divisions, departments, projects, onSave }: UnitModalProps) {
   const [formData, setFormData] = useState({
     name: "",
-    code: "",
     status: "" as Unit["status"] | "",
     divisionId: "",
     assignmentType: "" as Unit["assignmentType"] | "",
@@ -50,7 +49,6 @@ export function UnitModal({ open, onOpenChange, unit, divisions, departments, pr
     if (unit) {
       setFormData({
         name: unit.name,
-        code: unit.code,
         status: unit.status,
         divisionId: unit.divisionId,
         assignmentType: unit.assignmentType,
@@ -61,7 +59,6 @@ export function UnitModal({ open, onOpenChange, unit, divisions, departments, pr
     } else {
       setFormData({
         name: "",
-        code: "",
         status: "ACTIVA",
         divisionId: "",
         assignmentType: "",
@@ -104,9 +101,9 @@ export function UnitModal({ open, onOpenChange, unit, divisions, departments, pr
       newErrors.name = "El nombre debe tener al menos 3 caracteres"
     }
 
-    if (!formData.code.trim()) {
-      newErrors.code = "El código de la unidad es requerido"
-    }
+    // if (!formData.code.trim()) {
+    //   newErrors.code = "El código de la unidad es requerido"
+    // }
 
     if (!formData.divisionId) {
       newErrors.divisionId = "Debe seleccionar una división"
@@ -135,7 +132,11 @@ export function UnitModal({ open, onOpenChange, unit, divisions, departments, pr
   const handleSubmit = () => {
     if (validateForm()) {
       const unitData: Partial<Unit> = {
-        ...formData,
+        name: formData.name,
+        status: formData.status as Unit["status"],
+        divisionId: formData.divisionId,
+        assignmentType: formData.assignmentType as Unit["assignmentType"],
+        observations: formData.observations,
         // Solo incluir departmentId si es asignación a división
         departmentId: formData.assignmentType === "DIVISION" ? formData.departmentId : undefined,
         // Solo incluir projectId si es asignación a proyecto
@@ -146,16 +147,16 @@ export function UnitModal({ open, onOpenChange, unit, divisions, departments, pr
     }
   }
 
-  const generateCode = () => {
-    if (formData.name) {
-      // Generar código basado en el nombre
-      const words = formData.name.split(" ")
-      const initials = words.map((word) => word.charAt(0).toUpperCase()).join("")
-      const timestamp = Date.now().toString().slice(-3)
-      const code = `${initials}-${timestamp}`
-      setFormData((prev) => ({ ...prev, code }))
-    }
-  }
+  // const generateCode = () => {
+  //   if (formData.name) {
+  //     // Generar código basado en el nombre
+  //     const words = formData.name.split(" ")
+  //     const initials = words.map((word) => word.charAt(0).toUpperCase()).join("")
+  //     const timestamp = Date.now().toString().slice(-3)
+  //     const code = `${initials}-${timestamp}`
+  //     setFormData((prev) => ({ ...prev, code }))
+  //   }
+  // }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -187,7 +188,7 @@ export function UnitModal({ open, onOpenChange, unit, divisions, departments, pr
               {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
             </div>
 
-            <div className="space-y-2">
+            {/* <div className="space-y-2">
               <Label htmlFor="code">Código</Label>
               <div className="flex space-x-2">
                 <Input
@@ -202,7 +203,7 @@ export function UnitModal({ open, onOpenChange, unit, divisions, departments, pr
                 </Button>
               </div>
               {errors.code && <p className="text-sm text-red-500">{errors.code}</p>}
-            </div>
+            </div> */}
           </div>
 
           <div className="space-y-2">
@@ -327,7 +328,7 @@ export function UnitModal({ open, onOpenChange, unit, divisions, departments, pr
                       <SelectItem key={project.id} value={project.id}>
                         <div>
                           <div className="font-medium">{project.name}</div>
-                          <div className="text-sm text-muted-foreground">{project.code}</div>
+                          {/* <div className="text-sm text-muted-foreground">{project.code}</div> */}
                         </div>
                       </SelectItem>
                     ))
@@ -360,7 +361,7 @@ export function UnitModal({ open, onOpenChange, unit, divisions, departments, pr
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="secundario" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
           <Button onClick={handleSubmit}>{unit ? "Actualizar Unidad" : "Crear Unidad"}</Button>

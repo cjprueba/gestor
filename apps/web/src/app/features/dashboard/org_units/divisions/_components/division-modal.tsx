@@ -160,7 +160,7 @@ export function DivisionModal({ open, onOpenChange, division, onSave }: Division
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="secundario" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
           <Button onClick={handleSubmit}>{division ? "Actualizar División" : "Crear División"}</Button>

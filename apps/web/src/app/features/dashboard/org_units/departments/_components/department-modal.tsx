@@ -189,7 +189,7 @@ export function DepartmentModal({ open, onOpenChange, department, divisions, onS
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="secundario" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
           <Button onClick={handleSubmit}>{department ? "Actualizar Departamento" : "Crear Departamento"}</Button>

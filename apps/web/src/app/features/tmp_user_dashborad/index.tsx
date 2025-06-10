@@ -158,8 +158,8 @@ export default function UserDashboard() {
   const [currentView, setCurrentView] = useState<"projects" | "contracts" | "documents">("projects")
   const [selectedProject, setSelectedProject] = useState<any>(null)
   const [selectedContract, setSelectedContract] = useState<any>(null)
-  const [searchTerm, setSearchTerm] = useState("")
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
+  const [searchTerm] = useState("")
+  const [viewMode] = useState<"grid" | "list">("grid")
   const [selectedDocument, setSelectedDocument] = useState<any>(null)
   const [documentViewerOpen, setDocumentViewerOpen] = useState(false)
   const [shareDialogOpen, setShareDialogOpen] = useState(false)
@@ -202,10 +202,10 @@ export default function UserDashboard() {
     // Simulate download
   }
 
-  const toggleFavorite = (item: any, type: string) => {
-    console.log("Toggling favorite:", item.name, type)
-    // Update favorite status
-  }
+  // const toggleFavorite = (item: any, type: string) => {
+  //   console.log("Toggling favorite:", item.name, type)
+  //   // Update favorite status
+  // }
 
   const getStatusBadge = (status: string) => {
     const colors = {
