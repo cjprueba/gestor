@@ -206,7 +206,7 @@ const navigationData = {
       title: "Subir archivos",
       url: "/upload",
       icon: Upload,
-    } 
+    }
   ],
   admin: [
     {

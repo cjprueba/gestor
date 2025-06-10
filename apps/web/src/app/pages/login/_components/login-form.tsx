@@ -3,11 +3,14 @@ import { Card, CardContent } from "@/shared/components/ui/card"
 import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
 import { cn } from "@/shared/lib/utils"
+import { useNavigate } from "@tanstack/react-router"
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+  const navigate = useNavigate()
+
   return (
     <div className={cn("flex flex-col gap-6 ", className)} {...props}>
       <Card className="rounded-md">
@@ -28,7 +31,7 @@ export function LoginForm({
                   id="email"
                   type="email"
                   placeholder="m@ejemplo.com"
-                  required
+                // required
                 />
               </div>
               <div className="grid gap-2 mt-4">
@@ -43,7 +46,9 @@ export function LoginForm({
                 </div>
                 <Input id="password" type="password" required />
               </div>
-              <Button variant="primario" className="w-full rounded-sm mt-1">
+              <Button variant="primario" className="w-full rounded-sm mt-1" onClick={() => {
+                navigate({ to: "/app" })
+              }}>
                 Ingresar
               </Button>
               <div className="mt-4 relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-border">

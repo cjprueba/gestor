@@ -139,11 +139,12 @@ export default function UsersManagementPage() {
         <div className="flex flex-col gap-4">
           <div className="flex flex-row justify-between items-center mt-6">
             <h1 className="text-3xl font-bold tracking-tight">Gestión de Usuarios</h1>
-            <Button>
+            <Button variant="primario" onClick={() => setCreateUserOpen(true)}>
               <UserPlus className="mr-2 h-4 w-4" />
-              Invitar Usuario
+              Crear Usuario
             </Button>
           </div>
+
           <p className="text-muted-foreground">Administra usuarios, roles y permisos de la plataforma</p>
 
         </div>

@@ -1,5 +1,7 @@
 import {
   AudioWaveform,
+  Building,
+  Building2,
   Clock,
   Command,
   Database,
@@ -11,6 +13,8 @@ import {
   Star,
   Trash2,
   Upload,
+  User,
+  UserPlus,
   Users
 } from "lucide-react"
 import * as React from "react"
@@ -97,14 +101,43 @@ const navigationData = {
         {
           title: "Todos los usuarios",
           url: "/app/users",
+          icon: User,
         },
         {
           title: "Roles y permisos",
           url: "/admin/roles",
+          icon: Shield,
         },
         {
           title: "Invitaciones",
           url: "/admin/invitations",
+          icon: UserPlus,
+        },
+      ],
+    },
+    {
+      title: "Gestión de Unidades Org.",
+      icon: Building2,
+      items: [
+        {
+          title: "General",
+          url: "/app/org_units",
+          icon: Building2,
+        },
+        {
+          title: "Divisiones",
+          url: "/app/org_units/divisions",
+          icon: Building,
+        },
+        {
+          title: "Departamentos",
+          url: "/app/org_units/departments",
+          icon: Building,
+        },
+        {
+          title: "Unidades",
+          url: "/app/org_units/units",
+          icon: Building,
         },
       ],
     },
