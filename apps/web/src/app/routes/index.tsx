@@ -14,7 +14,7 @@ export const rootRoute = createRootRouteWithContext()({
 });
 
 export const authRoute = createRoute({
-  path: '/',
+  path: '/auth',
   getParentRoute: () => rootRoute,
   component: AuthLayout,
 });

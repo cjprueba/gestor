@@ -5,6 +5,10 @@ import { mainRoute } from '@/app/routes';
 
 import FilesPage from './resources';
 import UsersManagementPage from './users';
+import OrganizationUnitsPage from './org_units';
+import DivisionsPage from './org_units/divisions';
+import DepartmentsPage from './org_units/departments';
+import UnitsPage from './org_units/units';
 
 export const dashboardRoutes = [
   createRoute({
@@ -21,5 +25,28 @@ export const dashboardRoutes = [
     getParentRoute: () => mainRoute,
     path: '/users',
     component: UsersManagementPage,
+  }),
+  createRoute({
+    getParentRoute: () => mainRoute,
+    path: '/org_units',
+    component: OrganizationUnitsPage,
+  }),
+
+  createRoute({
+    getParentRoute: () => mainRoute,
+    path: '/org_units/divisions',
+    component: DivisionsPage,
+  }),
+
+  createRoute({
+    getParentRoute: () => mainRoute,
+    path: '/org_units/departments',
+    component: DepartmentsPage,
+  }),
+
+  createRoute({
+    getParentRoute: () => mainRoute,
+    path: '/org_units/units',
+    component: UnitsPage,
   }),
 ];

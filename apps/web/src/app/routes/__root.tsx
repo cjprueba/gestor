@@ -1,11 +1,11 @@
-import { Outlet } from '@tanstack/react-router'
-// import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
+import { Outlet, useNavigate, useLocation } from '@tanstack/react-router';
+import React from 'react';
 
 export default function Root() {
-  return (
-    <>
-      <Outlet />
-      {/* <TanStackRouterDevtools /> */}
-    </>
-  );
+  const nav = useNavigate();
+  const loc = useLocation();
+  React.useEffect(() => {
+    if (loc.pathname === '/') nav({ to: '/auth/login', replace: true });
+  }, []);
+  return <Outlet />;
 }

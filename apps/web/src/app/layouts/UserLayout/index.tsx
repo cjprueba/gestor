@@ -6,11 +6,8 @@ import { SidebarInset, SidebarProvider } from '@/shared/components/ui/sidebar';
 export default function MainLayout() {
   return (
     <SidebarProvider>
-      {/* <AppSidebar /> */}
       <AppUserSidebar />
-
       <SidebarInset>
-        {/* <Header /> */}
         <Outlet />
       </SidebarInset>
     </SidebarProvider>
