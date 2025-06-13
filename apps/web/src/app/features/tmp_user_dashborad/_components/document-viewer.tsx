@@ -1,5 +1,3 @@
-"use client"
-
 import { Calendar, Download, FileText, Heart, Share, User } from "lucide-react"
 
 import { Button } from "@/shared/components/design-system/button"

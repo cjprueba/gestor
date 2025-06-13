@@ -335,46 +335,41 @@ export default function FilesPage() {
             </div>
           )}
 
-          <div className="mb-6 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-
-              <Button variant="primario" className="gap-2" onClick={() => setCreateFileOpen(true)}>
-                Crear
-                <Plus className="h-4 w-4" strokeWidth={2.5} />
+          <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4">
+              <Button variant="primario" className="gap-2 flex-1 sm:flex-none justify-center min-w-0" onClick={() => setCreateFileOpen(true)}>
+                <span className="hidden sm:inline truncate">Crear</span>
+                <Plus className="h-4 w-4 shrink-0" strokeWidth={2.5} />
               </Button>
-              <Button variant="secundario" className="gap-2" onClick={() => setUploadOpen(true)}>
-                <Upload className="h-4 w-4" strokeWidth={2.5} />
-                Subir
+              <Button variant="secundario" className="gap-2 flex-1 sm:flex-none justify-center min-w-0" onClick={() => setUploadOpen(true)}>
+                <Upload className="h-4 w-4 shrink-0" strokeWidth={2.5} />
+                <span className="hidden sm:inline truncate">Subir</span>
               </Button>
-              <Button variant="secundario" className="gap-2" onClick={() => setCreateFolderOpen(true)}>
-                <FolderPlus className="h-4 w-4" strokeWidth={2.5} />
-                Crear carpeta
+              <Button variant="secundario" className="gap-2 flex-1 sm:flex-none justify-center min-w-0" onClick={() => setCreateFolderOpen(true)}>
+                <FolderPlus className="h-4 w-4 shrink-0" strokeWidth={2.5} />
+                <span className="hidden sm:inline truncate">Crear carpeta</span>
               </Button>
-              {/* <Button variant="secundario" className="gap-2" onClick={() => setCreateCollectionOpen(true)}>
-              <FolderPlus className="h-4 w-4" />
-              Nueva Colección
-            </Button> */}
             </div>
 
-            <div className="flex items-center">
+            <div className="flex items-center justify-end">
               <Button variant="iconoSecundario" size="md" onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}>
                 <Grid className="h-4 w-4" />
               </Button>
             </div>
           </div>
 
-          <div className="mb-6 w-1/4">
+          <div className="mb-6">
             <Tabs defaultValue={activeTab} onValueChange={(value) => setActiveTab(value)}>
-              <TabsList className="flex w-full border-b border-gray-300">
-                <TabsTrigger value="recent">Recientes</TabsTrigger>
-                <TabsTrigger value="starred">Favoritos</TabsTrigger>
-                <TabsTrigger value="shared">Compartidos</TabsTrigger>
+              <TabsList className="gap-4 flex justify-center items-center">
+                <TabsTrigger value="recent" className="flex items-center whitespace-nowrap">Recientes</TabsTrigger>
+                <TabsTrigger value="starred" className="flex items-center whitespace-nowrap">Favoritos</TabsTrigger>
+                <TabsTrigger value="shared" className="flex items-center whitespace-nowrap">Compartidos</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
 
           {viewMode === "grid" ? (
-            <section className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4 p-4">
+            <section className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 p-2 sm:p-4">
               {filteredFiles.map((file) => (
                 <FileCard
                   key={file.id}
@@ -389,7 +384,7 @@ export default function FilesPage() {
                 />
               ))}
               {filteredFiles.length === 0 && (
-                <div className="col-span-3 text-center p-8 text-gray-500">
+                <div className="col-span-full text-center p-4 sm:p-8 text-gray-500">
                   {activeCollection
                     ? "Aún no hay archivos en esta colección. Agrega archivos usando el menú contextual."
                     : "No se encontraron archivos en esta ubicación."}
@@ -397,17 +392,19 @@ export default function FilesPage() {
               )}
             </section>
           ) : (
-            <DataTable
-              data={filteredFiles}
-              selected={selected}
-              onDeleteSelected={handleDeleteSelected}
-              columns={getFileColumns(selected, setSelected, {
-                onClick: handleFileClick,
-                onDeleteFile: handleDeleteFile,
-                onStarFile: handleStarFile,
-                onShareFile: handleShareFile,
-              })}
-            />
+            <div className="overflow-x-auto">
+              <DataTable
+                data={filteredFiles}
+                selected={selected}
+                onDeleteSelected={handleDeleteSelected}
+                columns={getFileColumns(selected, setSelected, {
+                  onClick: handleFileClick,
+                  onDeleteFile: handleDeleteFile,
+                  onStarFile: handleStarFile,
+                  onShareFile: handleShareFile,
+                })}
+              />
+            </div>
           )}
         </>
       </div>

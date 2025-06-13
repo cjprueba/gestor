@@ -5,7 +5,6 @@ import { useMemo } from "react"
 import { formatFileSize } from "@/shared/lib/file-utils"
 import type { Collection, FileItem } from "@/shared/types/file.type"
 
-import { CollectionsOverview } from "./collections.overview"
 import { RecentsPopularOverview } from "./recents_popular.overview"
 import { StorageOverview } from "./storage.overview"
 interface OverviewDashboardProps {
@@ -15,7 +14,7 @@ interface OverviewDashboardProps {
   onCollectionClick: (collectionId: string) => void
 }
 
-export function OverviewDashboard({ files, collections, onFileClick, onCollectionClick }: OverviewDashboardProps) {
+export function OverviewDashboard({ files, collections, onFileClick }: OverviewDashboardProps) {
   // Calculate storage statistics
   const storageStats = useMemo(() => {
     const totalFiles = files.filter((file) => file.type !== "folder").length
@@ -165,7 +164,7 @@ export function OverviewDashboard({ files, collections, onFileClick, onCollectio
           </div>
         </CardContent>
       </Card> */}
-      <CollectionsOverview collections={collections} files={files} onCollectionClick={onCollectionClick} />
+      {/* <CollectionsOverview collections={collections} files={files} onCollectionClick={onCollectionClick} /> */}
 
       {/* Activity Chart (placeholder) */}
       {/* <Card>

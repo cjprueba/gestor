@@ -6,6 +6,7 @@ import {
   Command,
   Database,
   Files,
+  Flag,
   FolderOpen,
   GalleryVerticalEnd,
   Home,
@@ -138,6 +139,21 @@ const navigationData = {
           title: "Unidades",
           url: "/app/org_units/units",
           icon: Building,
+        },
+      ],
+    },
+    {
+      title: "Hitos",
+      icon: Flag,
+      url: "/app/milestones",
+      items: [
+        {
+          title: "Gestión de Hitos",
+          url: "/app/milestones",
+        },
+        {
+          title: "Configuración",
+          url: "/app/milestones/settings",
         },
       ],
     },

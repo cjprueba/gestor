@@ -193,9 +193,9 @@ export default function UsersManagementPage() {
         </div>
 
         <Tabs defaultValue="users" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="users">Usuarios</TabsTrigger>
-            <TabsTrigger value="roles">Roles y Permisos</TabsTrigger>
+          <TabsList className="gap-4 flex justify-center items-center">
+            <TabsTrigger value="users" className="flex items-center whitespace-nowrap">Usuarios</TabsTrigger>
+            <TabsTrigger value="roles" className="flex items-center whitespace-nowrap">Roles y Permisos</TabsTrigger>
           </TabsList>
 
           <TabsContent value="users" className="space-y-4">
@@ -269,7 +269,7 @@ export default function UsersManagementPage() {
                         <TableCell className="text-right">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" className="h-8 w-8 p-0">
+                              <Button variant="iconoSecundario" className="">
                                 <span className="sr-only">Abrir menú</span>
                                 <MoreHorizontal className="h-4 w-4" />
                               </Button>
