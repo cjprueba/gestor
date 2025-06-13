@@ -87,23 +87,23 @@ export default function OrganizationUnitsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2 flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <Button
                 variant="primario"
                 size="sm"
-                className=" justify-start"
+                className="w-full sm:w-auto justify-center sm:whitespace-nowrap overflow-hidden"
                 onClick={() => window.location.href = "/app/org_units/divisions"}
               >
-                Ver Divisiones
+                <span className="truncate">Ver Divisiones</span>
               </Button>
               <Button
                 variant="secundario"
                 size="sm"
-                className="justify-start"
+                className="w-full sm:w-auto justify-center sm:whitespace-nowrap overflow-hidden"
                 onClick={() => window.location.href = "/org_units/divisions?action=create"}
               >
-                <Plus className="h-4 w-4 mr-2" />
-                Nueva División
+                <Plus className="h-4 w-4 flex-shrink-0 mr-2" />
+                <span className="truncate">Nueva División</span>
               </Button>
             </div>
           </CardContent>
@@ -120,23 +120,23 @@ export default function OrganizationUnitsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2 flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <Button
                 variant="primario"
                 size="sm"
-                className="justify-start"
+                className="w-full sm:w-auto justify-center sm:whitespace-nowrap overflow-hidden"
                 onClick={() => window.location.href = "/app/org_units/departments"}
               >
-                Ver departamentos
+                <span className="truncate">Ver Departamentos</span>
               </Button>
               <Button
                 variant="secundario"
                 size="sm"
-                className="justify-start"
+                className="w-full sm:w-auto justify-center sm:whitespace-nowrap overflow-hidden"
                 onClick={() => window.location.href = "/org_units/departments?action=create"}
               >
-                <Plus className="h-4 w-4 mr-2" />
-                Nuevo Departamento
+                <Plus className="h-4 w-4 flex-shrink-0 mr-2" />
+                <span className="truncate">Nuevo Departamento</span>
               </Button>
             </div>
           </CardContent>
@@ -153,23 +153,23 @@ export default function OrganizationUnitsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2 flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <Button
                 variant="primario"
                 size="sm"
-                className="justify-start"
+                className="w-full sm:w-auto justify-center sm:whitespace-nowrap overflow-hidden"
                 onClick={() => window.location.href = "/app/org_units/units"}
               >
-                Ver Unidades
+                <span className="truncate">Ver Unidades</span>
               </Button>
               <Button
                 variant="secundario"
                 size="sm"
-                className="justify-start"
+                className="w-full sm:w-auto justify-center sm:whitespace-nowrap overflow-hidden"
                 onClick={() => window.location.href = "org_units/units?action=create"}
               >
-                <Plus className="h-4 w-4 mr-2" />
-                Nueva Unidad
+                <Plus className="h-4 w-4 flex-shrink-0 mr-2" />
+                <span className="truncate">Nueva Unidad</span>
               </Button>
             </div>
           </CardContent>

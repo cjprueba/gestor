@@ -264,17 +264,17 @@ export default function DepartmentsPage() {
         {/* Filtros y tabla */}
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <CardTitle>Lista de Departamentos</CardTitle>
                 <CardDescription>Gestiona los departamentos organizativos por división</CardDescription>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2">
                 <Select value={selectedDivisionId} onValueChange={setSelectedDivisionId}>
-                  <SelectTrigger className="w-48">
+                  <SelectTrigger className="w-full sm:w-48">
                     <SelectValue placeholder="Filtrar por división" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="w-full sm:w-48">
                     <SelectItem value="all">Todas las divisiones</SelectItem>
                     {divisions.map((division) => (
                       <SelectItem key={division.id} value={division.id}>
@@ -283,13 +283,13 @@ export default function DepartmentsPage() {
                     ))}
                   </SelectContent>
                 </Select>
-                <div className="relative">
+                <div className="relative w-full sm:w-64">
                   <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder="Buscar departamentos..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-8 w-64"
+                    className="pl-8 w-full"
                   />
                 </div>
               </div>

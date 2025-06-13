@@ -1,5 +1,3 @@
-"use client"
-
 import {
   AlertDialog,
   AlertDialogAction,
@@ -280,29 +278,29 @@ export default function DivisionsPage() {
         {/* Tabla de divisiones */}
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <CardTitle>Lista de Divisiones</CardTitle>
                 <CardDescription>Gestiona las divisiones organizativas y su estructura</CardDescription>
               </div>
-              <div className="flex items-center space-x-2">
-                <div className="relative">
+              <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2">
+                <div className="relative w-full sm:w-64">
                   <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder="Buscar divisiones..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-8 w-64"
+                    className="pl-8 w-full"
                   />
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="secundario" size="sm">
+                    <Button variant="secundario" size="sm" className="w-full sm:w-auto">
                       <Filter className="mr-2 h-4 w-4" />
                       Estado
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
+                  <DropdownMenuContent align="end" className="w-full sm:w-auto">
                     <DropdownMenuLabel>Filtrar por estado</DropdownMenuLabel>
                     <DropdownMenuItem onClick={() => setStatusFilter("all")}>Todos</DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setStatusFilter("ACTIVA")}>Activas</DropdownMenuItem>

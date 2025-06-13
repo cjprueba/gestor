@@ -9,6 +9,8 @@ import OrganizationUnitsPage from './org_units';
 import DivisionsPage from './org_units/divisions';
 import DepartmentsPage from './org_units/departments';
 import UnitsPage from './org_units/units';
+import MilestonesPage from './milestones';
+import MilestonesSettingsPage from './milestones/settings';
 
 export const dashboardRoutes = [
   createRoute({
@@ -48,5 +50,15 @@ export const dashboardRoutes = [
     getParentRoute: () => mainRoute,
     path: '/org_units/units',
     component: UnitsPage,
+  }),
+  createRoute({
+    getParentRoute: () => mainRoute,
+    path: '/milestones',
+    component: MilestonesPage,
+  }),
+  createRoute({
+    getParentRoute: () => mainRoute,
+    path: '/milestones/settings',
+    component: MilestonesSettingsPage,
   }),
 ];
