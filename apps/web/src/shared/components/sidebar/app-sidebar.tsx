@@ -9,7 +9,6 @@ import {
   GalleryVerticalEnd,
   Home,
   Shield,
-  Upload,
   User,
   UserPlus,
   Users
@@ -82,11 +81,6 @@ const navigationData = {
       //     icon: Trash2,
       //   },
       // ],
-    },
-    {
-      title: "Subir archivos",
-      url: "/upload",
-      icon: Upload,
     }
   ],
   admin: [
