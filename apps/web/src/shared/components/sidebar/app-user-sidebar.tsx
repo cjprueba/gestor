@@ -176,7 +176,7 @@ const navigationData = {
   ],
   main: [
     {
-      title: "Archivos",
+      title: "Proyectos",
       // url: "/app/files",
       icon: Files,
       items: [
