@@ -3,7 +3,6 @@ import { createRoute } from '@tanstack/react-router';
 import DashboardPage from '@/app/features/dashboard';
 import { mainRoute } from '@/app/routes';
 
-import FilesPage from './resources';
 import UsersManagementPage from './users';
 import OrganizationUnitsPage from './org_units';
 import DivisionsPage from './org_units/divisions';
@@ -11,6 +10,7 @@ import DepartmentsPage from './org_units/departments';
 import UnitsPage from './org_units/units';
 import MilestonesPage from './milestones';
 import MilestonesSettingsPage from './milestones/settings';
+import ProjectsPage from './projects';
 
 export const dashboardRoutes = [
   createRoute({
@@ -20,8 +20,8 @@ export const dashboardRoutes = [
   }),
   createRoute({
     getParentRoute: () => mainRoute,
-    path: '/resources',
-    component: FilesPage,
+    path: '/projects',
+    component: ProjectsPage,
   }),
   createRoute({
     getParentRoute: () => mainRoute,
