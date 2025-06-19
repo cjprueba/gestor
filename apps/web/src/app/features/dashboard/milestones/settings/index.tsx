@@ -14,8 +14,8 @@ export default function MilestonesSettingsPage() {
       <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Configuración de Hitos</h1>
-            <p className="text-muted-foreground">Administra las configuraciones del módulo de hitos</p>
+            <h1 className="text-3xl font-bold tracking-tight">Configuración de Registro de actividad documental</h1>
+            <p className="text-muted-foreground">Administra las configuraciones del módulo de registro de actividad documental</p>
           </div>
         </div>
 
@@ -31,14 +31,14 @@ export default function MilestonesSettingsPage() {
             </TabsTrigger>
             <TabsTrigger value="tipos" className="flex items-center whitespace-nowrap">
               <Flag className="mr-2 h-4 w-4" />
-              Tipos de Hitos
+              Tipos de Registro de actividad documental
             </TabsTrigger>
           </TabsList>
           <TabsContent value="general" className="space-y-4 pt-4">
             <Card>
               <CardHeader>
                 <CardTitle>Configuración General</CardTitle>
-                <CardDescription>Configura los parámetros generales del módulo de hitos</CardDescription>
+                <CardDescription>Configura los parámetros generales del módulo de Registro de actividad documental</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
@@ -49,17 +49,17 @@ export default function MilestonesSettingsPage() {
                       <Label htmlFor="validacionNombre">Activar validación</Label>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      Evita la duplicación de nombres de hitos en el mismo proyecto
+                      Evita la duplicación de nombres de Registro de actividad documental en el mismo proyecto
                     </p>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="periodoRetencion">Periodo de retención de hitos deshabilitados</Label>
+                    <Label htmlFor="periodoRetencion">Periodo de retención de Registro de actividad documental deshabilitados</Label>
                     <div className="flex items-center space-x-2">
                       <Input id="periodoRetencion" type="number" defaultValue="90" className="w-20" />
                       <span>días</span>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      Tiempo que se mantendrán los hitos deshabilitados antes de eliminarlos
+                      Tiempo que se mantendrán los Registro de actividad documental deshabilitados antes de eliminarlos
                     </p>
                   </div>
                 </div>
@@ -70,7 +70,7 @@ export default function MilestonesSettingsPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Configuración de Notificaciones</CardTitle>
-                <CardDescription>Configura las notificaciones automáticas para los hitos</CardDescription>
+                <CardDescription>Configura las notificaciones automáticas para los Registro de actividad documental</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-4">
@@ -123,8 +123,8 @@ export default function MilestonesSettingsPage() {
           <TabsContent value="tipos" className="space-y-4 pt-4">
             <Card>
               <CardHeader>
-                <CardTitle>Tipos de Hitos</CardTitle>
-                <CardDescription>Configura los tipos de hitos disponibles en el sistema</CardDescription>
+                <CardTitle>Tipos de Registro de actividad documental</CardTitle>
+                <CardDescription>Configura los tipos de Registro de actividad documental disponibles en el sistema</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-4">

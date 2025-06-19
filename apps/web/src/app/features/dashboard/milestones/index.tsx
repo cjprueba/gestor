@@ -246,12 +246,12 @@ export default function MilestonesPage() {
         {/* Header de la página */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Módulo de Hitos</h1>
-            <p className="text-muted-foreground">Gestión de hitos contractuales y seguimiento de cumplimiento</p>
+            <h1 className="text-3xl font-bold tracking-tight">Módulo de Registro de actividad documental</h1>
+            <p className="text-muted-foreground">Gestión de resgistro de actividades documentales y seguimiento de cumplimiento</p>
           </div>
           <Button onClick={handleCreateHito} variant="primario">
             <PlusCircle className="mr-2 h-5 w-5" />
-            Nuevo Hito
+            Nuevo Registro
           </Button>
         </div>
 

@@ -133,12 +133,12 @@ const navigationData = {
       ],
     },
     {
-      title: "Hitos",
+      title: "Actividad documental",
       icon: Flag,
       url: "/app/milestones",
       items: [
         {
-          title: "Gestión de Hitos",
+          title: "Gestión de actividades documentales",
           url: "/app/milestones",
         },
         {

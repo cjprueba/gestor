@@ -113,7 +113,7 @@ const defaultStructure: FolderStructure[] = [
       },
       {
         id: "schedule-milestones",
-        name: "Hitos",
+        name: "Registro de actividad documental",
         minDocuments: 1,
         documents: [],
         subfolders: [],
@@ -342,7 +342,42 @@ const FolderConfigCard: React.FC<FolderConfigCardProps> = ({
 }
 
 export default function ProjectsPage() {
-  const [projects, setProjects] = useState<Project[]>([])
+  const initialProject: Project = {
+    id: "example-project-1",
+    name: "Edificio Residencial Ejemplo",
+    description: "",
+    createdAt: new Date(),
+    structure: {
+      id: "root",
+      name: "Edificio Residencial Ejemplo",
+      minDocuments: 0,
+      documents: [],
+      subfolders: [
+        {
+          id: "const",
+          name: "Construcción",
+          minDocuments: 3,
+          documents: [],
+          subfolders: [
+            { id: "const-permits", name: "Permisos", minDocuments: 2, documents: [], subfolders: [], parentId: "const" },
+            { id: "const-materials", name: "Materiales", minDocuments: 1, documents: [], subfolders: [], parentId: "const" },
+          ],
+        },
+        {
+          id: "arch",
+          name: "Arquitectura",
+          minDocuments: 3,
+          documents: [],
+          subfolders: [
+            { id: "arch-plans", name: "Planos", minDocuments: 2, documents: [], subfolders: [], parentId: "arch" },
+            { id: "arch-specs", name: "Especificaciones", minDocuments: 1, documents: [], subfolders: [], parentId: "arch" },
+          ],
+        },
+      ],
+    },
+  }
+
+  const [projects, setProjects] = useState<Project[]>([initialProject])
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [newProjectName, setNewProjectName] = useState("")

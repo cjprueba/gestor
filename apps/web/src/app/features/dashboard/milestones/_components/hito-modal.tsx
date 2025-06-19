@@ -141,12 +141,12 @@ export function HitoModal({ open, onOpenChange, hito, onSave }: HitoModalProps) 
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
             <Flag className="h-4 w-4 sm:h-5 sm:w-5" />
-            {hito ? "Editar Hito" : "Crear Nuevo Hito"}
+            {hito ? "Editar actividad" : "Crear nuevo registro de actividad"}
           </DialogTitle>
           <DialogDescription className="text-sm">
             {hito
-              ? "Modifica los detalles del hito contractual"
-              : "Crea un nuevo hito relacionado a un proyecto, contrato o concesión"}
+              ? "Modifica los detalles del registro de actividad"
+              : "Crea un nuevo registro de actividad relacionado a un proyecto, contrato o concesión"}
           </DialogDescription>
         </DialogHeader>
 
@@ -209,7 +209,7 @@ export function HitoModal({ open, onOpenChange, hito, onSave }: HitoModalProps) 
           {/* Tipo de Hito */}
           <div className="space-y-2">
             <Label htmlFor="tipoHito" className="font-bold text-sm sm:text-base">
-              Tipo de Hito
+              Tipo de Actividad
             </Label>
             <Select
               value={formData.proyecto.id}
@@ -228,7 +228,7 @@ export function HitoModal({ open, onOpenChange, hito, onSave }: HitoModalProps) 
               }}
             >
               <SelectTrigger className={cn(errors.proyecto ? "border-red-500" : "")}>
-                <SelectValue placeholder="Seleccionar tipo de hito" />
+                <SelectValue placeholder="Seleccionar tipo de actividad" />
               </SelectTrigger>
               <SelectContent>
                 {proyectos.map((proyecto) => (
@@ -275,7 +275,7 @@ export function HitoModal({ open, onOpenChange, hito, onSave }: HitoModalProps) 
           {/* Nombre del Hito */}
           <div className="space-y-2">
             <Label htmlFor="nombre" className="font-bold">
-              Nombre del Hito
+              Nombre de la actividad
             </Label>
             <Input
               id="nombre"
@@ -293,11 +293,11 @@ export function HitoModal({ open, onOpenChange, hito, onSave }: HitoModalProps) 
           {/* Descripción del Hito */}
           <div className="space-y-2">
             <Label htmlFor="descripcion" className="font-bold">
-              Descripción del Hito
+              Descripción de la actividad
             </Label>
             <Textarea
               id="descripcion"
-              placeholder="Descripción del hito"
+              placeholder="Descripción de la actividad"
               value={formData.descripcion}
               onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
               rows={3}
@@ -331,7 +331,7 @@ export function HitoModal({ open, onOpenChange, hito, onSave }: HitoModalProps) 
           </div>
 
           {/* Hito Contractual */}
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <Label htmlFor="hitoContractual" className="font-bold">
               Hito Contractual
             </Label>
@@ -346,7 +346,7 @@ export function HitoModal({ open, onOpenChange, hito, onSave }: HitoModalProps) 
               )}
             />
             {errors.hitoContractual && <p className="text-sm text-red-500">{errors.hitoContractual}</p>}
-          </div>
+          </div> */}
 
           {/* Documentos Asociados */}
           <div className="space-y-2">
