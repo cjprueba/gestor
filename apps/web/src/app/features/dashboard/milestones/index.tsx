@@ -366,7 +366,7 @@ export default function MilestonesPage() {
                   <TableHead className="text-blue-500">Periodo</TableHead>
                   <TableHead className="text-blue-500">Estado</TableHead>
                   <TableHead className="text-blue-500">Proyecto</TableHead>
-                  <TableHead className="text-blue-500">Hito Contractual</TableHead>
+                  <TableHead className="text-blue-500">Actividad documental</TableHead>
                   <TableHead className="text-center">Acciones</TableHead>
                 </TableRow>
               </TableHeader>

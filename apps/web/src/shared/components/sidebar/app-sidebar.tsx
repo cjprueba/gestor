@@ -138,7 +138,7 @@ const navigationData = {
       url: "/app/milestones",
       items: [
         {
-          title: "Gestión de actividades documentales",
+          title: "Registro de actividades documentales",
           url: "/app/milestones",
         },
         {
