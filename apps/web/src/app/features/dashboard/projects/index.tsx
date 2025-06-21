@@ -1,6 +1,6 @@
 "use client"
 
-import type React from "react"
+import React from "react"
 
 import { useState } from "react"
 import { Button } from "@/shared/components/design-system/button"
@@ -23,6 +23,7 @@ import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import { cn } from "@/shared/lib/utils"
 import ProjectView from "./_components/project-view"
+import { useProjectNavigationContext } from "@/shared/contexts/ProjectNavigationContext"
 
 interface Project {
   id: string
@@ -398,7 +399,7 @@ export default function ProjectsPage() {
   const [isCreateFolderDialogOpen, setIsCreateFolderDialogOpen] = useState(false)
   const [newFolderName, setNewFolderName] = useState("")
   const [defaultStructureState, setDefaultStructureState] = useState<FolderStructure[]>(defaultStructure)
-  // const [editingFolderId, setEditingFolderId] = useState<string | null>(null)
+  const { setCurrentProject, currentProject } = useProjectNavigationContext()
 
   // Función para crear carpeta personalizada
   const createCustomFolder = () => {
@@ -574,10 +575,18 @@ export default function ProjectsPage() {
   }
 
   if (selectedProject) {
+    // Actualizar el contexto cuando se selecciona un proyecto
+    React.useEffect(() => {
+      setCurrentProject({ id: selectedProject.id, name: selectedProject.name }, selectedProject.structure)
+    }, [selectedProject, setCurrentProject])
+
     return (
       <ProjectView
         project={selectedProject}
-        onBack={() => setSelectedProject(null)}
+        onBack={() => {
+          setSelectedProject(null)
+          setCurrentProject(null)
+        }}
         onUpdateProject={(updatedProject) => {
           setProjects(projects.map((p) => (p.id === updatedProject.id ? updatedProject : p)))
           setSelectedProject(updatedProject)
@@ -585,6 +594,11 @@ export default function ProjectsPage() {
       />
     )
   }
+
+  // Limpiar el contexto cuando estamos en la lista de proyectos
+  React.useEffect(() => {
+    setCurrentProject(null)
+  }, [setCurrentProject])
 
   return (
     <div className="container mx-auto p-6">

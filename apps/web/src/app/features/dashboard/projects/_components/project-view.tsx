@@ -21,6 +21,7 @@ import { Calendar as CalendarComponent } from "@/shared/components/ui/calendar"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import { cn } from "@/shared/lib/utils"
+import { useProjectNavigationContext } from "@/shared/contexts/ProjectNavigationContext"
 
 interface Project {
   id: string
@@ -131,7 +132,10 @@ const AnimatedText = ({ text, className = "" }: AnimatedTextProps) => {
 }
 
 export default function ProjectView({ project, onBack, onUpdateProject }: ProjectViewProps) {
-  const [currentPath, setCurrentPath] = useState<string[]>([])
+  const { navigateToFolder, folderNames, currentPath } = useProjectNavigationContext()
+
+  // Estado local para sincronizar con el contexto
+  const [localCurrentPath, setLocalCurrentPath] = useState<string[]>(currentPath)
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false)
   // const [newDocumentName, setNewDocumentName] = useState("")
   // const [newDocumentDueDate, setNewDocumentDueDate] = useState("")
@@ -156,20 +160,71 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
   const [showDestinationSelector, setShowDestinationSelector] = useState(false)
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
 
+  // Sincronizar el estado local con el contexto
+  useEffect(() => {
+    setLocalCurrentPath(currentPath)
+  }, [currentPath])
+
   const getCurrentFolder = (): FolderStructure => {
-    if (currentPath.length === 0) return project.structure
+    if (localCurrentPath.length === 0) return project.structure
 
     let current = project.structure
-    for (const pathSegment of currentPath) {
+    for (const pathSegment of localCurrentPath) {
       const found = current.subfolders.find((f) => f.id === pathSegment)
       if (found) current = found
     }
     return current
   }
 
-  const navigateToFolder = (folderId: string) => {
-    const newPath = [...currentPath, folderId]
-    setCurrentPath(newPath)
+  const navigateToFolderLocal = (folderId: string) => {
+    const newPath = [...localCurrentPath, folderId]
+    setLocalCurrentPath(newPath)
+
+    // Encontrar los nombres de las carpetas
+    const folderNames: string[] = []
+    let current = project.structure
+
+    for (const pathId of newPath) {
+      const found = current.subfolders.find((f) => f.id === pathId)
+      if (found) {
+        folderNames.push(found.name)
+        current = found
+      }
+    }
+
+    // Actualizar el contexto
+    navigateToFolder(newPath, folderNames)
+  }
+
+  const navigateToRoot = () => {
+    setLocalCurrentPath([])
+    navigateToFolder([], [])
+  }
+
+  const handleBackNavigation = () => {
+    if (localCurrentPath.length === 0) {
+      // Si estamos en la raíz del proyecto, salir del proyecto
+      onBack()
+    } else {
+      // Si estamos en una subcarpeta, navegar hacia atrás
+      const newPath = localCurrentPath.slice(0, -1)
+      setLocalCurrentPath(newPath)
+
+      // Calcular los nombres de las carpetas para el nuevo path
+      const folderNames: string[] = []
+      let current = project.structure
+
+      for (const pathId of newPath) {
+        const found = current.subfolders.find((f) => f.id === pathId)
+        if (found) {
+          folderNames.push(found.name)
+          current = found
+        }
+      }
+
+      // Actualizar el contexto
+      navigateToFolder(newPath, folderNames)
+    }
   }
 
   const handleFileUpload = (files: File[]) => {
@@ -197,7 +252,7 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
   const uploadDocuments = () => {
     if (selectedFiles.length === 0) return
 
-    const targetFolderId = selectedFolderId || currentFolder.id
+    const targetFolderId = selectedFolderId || getCurrentFolder().id
 
     selectedFiles.forEach((file) => {
       let dueDate: Date | undefined
@@ -422,11 +477,11 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
   const allAlerts = getAllAlerts(project.structure)
 
   const getCurrentParentFolder = (): FolderStructure | null => {
-    if (currentPath.length <= 1) return project.structure
+    if (localCurrentPath.length <= 1) return project.structure
 
     let current = project.structure
-    for (let i = 0; i < currentPath.length - 1; i++) {
-      const found = current.subfolders.find((f) => f.id === currentPath[i])
+    for (let i = 0; i < localCurrentPath.length - 1; i++) {
+      const found = current.subfolders.find((f) => f.id === localCurrentPath[i])
       if (found) current = found
     }
     return current
@@ -451,7 +506,7 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 space-y-4 sm:space-y-0">
         <div className="flex items-center space-x-4">
-          <Button variant="secundario" onClick={onBack}>
+          <Button variant="secundario" onClick={handleBackNavigation}>
             <ArrowLeft className="w-4 h-4 mr-2" />
             Volver
           </Button>
@@ -468,10 +523,10 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
             <DialogContent className="max-w-lg">
               <DialogHeader>
                 <DialogTitle>
-                  {currentPath.length > 0 ? `Subir a: ${currentFolder.name}` : "Subir documento"}
+                  {localCurrentPath.length > 0 ? `Subir a: ${currentFolder.name}` : "Subir documento"}
                 </DialogTitle>
                 <DialogDescription>
-                  {currentPath.length > 0
+                  {localCurrentPath.length > 0
                     ? `Los documentos se agregarán a la carpeta "${currentFolder.name}"`
                     : "Selecciona la carpeta destino para tus documentos"}
                 </DialogDescription>
@@ -551,7 +606,7 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
                   )}
 
                   {/* Selector de destino mejorado */}
-                  {currentPath.length > 0 ? (
+                  {localCurrentPath.length > 0 ? (
                     <div className="bg-muted p-3 rounded-lg">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center text-sm">
@@ -596,7 +651,7 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
                   )}
 
                   {/* Selector alternativo cuando se hace clic en "Cambiar" */}
-                  {showDestinationSelector && currentPath.length > 0 && (
+                  {showDestinationSelector && localCurrentPath.length > 0 && (
                     <div className="mt-4">
                       <Label htmlFor="alternativeFolder" className="mb-3 block">Cambiar Destino</Label>
                       <Select value={selectedFolderId || "keep-current"} onValueChange={(value) => {
@@ -673,7 +728,7 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
 
                 </div>
                 {/* Selector de destino mejorado */}
-                {/* {currentPath.length > 0 ? (
+                {/* {localCurrentPath.length > 0 ? (
                   <div className="bg-muted p-3 rounded-lg">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center text-sm">
@@ -817,7 +872,7 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
                   <Button
                     onClick={uploadDocuments}
                     className="flex-1"
-                    disabled={selectedFiles.length === 0 || (currentPath.length === 0 && !selectedFolderId)}
+                    disabled={selectedFiles.length === 0 || (localCurrentPath.length === 0 && !selectedFolderId)}
                   >
                     <Upload className="w-4 h-4 mr-2" />
                     Subir{" "}
@@ -844,7 +899,7 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
               <DialogHeader>
                 <DialogTitle>Crear nueva carpeta</DialogTitle>
                 <DialogDescription>
-                  La carpeta se creará en {currentPath.length > 0 ? `"${currentFolder.name}"` : "la raíz del proyecto"}
+                  La carpeta se creará en {localCurrentPath.length > 0 ? `"${currentFolder.name}"` : "la raíz del proyecto"}
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
@@ -946,7 +1001,7 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
                   <BreadcrumbLink
                     onClick={() => {
                       if (index === 0) navigateToRoot()
-                      else setCurrentPath(currentPath.slice(0, index))
+                      else setLocalCurrentPath(localCurrentPath.slice(0, index))
                     }}
                     className="cursor-pointer"
                   >
@@ -966,7 +1021,7 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
           // Navegar a la carpeta específica
           const pathToFolder = findPathToFolder(project.structure, folderId)
           if (pathToFolder) {
-            setCurrentPath(pathToFolder)
+            setLocalCurrentPath(pathToFolder)
           }
         }}
         onUploadDocument={(folderId) => {
@@ -987,7 +1042,7 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
             <Card key={folder.id} className="cursor-pointer hover:shadow-lg transition-shadow">
               <CardHeader>
                 <div className="flex justify-between items-start">
-                  <div className="flex items-center space-x-2 flex-1" onClick={() => navigateToFolder(folder.id)}>
+                  <div className="flex items-center space-x-2 flex-1" onClick={() => navigateToFolderLocal(folder.id)}>
                     <Folder className="w-5 h-5 text-blue-500" />
                     <CardTitle className="text-lg">{folder.name}</CardTitle>
                   </div>
