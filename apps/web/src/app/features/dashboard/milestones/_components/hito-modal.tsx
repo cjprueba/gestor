@@ -36,7 +36,7 @@ export function HitoModal({ open, onOpenChange, hito, onSave }: HitoModalProps) 
     proyecto: {
       id: "",
       nombre: "",
-      tipo: "" as "concesión" | "Proyecto" | "Contrato" | "",
+      tipo: "" as "concesión" | "Proyecto" | "Contrato" | "Edificio Residencial" | "",
     },
     hitoContractual: "",
     responsable: "",

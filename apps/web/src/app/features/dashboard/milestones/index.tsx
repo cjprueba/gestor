@@ -24,7 +24,7 @@ export default function MilestonesPage() {
   const [vistaActual, setVistaActual] = useState<"actividades" | "hitos">("actividades")
 
   // Datos de ejemplo basados en el proyecto "Edificio Residencial Ejemplo"
-  const [actividadesDocumentales, setActividadesDocumentales] = useState<ActividadDocumental[]>([
+  const [actividadesDocumentales] = useState<ActividadDocumental[]>([
     {
       id: "act-1",
       nombre: "Subida",

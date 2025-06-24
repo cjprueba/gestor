@@ -132,7 +132,7 @@ const AnimatedText = ({ text, className = "" }: AnimatedTextProps) => {
 }
 
 export default function ProjectView({ project, onBack, onUpdateProject }: ProjectViewProps) {
-  const { navigateToFolder, folderNames, currentPath } = useProjectNavigationContext()
+  const { navigateToFolder, currentPath } = useProjectNavigationContext()
 
   // Estado local para sincronizar con el contexto
   const [localCurrentPath, setLocalCurrentPath] = useState<string[]>(currentPath)
@@ -196,10 +196,10 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
     navigateToFolder(newPath, folderNames)
   }
 
-  const navigateToRoot = () => {
-    setLocalCurrentPath([])
-    navigateToFolder([], [])
-  }
+  // const navigateToRoot = () => {
+  //   setLocalCurrentPath([])
+  //   navigateToFolder([], [])
+  // }
 
   const handleBackNavigation = () => {
     if (localCurrentPath.length === 0) {

@@ -399,7 +399,7 @@ export default function ProjectsPage() {
   const [isCreateFolderDialogOpen, setIsCreateFolderDialogOpen] = useState(false)
   const [newFolderName, setNewFolderName] = useState("")
   const [defaultStructureState, setDefaultStructureState] = useState<FolderStructure[]>(defaultStructure)
-  const { setCurrentProject, currentProject } = useProjectNavigationContext()
+  const { setCurrentProject } = useProjectNavigationContext()
 
   // Función para crear carpeta personalizada
   const createCustomFolder = () => {
