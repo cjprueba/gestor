@@ -24,7 +24,7 @@ export default function MainLayout() {
 
   return (
     <ProjectNavigationProvider>
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col max-w-dvw">
         <div className="flex-1 sidebar-container">
           <SidebarProvider>
             <AppSidebar />

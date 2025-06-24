@@ -159,7 +159,7 @@ export default function AlertsPanel({ alerts, onNavigateToFolder }: AlertsPanelP
       {/* Vista desktop - scroll horizontal */}
       <div className="hidden sm:block">
         <div className="overflow-x-auto pb-2">
-          <div className="flex gap-3 min-w-max">
+          <div className="flex gap-3">
             {alerts.map((alert) => {
               return (
                 <div

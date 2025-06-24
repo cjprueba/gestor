@@ -130,7 +130,7 @@ export default function MilestonesSettingsPage() {
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="tipoHito">Tipo de Hito</Label>
+                      <Label htmlFor="tipoHito">Tipo de Registro de actividad documental</Label>
                       <Select defaultValue="proyecto">
                         <SelectTrigger>
                           <SelectValue placeholder="Seleccionar tipo" />

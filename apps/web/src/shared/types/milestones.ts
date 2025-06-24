@@ -1,6 +1,68 @@
-export type HitoEstado = "Por Cumplir" | "Por Vencer" | "Vencido" | "Recepcionado" | "Aprobado"
+export type HitoEstado =
+  | 'Por Cumplir'
+  | 'Por Vencer'
+  | 'Vencido'
+  | 'Recepcionado'
+  | 'Aprobado'
 
-export type HitoPeriodo = "mensual" | "trimestral" | "semestral" | "anual"
+export type HitoPeriodo = 'mensual' | 'trimestral' | 'semestral' | 'anual'
+
+export type TipoActividad =
+  | 'creacion_documento'
+  | 'subida_archivo'
+  | 'actualizacion_documento'
+  | 'eliminacion_documento'
+
+export interface ActividadDocumental {
+  id: string
+  nombre: string
+  descripcion?: string
+  tipoActividad: TipoActividad
+  fechaActividad: string
+  fechaVencimiento?: string
+  proyecto: {
+    id: string
+    nombre: string
+    tipo: 'concesión' | 'Proyecto' | 'Contrato' | 'Edificio Residencial'
+  }
+  carpeta: {
+    id: string
+    nombre: string
+    rutaCarpeta: string
+  }
+  documento: {
+    id: string
+    nombre: string
+    tipo:
+      | 'carta'
+      | 'Oficio'
+      | 'Memorandum'
+      | 'Providencia'
+      | 'Folio'
+      | 'Correo'
+      | 'LOE'
+      | 'Plano'
+      | 'Especificacion'
+      | 'Permiso'
+      | 'Material'
+      | 'otro'
+    tamaño: string
+    extension: string
+  }
+  usuario: {
+    id: string
+    name: string
+    email: string
+  }
+  estado: 'activo' | 'archivado' | 'eliminado'
+  metadatos?: {
+    ipAddress?: string
+    userAgent?: string
+    dispositivo?: string
+  }
+  createdAt: string
+  updatedAt: string
+}
 
 export interface Hito {
   id: string
@@ -12,7 +74,7 @@ export interface Hito {
   proyecto: {
     id: string
     nombre: string
-    tipo: "concesión" | "Proyecto" | "Contrato"
+    tipo: 'concesión' | 'Proyecto' | 'Contrato' | 'Edificio Residencial'
   }
   hitoContractual: string
   recepcionado: boolean
@@ -32,9 +94,22 @@ export interface Hito {
 export interface HitoDocumento {
   id: string
   nombre: string
-  tipo: "carta" | "Oficio" | "Memorandum" | "Providencia" | "Folio" | "Correo" | "LOE" | "otro"
+  tipo:
+    | 'carta'
+    | 'Oficio'
+    | 'Memorandum'
+    | 'Providencia'
+    | 'Folio'
+    | 'Correo'
+    | 'LOE'
+    | 'Plano'
+    | 'Especificacion'
+    | 'Permiso'
+    | 'Material'
+    | 'otro'
   archivo: string
   fechaSubida: string
+  fechaVencimiento?: string
   subidoPor: {
     id: string
     name: string
@@ -49,6 +124,8 @@ export interface HitoFiltros {
   periodoAnio?: string
   periodoMes?: string
   busqueda?: string
+  tipoActividad?: string
+  proyecto?: string
 }
 
 export interface Division {

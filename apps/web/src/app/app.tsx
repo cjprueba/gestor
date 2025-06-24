@@ -5,13 +5,6 @@ import { Outlet } from "@tanstack/react-router";
 
 export function App() {
   return (
-    // <ThemeProvider>
-    //   <AuthProvider>
-    //     <ErrorBoundary>
-    // {/* Outlet renderiza las rutas */}
     <Outlet />
-    // {/* </ErrorBoundary>
-    //   </AuthProvider>
-    // </ThemeProvider> */}
   );
 }
