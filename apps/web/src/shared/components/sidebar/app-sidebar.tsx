@@ -2,9 +2,11 @@ import {
   AudioWaveform,
   Building,
   Building2,
+  ChartBar,
   Command,
   Database,
   Flag,
+  FolderIcon,
   Folders,
   GalleryVerticalEnd,
   Home,
@@ -148,20 +150,29 @@ const navigationData = {
       ],
     },
     {
-      title: "Seguridad",
-      url: "/admin/security",
-      icon: Shield,
+      title: "Gestión de plantillas",
+      url: "/app/folder_templates",
+      icon: FolderIcon,
       items: [
         {
-          title: "Logs de actividad",
-          url: "/admin/activity",
-        },
-        {
-          title: "Configuración de seguridad",
-          url: "/admin/security",
+          title: "Plantillas de carpetas",
+          url: "/app/folder_templates",
         },
       ],
     },
+    {
+      title: "Gestión de etapas",
+      url: "/app/stages",
+      icon: ChartBar,
+      items: [
+        {
+          title: "Etapas",
+          url: "/app/stages",
+        },
+      ],
+    },
+
+
     {
       title: "Sistema",
       url: "/admin/settings",

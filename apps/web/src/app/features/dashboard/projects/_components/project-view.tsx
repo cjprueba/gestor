@@ -1,5 +1,6 @@
 import { Button } from "@/shared/components/design-system/button"
 import { Badge } from "@/shared/components/ui/badge"
+import { Calendar as CalendarComponent } from "@/shared/components/ui/calendar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import {
   Dialog,
@@ -11,24 +12,28 @@ import {
 } from "@/shared/components/ui/dialog"
 import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
-import { ArrowLeft, Calendar, CalendarIcon, FileText, Folder, Plus, Settings, Upload, FolderOpen } from "lucide-react"
-import { useState, useRef, useEffect } from "react"
-import AlertsPanel from "./alerts-panel"
-import DocumentConfigDialog from "./document-config-dialog"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover"
-import { Calendar as CalendarComponent } from "@/shared/components/ui/calendar"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
+import { useProjectNavigationContext } from "@/shared/contexts/ProjectNavigationContext"
+import { cn } from "@/shared/lib/utils"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
-import { cn } from "@/shared/lib/utils"
-import { useProjectNavigationContext } from "@/shared/contexts/ProjectNavigationContext"
+import { ArrowLeft, Calendar, CalendarIcon, FileText, Folder, FolderOpen, Plus, Upload } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
+import AlertsPanel from "./alerts-panel"
+import ContextMenu from "./context-menu"
+import DetailsSheet from "./details-sheet"
+import DocumentConfigDialog from "./document-config-dialog"
 
 interface Project {
   id: string
   name: string
-  description: string
+  // description: string
   createdAt: Date
   structure: FolderStructure
+  etapa: string
+  projectData?: any
+  metadata?: any
 }
 
 interface FolderStructure {
@@ -133,6 +138,9 @@ const AnimatedText = ({ text, className = "" }: AnimatedTextProps) => {
 
 export default function ProjectView({ project, onBack, onUpdateProject }: ProjectViewProps) {
   const { navigateToFolder, currentPath } = useProjectNavigationContext()
+  const [detailsSheetOpen, setDetailsSheetOpen] = useState(false)
+  const [selectedItem, setSelectedItem] = useState<any>(null)
+  const [selectedItemType, setSelectedItemType] = useState<"project" | "folder" | "document">("project")
 
   // Estado local para sincronizar con el contexto
   const [localCurrentPath, setLocalCurrentPath] = useState<string[]>(currentPath)
@@ -501,6 +509,40 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
     return search(structure, [])
   }
 
+  const handleStageChange = (newStage: string) => {
+    const updatedProject = {
+      ...project,
+      etapa: newStage,
+      metadata: {
+        ...project.metadata,
+        lastModifiedAt: new Date(),
+        lastModifiedBy: "Usuario Actual",
+        history: [
+          {
+            id: Date.now().toString(),
+            timestamp: new Date(),
+            userId: "user-1",
+            userName: "Usuario Actual",
+            action: "stage_changed" as const,
+            details: {
+              field: "etapa",
+              oldValue: project.etapa,
+              newValue: newStage,
+            },
+          },
+          ...(project.metadata?.history || []),
+        ],
+      },
+    }
+    onUpdateProject(updatedProject)
+  }
+
+  const openDetails = (item: any, type: "project" | "folder" | "document") => {
+    setSelectedItem(item)
+    setSelectedItemType(type)
+    setDetailsSheetOpen(true)
+  }
+
   return (
     <div className="container mx-auto p-6">
       {/* Header */}
@@ -673,108 +715,9 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
                     </div>
                   )}
 
-                  {/* {documentConfig.hasAlert && (
-                    <div className="space-y-3 ml-6">
-                      <div>
-                        <Label className="text-xs">Tipo de Alerta</Label>
-                        <Select
-                          value={documentConfig.alertType}
-                          onValueChange={(value) =>
-                            setDocumentConfig({
-                              ...documentConfig,
-                              alertType: value as "due_date" | "days_after",
-                            })
-                          }
-                        >
-                          <SelectTrigger className="w-full mt-1">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="due_date">Fecha límite específica</SelectItem>
-                            <SelectItem value="days_after">Días desde subida</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      {documentConfig.alertType === "due_date" ? (
-                        <div>
-                          <Label className="text-xs">Fecha límite</Label>
-                          <Input
-                            type="date"
-                            value={documentConfig.alertDate}
-                            onChange={(e) => setDocumentConfig({ ...documentConfig, alertDate: e.target.value })}
-                            className="h-8"
-                          />
-                        </div>
-                      ) : (
-                        <div>
-                          <Label className="text-xs">Días para completar</Label>
-                          <Input
-                            type="number"
-                            min="1"
-                            value={documentConfig.alertDays}
-                            onChange={(e) =>
-                              setDocumentConfig({
-                                ...documentConfig,
-                                alertDays: Number.parseInt(e.target.value) || 7,
-                              })
-                            }
-                            className="h-8"
-                          />
-                        </div>
-                      )}
-                    </div>
-                  )} */}
 
                 </div>
-                {/* Selector de destino mejorado */}
-                {/* {localCurrentPath.length > 0 ? (
-                  <div className="bg-muted p-3 rounded-lg">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center text-sm">
-                        <Folder className="w-4 h-4 mr-2 text-blue-500" />
-                        <span>
-                          Destino: <strong>{currentFolder.name}</strong>
-                        </span>
-                      </div>
-                      <Button
-                        variant="secundario"
-                        size="sm"
-                        onClick={() => setShowDestinationSelector(!showDestinationSelector)}
-                      >
-                        {showDestinationSelector ? "Cancelar" : "Cambiar"}
-                      </Button>
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      Documentos actuales: {currentFolder.documents.length} / {currentFolder.minDocuments} mínimos
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <Label htmlFor="folder">Carpeta destino</Label>
-                    <Select value={selectedFolderId} onValueChange={setSelectedFolderId}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Seleccionar carpeta..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {project.structure.subfolders.map((folder) => (
-                          <div key={folder.id}>
-                            <SelectItem value={folder.id}>{folder.name}</SelectItem>
-                            {folder.subfolders.map((subfolder) => (
-                              <SelectItem key={subfolder.id} value={subfolder.id}>
-                                {folder.name} / {subfolder.name}
-                              </SelectItem>
-                            ))}
-                          </div>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )} */}
 
-
-
-                {/* Configuración de alertas para el documento */}
                 <div className="border rounded-lg p-3 items-center justify-center">
                   <div className={`flex items-center space-x-2 ${documentConfig.hasAlert ? "mb-3" : ""}`}>
                     <input
@@ -1034,7 +977,7 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
       {/* Folder Content */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {currentFolder.subfolders.map((folder) => {
-          const folderAlerts = getFolderAlerts(folder)
+          // const folderAlerts = getFolderAlerts(folder)
           const totalDocs =
             folder.documents.length + folder.subfolders.reduce((acc, sub) => acc + sub.documents.length, 0)
 
@@ -1047,30 +990,39 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
                     <CardTitle className="text-lg">{folder.name}</CardTitle>
                   </div>
                   <div className="flex items-center space-x-2">
-                    {folderAlerts.length > 0 && <Badge variant="destructive">{folderAlerts.length}</Badge>}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        openConfigDialog(folder)
+                    {/* {folderAlerts.length > 0 && <Badge variant="destructive">{folderAlerts.length}</Badge>} */}
+                    <ContextMenu
+                      type="folder"
+                      item={folder}
+                      onViewDetails={() => openDetails(folder, "folder")}
+                      onConfig={() => openConfigDialog(folder)}
+                      onEdit={() => {
+                        /* Implementar edición */
                       }}
-                    // className="h-8 w-8 p-0"
-                    >
-                      <Settings className="w-4 h-4" />
-                    </Button>
+                      onDelete={() => {
+                        /* Implementar eliminación */
+                      }}
+                      onDuplicate={() => {
+                        /* Implementar duplicación */
+                      }}
+                    />
                   </div>
                 </div>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Documentos:</span>
-                    <span
-                      className={folder.documents.length < folder.minDocuments ? "text-destructive" : "text-green-600"}
-                    >
-                      {folder.documents.length} / {folder.minDocuments} mín.
-                    </span>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-700">Documentos:</span>
+                    <div className="flex items-center space-x-2">
+                      <span
+                        className={`text-sm font-semibold ${folder.documents.length < folder.minDocuments ? "text-red-600" : "text-emerald-600"
+                          }`}
+                      >
+                        {folder.documents.length}
+                      </span>
+                      <span className="text-sm text-gray-400">/</span>
+                      <span className="text-sm text-gray-500">{folder.minDocuments} mín.</span>
+                    </div>
                   </div>
                   <div className="flex justify-between text-sm text-muted-foreground">
                     <span>Total (con subcarpetas):</span>
@@ -1161,6 +1113,20 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
           </CardContent>
         </Card>
       )}
+
+      <DetailsSheet
+        isOpen={detailsSheetOpen}
+        onClose={() => setDetailsSheetOpen(false)}
+        item={selectedItem}
+        type={selectedItemType}
+        onStageChange={selectedItemType === "project" ? handleStageChange : undefined}
+        onUpdate={(updatedItem) => {
+          if (selectedItemType === "project") {
+            onUpdateProject(updatedItem)
+          }
+          // Implementar actualización para folders y documents
+        }}
+      />
     </div>
   )
 }
