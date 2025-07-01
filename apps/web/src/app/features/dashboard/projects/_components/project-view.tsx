@@ -1045,7 +1045,7 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <FileText className="w-5 h-5 text-green-500" />
-                  <CardTitle className="text-lg">{doc.name}</CardTitle>
+                  <CardTitle className="text-lg break-words">{doc.name}</CardTitle>
                 </div>
                 <DocumentConfigDialog
                   document={doc}

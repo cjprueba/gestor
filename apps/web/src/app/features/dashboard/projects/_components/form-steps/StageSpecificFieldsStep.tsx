@@ -3,7 +3,7 @@ import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
 import { Badge } from "@/shared/components/ui/badge"
-import { TIPOS_INICIATIVA, TIPOS_OBRA, REGIONES, ROLES_INSPECTOR } from "@/shared/data/project-data"
+import { TIPOS_INICIATIVA, REGIONES, ROLES_INSPECTOR, TIPOS_OBRA_POR_ETAPA } from "@/shared/data"
 import type { ProjectFormData } from "../types"
 
 interface StageSpecificFieldsStepProps {
@@ -53,7 +53,7 @@ export const StageSpecificFieldsStep: React.FC<StageSpecificFieldsStepProps> = (
               <SelectValue placeholder="Seleccionar..." />
             </SelectTrigger>
             <SelectContent>
-              {(TIPOS_OBRA[formData.etapa as keyof typeof TIPOS_OBRA] || []).map((tipo) => (
+              {(TIPOS_OBRA_POR_ETAPA[formData.etapa as keyof typeof TIPOS_OBRA_POR_ETAPA] || []).map((tipo) => (
                 <SelectItem key={tipo} value={tipo}>
                   {tipo}
                 </SelectItem>

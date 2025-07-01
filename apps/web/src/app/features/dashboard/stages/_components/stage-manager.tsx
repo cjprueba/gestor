@@ -137,7 +137,7 @@ export default function StageManager({ stages, forms, onStagesChange, onFormsCha
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 px-6 pb-6">
       <div>
         <div className="flex items-center justify-between">
           <div>
@@ -354,13 +354,13 @@ export default function StageManager({ stages, forms, onStagesChange, onFormsCha
                     <div className="text-xs text-muted-foreground">{form.lastModifiedAt.toLocaleDateString()}</div>
                     <div className="flex items-center space-x-1">
                       <Button variant="ghost" size="sm" onClick={() => setPreviewForm(form)}>
-                        <Eye className="w-3 h-3" />
+                        <Eye className="w-4 h-4" />
                       </Button>
                       <Button variant="ghost" size="sm" onClick={() => setEditingForm(form)}>
-                        <Edit className="w-3 h-3" />
+                        <Edit className="w-4 h-4" />
                       </Button>
                       <Button variant="ghost" size="sm">
-                        <Copy className="w-3 h-3" />
+                        <Copy className="w-4 h-4" />
                       </Button>
                     </div>
                   </div>

@@ -243,3 +243,10 @@ export const getGeneralStats = () => {
     })),
   }
 }
+
+// Importar y exportar mock data de stage forms
+export {
+  MOCK_STAGE_FORMS,
+  MOCK_PROJECT_STAGES,
+  TIPOS_OBRA_POR_ETAPA,
+} from './stage-forms-mock'
