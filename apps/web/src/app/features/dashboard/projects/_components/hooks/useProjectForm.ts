@@ -173,23 +173,23 @@ export const useProjectForm = () => {
     }
   }
 
-  const createCustomFolder = (folderName: string) => {
-    if (!folderName.trim()) return
+  const createCustomFolder = (name: string, minDocs: number) => {
+    if (!name.trim()) return
 
     const newFolder: FolderStructure = {
       id: `custom-${Date.now()}`,
-      name: folderName,
-      minDocuments: 3,
+      name: name.trim(),
+      minDocuments: minDocs,
       documents: [],
       subfolders: [],
     }
 
-    setCustomFolders((prev) => [...prev, newFolder])
-    setSelectedFolders((prev) => [...prev, newFolder.id])
-    setFolderConfigs((prev) => ({
-      ...prev,
-      [newFolder.id]: { minDocs: 3 },
-    }))
+    setCustomFolders([...customFolders, newFolder])
+    setSelectedFolders([...selectedFolders, newFolder.id])
+    setFolderConfigs({
+      ...folderConfigs,
+      [newFolder.id]: { minDocs: minDocs, daysLimit: 30 },
+    })
   }
 
   const resetForm = () => {

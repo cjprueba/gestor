@@ -1,12 +1,11 @@
-
-
-import { Activity, Clock, Download, Edit, Eye, File, FileText, FolderOpen, Share,Users } from "lucide-react"
-
+import { Activity, Clock, Download, Edit, Eye, File, FileText, FolderOpen, Share, Users } from "lucide-react"
+import { Button } from "@/shared/components/design-system/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avatar"
 import { Badge } from "@/shared/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog"
 import { Progress } from "@/shared/components/ui/progress"
+import { MOCK_USERS, MOCK_ACTIVIDADES_DOCUMENTALES } from "@/shared/data"
 
 interface ResourceDetailsDialogProps {
   open: boolean
@@ -17,19 +16,24 @@ interface ResourceDetailsDialogProps {
 export function ResourceDetailsDialog({ open, onOpenChange, resource }: ResourceDetailsDialogProps) {
   if (!resource) return null
 
-  // Mock data for demonstration
-  const mockUsers = [
-    { id: "1", name: "Ana García", avatar: "/placeholder.svg?height=32&width=32", permissions: ["view", "edit"] },
-    { id: "2", name: "Carlos Rodríguez", avatar: "/placeholder.svg?height=32&width=32", permissions: ["view"] },
-    { id: "3", name: "María López", avatar: "/placeholder.svg?height=32&width=32", permissions: ["view", "download"] },
-  ]
+  // Usar datos mock centralizados
+  const mockUsers = MOCK_USERS.slice(0, 3).map(user => ({
+    id: user.id,
+    name: user.name,
+    avatar: user.avatar,
+    permissions: user.permissions.slice(0, 2), // Tomar solo los primeros 2 permisos
+  }))
 
-  const mockActivity = [
-    { action: "Documento descargado", user: "Ana García", time: "Hace 2 horas" },
-    { action: "Permisos modificados", user: "Admin", time: "Hace 1 día" },
-    { action: "Documento visualizado", user: "Carlos Rodríguez", time: "Hace 2 días" },
-    { action: "Acceso compartido", user: "María López", time: "Hace 3 días" },
-  ]
+  // Usar actividades documentales centralizadas como actividad del recurso
+  const mockActivity = MOCK_ACTIVIDADES_DOCUMENTALES.slice(0, 4).map(actividad => ({
+    action: `${actividad.nombre} - ${actividad.tipoActividad}`,
+    user: actividad.usuario.name,
+    time: new Date(actividad.fechaActividad).toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    }),
+  }))
 
   const getResourceIcon = () => {
     switch (resource.type) {

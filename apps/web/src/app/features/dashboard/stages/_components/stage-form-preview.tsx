@@ -8,7 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/shared/components/ui/checkbox"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Badge } from "@/shared/components/ui/badge"
-import { Eye } from "lucide-react"
 import type { StageForm } from "@/shared/types/stage-types"
 
 interface StageFormPreviewProps {
@@ -71,10 +70,9 @@ export default function StageFormPreview({ form }: StageFormPreviewProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 h-full flex flex-col">
       {/* Header */}
-      <div className="flex items-center space-x-2">
-        <Eye className="w-5 h-5 text-blue-500" />
+      <div className="flex items-center space-x-2 flex-shrink-0">
         <div>
           <h3 className="font-semibold">{form.name}</h3>
           {form.description && <p className="text-sm text-muted-foreground">{form.description}</p>}
@@ -82,34 +80,36 @@ export default function StageFormPreview({ form }: StageFormPreviewProps) {
       </div>
 
       {/* Formulario */}
-      <Card>
-        <CardHeader>
+      <Card className="flex-1 flex flex-col">
+        <CardHeader className="flex-shrink-0">
           <CardTitle className="flex items-center justify-between">
-            Vista Previa del Formulario
+            Vista Previa del formulario
             <Badge variant="secondary">{form.fields.length} campos</Badge>
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="flex-1 overflow-y-auto space-y-4 max-h-[600px]">
           {form.fields.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">Este formulario no tiene campos configurados</div>
           ) : (
-            form.fields.map((field) => (
-              <div key={field.id} className="space-y-2">
-                <Label htmlFor={field.id} className="flex items-center space-x-1">
-                  <span>{field.label}</span>
-                  {field.required && <span className="text-destructive">*</span>}
-                </Label>
-                {renderField(field)}
-                {field.description && <p className="text-xs text-muted-foreground">{field.description}</p>}
-              </div>
-            ))
-          )}
+            <div className="space-y-4">
+              {form.fields.map((field) => (
+                <div key={field.id} className="space-y-2">
+                  <Label htmlFor={field.id} className="flex items-center space-x-1">
+                    <span>{field.label}</span>
+                    {field.required && <span className="text-destructive">*</span>}
+                  </Label>
+                  {renderField(field)}
+                  {field.description && <p className="text-xs text-muted-foreground">{field.description}</p>}
+                </div>
+              ))}
 
-          {form.fields.length > 0 && (
-            <div className="pt-4 border-t">
-              <Button className="w-full" disabled>
-                Crear Proyecto (Vista Previa)
-              </Button>
+              {form.fields.length > 0 && (
+                <div className="pt-4 border-t sticky bottom-0 bg-background">
+                  <Button className="w-full" disabled>
+                    Crear proyecto (Vista Previa)
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </CardContent>

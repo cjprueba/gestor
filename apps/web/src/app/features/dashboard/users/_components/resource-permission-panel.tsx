@@ -1,5 +1,3 @@
-
-
 import { Download, Edit, Eye, Search, Share, Shield, Trash2, UserPlus, X } from "lucide-react"
 import { useEffect, useState } from "react"
 
@@ -19,6 +17,7 @@ import {
 import { Input } from "@/shared/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs"
+import { MOCK_USERS } from "@/shared/data"
 
 interface ResourcePermissionsPanelProps {
   open: boolean
@@ -26,57 +25,8 @@ interface ResourcePermissionsPanelProps {
   resource: any
 }
 
-// Mock users data
-const allUsers = [
-  {
-    id: "1",
-    name: "Ana García",
-    email: "ana.garcia@empresa.com",
-    role: "Admin",
-    department: "IT",
-    avatar: "/placeholder.svg?height=32&width=32",
-  },
-  {
-    id: "2",
-    name: "Carlos Rodríguez",
-    email: "carlos.rodriguez@empresa.com",
-    role: "Project Manager",
-    department: "Operaciones",
-    avatar: "/placeholder.svg?height=32&width=32",
-  },
-  {
-    id: "3",
-    name: "María López",
-    email: "maria.lopez@empresa.com",
-    role: "User",
-    department: "Finanzas",
-    avatar: "/placeholder.svg?height=32&width=32",
-  },
-  {
-    id: "4",
-    name: "Juan Pérez",
-    email: "juan.perez@empresa.com",
-    role: "Viewer",
-    department: "Legal",
-    avatar: "/placeholder.svg?height=32&width=32",
-  },
-  {
-    id: "5",
-    name: "Laura Martín",
-    email: "laura.martin@empresa.com",
-    role: "User",
-    department: "RRHH",
-    avatar: "/placeholder.svg?height=32&width=32",
-  },
-  {
-    id: "6",
-    name: "Diego Silva",
-    email: "diego.silva@empresa.com",
-    role: "User",
-    department: "Ventas",
-    avatar: "/placeholder.svg?height=32&width=32",
-  },
-]
+// Usar datos mock centralizados
+const allUsers = MOCK_USERS
 
 const permissionTypes = [
   { key: "view", label: "Ver", icon: Eye, color: "text-blue-600" },
@@ -93,13 +43,13 @@ export function ResourcePermissionsPanel({ open, onOpenChange, resource }: Resou
   const [newUserPermissions, setNewUserPermissions] = useState<Record<string, string[]>>({})
   const [currentPermissions, setCurrentPermissions] = useState<Record<string, string[]>>({})
 
-  // Mock current permissions for the resource
+  // Mock current permissions for the resource usando IDs de usuarios centralizados
   useEffect(() => {
     if (resource) {
-      // Simulate existing permissions
+      // Simulate existing permissions usando IDs correctos de MOCK_USERS
       const mockPermissions: Record<string, string[]> = {
         "1": ["view", "edit", "download"], // Ana García
-        "2": ["view", "download"], // Carlos Rodríguez
+        "2": ["view", "download"], // Carlos Rodríguez  
         "3": ["view"], // María López
       }
       setCurrentPermissions(mockPermissions)

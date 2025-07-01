@@ -226,81 +226,84 @@ export default function TemplateManager({ templates, onTemplatesChange, usageSta
             </Button>
           </DialogTrigger>
 
-          <DialogContent className="max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
+          <DialogContent className="max-w-6xl max-h-[90vh] flex flex-col">
+            <DialogHeader className="flex-shrink-0">
               <DialogTitle>Crear nueva plantilla</DialogTitle>
               <DialogDescription>
                 Define una nueva plantilla de carpetas que podrá ser utilizada en diferentes etapas de proyecto
               </DialogDescription>
             </DialogHeader>
 
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex-1 overflow-y-auto">
+              <div className="space-y-6 p-1">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Nombre de la plantilla *</Label>
+                    <Input
+                      id="name"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      placeholder="Ej: Documentación Legal Completa"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Etapas aplicables *</Label>
+                    <div className="grid grid-cols-1 gap-2 max-h-32 overflow-y-auto border rounded-md p-2">
+                      {ETAPAS.map((etapa) => (
+                        <div key={etapa} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`create-${etapa}`}
+                            checked={formData.etapas.includes(etapa)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setFormData({ ...formData, etapas: [...formData.etapas, etapa] })
+                              } else {
+                                setFormData({ ...formData, etapas: formData.etapas.filter((e) => e !== etapa) })
+                              }
+                            }}
+                          />
+                          <Label htmlFor={`create-${etapa}`} className="text-sm cursor-pointer">
+                            {etapa}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="name">Nombre de la plantilla *</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="Ej: Documentación Legal Completa"
+                  <Label htmlFor="description">Descripción (Opcional)</Label>
+                  <Textarea
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    placeholder="Describe el propósito y contenido de esta plantilla..."
+                    rows={3}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Etapas aplicables *</Label>
-                  <div className="grid grid-cols-1 gap-2 max-h-32 overflow-y-auto">
-                    {ETAPAS.map((etapa) => (
-                      <div key={etapa} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`create-${etapa}`}
-                          checked={formData.etapas.includes(etapa)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setFormData({ ...formData, etapas: [...formData.etapas, etapa] })
-                            } else {
-                              setFormData({ ...formData, etapas: formData.etapas.filter((e) => e !== etapa) })
-                            }
-                          }}
-                        />
-                        <Label htmlFor={`create-${etapa}`} className="text-sm cursor-pointer">
-                          {etapa}
-                        </Label>
-                      </div>
-                    ))}
+                  <div className="border rounded-lg p-4 bg-gray-50/50 min-h-[200px] max-h-[400px] overflow-y-auto">
+                    <TemplateTreeBuilder
+                      folders={formData.subfolders}
+                      onChange={(folders) => setFormData({ ...formData, subfolders: folders })}
+                    />
                   </div>
                 </div>
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="description">Descripción (Opcional)</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Describe el propósito y contenido de esta plantilla..."
-                  rows={3}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Estructura de carpetas *</Label>
-                <TemplateTreeBuilder
-                  folders={formData.subfolders}
-                  onChange={(folders) => setFormData({ ...formData, subfolders: folders })}
-                />
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="active"
-                  checked={formData.isActive}
-                  onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
-                />
-                <Label htmlFor="active">Plantilla activa</Label>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="active"
+                    checked={formData.isActive}
+                    onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
+                  />
+                  <Label htmlFor="active">Plantilla activa</Label>
+                </div>
               </div>
             </div>
 
-            <div className="flex justify-end space-x-2 pt-4 border-t">
+            <div className="flex justify-end space-x-2 pt-4 border-t bg-background flex-shrink-0">
               <Button variant="secundario" onClick={() => setIsCreateDialogOpen(false)}>
                 Cancelar
               </Button>

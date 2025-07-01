@@ -55,6 +55,8 @@ export interface ActividadDocumental {
     email: string
   }
   estado: 'activo' | 'archivado' | 'eliminado'
+  etapaAnterior: string | null
+  etapaActual: string
   metadatos?: {
     ipAddress?: string
     userAgent?: string

@@ -1,408 +1,13 @@
-// import { useState, useEffect } from "react"
-// import { Button } from "@/shared/components/design-system/button"
-// import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card"
-// import { Badge } from "@/shared/components/ui/badge"
-// import { Input } from "@/shared/components/ui/input"
-// import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs"
-// import {
-//   Dialog,
-//   DialogContent,
-//   DialogDescription,
-//   DialogHeader,
-//   DialogTitle,
-//   DialogTrigger,
-// } from "@/shared/components/ui/dialog"
-// import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
-// import { Separator } from "@/shared/components/ui/separator"
-// import { SidebarInset } from "@/shared/components/ui/sidebar"
-// import { Plus, FolderIcon, Edit, Trash2, Copy, Folder, Search } from "lucide-react"
-// import { ETAPAS, PLANTILLAS_CARPETAS } from "@/shared/data/project-data"
-// import type { FolderTemplate, TemplateSet } from "@/shared/types/template-types"
-// import TemplateEditor from "./_components/template-editor"
-
-// export default function FolderTemplatesPage() {
-//   const [templates, setTemplates] = useState<FolderTemplate[]>([])
-//   const [templateSets, setTemplateSets] = useState<TemplateSet[]>([])
-//   const [selectedEtapa, setSelectedEtapa] = useState<string>("all")
-//   const [searchTerm, setSearchTerm] = useState("")
-//   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
-//   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-//   const [selectedTemplate, setSelectedTemplate] = useState<FolderTemplate | null>(null)
-//   const [activeTab, setActiveTab] = useState("templates")
-
-//   // Inicializar con templates por defecto
-//   useEffect(() => {
-//     const defaultTemplates: FolderTemplate[] = []
-
-//     // Crear templates por defecto basados en PLANTILLAS_CARPETAS
-//     Object.entries(PLANTILLAS_CARPETAS).forEach(([etapa, carpetas]) => {
-//       carpetas.forEach((carpeta, index) => {
-//         const template: FolderTemplate = {
-//           id: `default-${etapa}-${index}`,
-//           name: carpeta,
-//           description: `Template por defecto para ${carpeta} en ${etapa}`,
-//           minDocuments: 3,
-//           daysLimit: 30,
-//           subfolders: [
-//             { id: `sub-1`, name: "Documentos Principales", minDocuments: 2 },
-//             { id: `sub-2`, name: "Documentos Adicionales", minDocuments: 1 },
-//           ],
-//           etapas: [etapa],
-//           createdAt: new Date(),
-//           createdBy: "Sistema",
-//           lastModifiedAt: new Date(),
-//           lastModifiedBy: "Sistema",
-//           isDefault: true,
-//         }
-//         defaultTemplates.push(template)
-//       })
-//     })
-
-//     setTemplates(defaultTemplates)
-
-//     // Crear template sets por defecto
-//     const defaultSets: TemplateSet[] = ETAPAS.map((etapa, index) => ({
-//       id: `set-${index}`,
-//       name: `Set ${etapa}`,
-//       description: `Conjunto de templates para ${etapa}`,
-//       etapa,
-//       folders: defaultTemplates.filter((t) => t.etapas.includes(etapa)),
-//       createdAt: new Date(),
-//       createdBy: "Sistema",
-//       isDefault: true,
-//     }))
-
-//     setTemplateSets(defaultSets)
-//   }, [])
-
-//   const filteredTemplates = templates.filter((template) => {
-//     const matchesEtapa = selectedEtapa === "all" || template.etapas.includes(selectedEtapa)
-//     const matchesSearch =
-//       template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-//       template.description?.toLowerCase().includes(searchTerm.toLowerCase())
-//     return matchesEtapa && matchesSearch
-//   })
-
-//   const handleCreateTemplate = (templateData: Partial<FolderTemplate>) => {
-//     const newTemplate: FolderTemplate = {
-//       id: `template-${Date.now()}`,
-//       name: templateData.name || "",
-//       description: templateData.description,
-//       minDocuments: templateData.minDocuments || 3,
-//       daysLimit: templateData.daysLimit,
-//       subfolders: templateData.subfolders || [],
-//       etapas: templateData.etapas || [],
-//       createdAt: new Date(),
-//       createdBy: "Usuario Actual",
-//       lastModifiedAt: new Date(),
-//       lastModifiedBy: "Usuario Actual",
-//       isDefault: false,
-//     }
-
-//     setTemplates([...templates, newTemplate])
-//     setIsCreateDialogOpen(false)
-//   }
-
-//   const handleEditTemplate = (templateData: Partial<FolderTemplate>) => {
-//     if (!selectedTemplate) return
-
-//     const updatedTemplate: FolderTemplate = {
-//       ...selectedTemplate,
-//       ...templateData,
-//       lastModifiedAt: new Date(),
-//       lastModifiedBy: "Usuario Actual",
-//     }
-
-//     setTemplates(templates.map((t) => (t.id === selectedTemplate.id ? updatedTemplate : t)))
-//     setIsEditDialogOpen(false)
-//     setSelectedTemplate(null)
-//   }
-
-//   const handleDuplicateTemplate = (template: FolderTemplate) => {
-//     const duplicatedTemplate: FolderTemplate = {
-//       ...template,
-//       id: `template-${Date.now()}`,
-//       name: `${template.name} (Copia)`,
-//       createdAt: new Date(),
-//       createdBy: "Usuario Actual",
-//       lastModifiedAt: new Date(),
-//       lastModifiedBy: "Usuario Actual",
-//       isDefault: false,
-//     }
-
-//     setTemplates([...templates, duplicatedTemplate])
-//   }
-
-//   const handleDeleteTemplate = (templateId: string) => {
-//     setTemplates(templates.filter((t) => t.id !== templateId))
-//   }
-
-//   const getEtapaColor = (etapa: string) => {
-//     const colors = {
-//       "Cartera de proyectos": "bg-blue-100 text-blue-800",
-//       "Proyectos en Licitación": "bg-yellow-100 text-yellow-800",
-//       "Concesiones en Operación": "bg-green-100 text-green-800",
-//       "Concesiones en Construcción": "bg-orange-100 text-orange-800",
-//       "Concesiones en Operación y Construcción": "bg-purple-100 text-purple-800",
-//       "Concesiones Finalizadas": "bg-gray-100 text-gray-800",
-//     }
-//     return colors[etapa as keyof typeof colors] || "bg-gray-100 text-gray-800"
-//   }
-
-//   return (
-//     <>
-//       <div className="flex items-center space-x-2">
-//         <div className="relative">
-//           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-//           <Input
-//             placeholder="Buscar templates..."
-//             value={searchTerm}
-//             onChange={(e) => setSearchTerm(e.target.value)}
-//             className="pl-8 w-64"
-//           />
-//         </div>
-//         <Select value={selectedEtapa} onValueChange={setSelectedEtapa}>
-//           <SelectTrigger className="w-48">
-//             <SelectValue placeholder="Filtrar por etapa" />
-//           </SelectTrigger>
-//           <SelectContent>
-//             <SelectItem value="all">Todas las etapas</SelectItem>
-//             {ETAPAS.map((etapa) => (
-//               <SelectItem key={etapa} value={etapa}>
-//                 {etapa}
-//               </SelectItem>
-//             ))}
-//           </SelectContent>
-//         </Select>
-//         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-//           <DialogTrigger asChild>
-//             <Button>
-//               <Plus className="w-4 h-4 mr-2" />
-//               Nuevo Template
-//             </Button>
-//           </DialogTrigger>
-//           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-//             <DialogHeader>
-//               <DialogTitle>Crear Nuevo Template</DialogTitle>
-//               <DialogDescription>
-//                 Crea una nueva plantilla de carpeta que podrá ser utilizada en diferentes etapas
-//               </DialogDescription>
-//             </DialogHeader>
-//             <TemplateEditor onSave={handleCreateTemplate} onCancel={() => setIsCreateDialogOpen(false)} />
-//           </DialogContent>
-//         </Dialog>
-//       </div>
-
-//       <div className="flex flex-1 flex-col gap-4 p-4">
-//         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-//           <TabsList className="grid w-full grid-cols-2">
-//             <TabsTrigger value="templates">Templates Individuales</TabsTrigger>
-//             <TabsTrigger value="sets">Conjuntos de Templates</TabsTrigger>
-//           </TabsList>
-
-//           <TabsContent value="templates" className="space-y-4">
-//             {filteredTemplates.length === 0 ? (
-//               <Card className="text-center py-12">
-//                 <CardContent>
-//                   <FolderIcon className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-//                   <h3 className="text-xl font-semibold mb-2">No hay templates</h3>
-//                   <p className="text-muted-foreground mb-4">
-//                     {searchTerm || selectedEtapa !== "all"
-//                       ? "No se encontraron templates con los filtros aplicados"
-//                       : "Crea tu primer template para comenzar"}
-//                   </p>
-//                   {!searchTerm && selectedEtapa === "all" && (
-//                     <Button onClick={() => setIsCreateDialogOpen(true)}>
-//                       <Plus className="w-4 h-4 mr-2" />
-//                       Crear Primer Template
-//                     </Button>
-//                   )}
-//                 </CardContent>
-//               </Card>
-//             ) : (
-//               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-//                 {filteredTemplates.map((template) => (
-//                   <Card key={template.id} className="hover:shadow-lg transition-shadow">
-//                     <CardHeader>
-//                       <div className="flex justify-between items-start">
-//                         <div className="flex-1">
-//                           <CardTitle className="text-lg flex items-center">
-//                             <Folder className="w-5 h-5 mr-2 text-blue-500" />
-//                             {template.name}
-//                             {template.isDefault && (
-//                               <Badge variant="secondary" className="ml-2 text-xs">
-//                                 Por defecto
-//                               </Badge>
-//                             )}
-//                           </CardTitle>
-//                           {template.description && (
-//                             <CardDescription className="mt-1">{template.description}</CardDescription>
-//                           )}
-//                         </div>
-//                         <div className="flex items-center space-x-1">
-//                           <Button
-//                             variant="ghost"
-//                             size="sm"
-//                             onClick={() => {
-//                               setSelectedTemplate(template)
-//                               setIsEditDialogOpen(true)
-//                             }}
-//                             className="h-8 w-8 p-0"
-//                           >
-//                             <Edit className="w-4 h-4" />
-//                           </Button>
-//                           <Button
-//                             variant="ghost"
-//                             size="sm"
-//                             onClick={() => handleDuplicateTemplate(template)}
-//                             className="h-8 w-8 p-0"
-//                           >
-//                             <Copy className="w-4 h-4" />
-//                           </Button>
-//                           {!template.isDefault && (
-//                             <Button
-//                               variant="ghost"
-//                               size="sm"
-//                               onClick={() => handleDeleteTemplate(template.id)}
-//                               className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-//                             >
-//                               <Trash2 className="w-4 h-4" />
-//                             </Button>
-//                           )}
-//                         </div>
-//                       </div>
-//                     </CardHeader>
-//                     <CardContent>
-//                       <div className="space-y-3">
-//                         <div className="flex items-center justify-between text-sm">
-//                           <span className="text-muted-foreground">Documentos mínimos:</span>
-//                           <span className="font-medium">{template.minDocuments}</span>
-//                         </div>
-
-//                         {template.daysLimit && (
-//                           <div className="flex items-center justify-between text-sm">
-//                             <span className="text-muted-foreground">Días límite:</span>
-//                             <span className="font-medium">{template.daysLimit}</span>
-//                           </div>
-//                         )}
-
-//                         <div className="flex items-center justify-between text-sm">
-//                           <span className="text-muted-foreground">Subcarpetas:</span>
-//                           <span className="font-medium">{template.subfolders.length}</span>
-//                         </div>
-
-//                         <div className="space-y-2">
-//                           <span className="text-sm text-muted-foreground">Etapas disponibles:</span>
-//                           <div className="flex flex-wrap gap-1">
-//                             {template.etapas.map((etapa) => (
-//                               <Badge key={etapa} variant="outline" className={`text-xs ${getEtapaColor(etapa)}`}>
-//                                 {etapa.split(" ").slice(0, 2).join(" ")}
-//                               </Badge>
-//                             ))}
-//                           </div>
-//                         </div>
-
-//                         <Separator />
-
-//                         <div className="text-xs text-muted-foreground">
-//                           <div>Creado: {template.createdAt.toLocaleDateString()}</div>
-//                           <div>Por: {template.createdBy}</div>
-//                         </div>
-//                       </div>
-//                     </CardContent>
-//                   </Card>
-//                 ))}
-//               </div>
-//             )}
-//           </TabsContent>
-
-//           <TabsContent value="sets" className="space-y-4">
-//             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-//               {templateSets.map((set) => (
-//                 <Card key={set.id} className="hover:shadow-lg transition-shadow">
-//                   <CardHeader>
-//                     <div className="flex justify-between items-start">
-//                       <div className="flex-1">
-//                         <CardTitle className="text-lg flex items-center">
-//                           <FolderIcon className="w-5 h-5 mr-2 text-purple-500" />
-//                           {set.name}
-//                           {set.isDefault && (
-//                             <Badge variant="secondary" className="ml-2 text-xs">
-//                               Por defecto
-//                             </Badge>
-//                           )}
-//                         </CardTitle>
-//                         {set.description && <CardDescription className="mt-1">{set.description}</CardDescription>}
-//                       </div>
-//                     </div>
-//                   </CardHeader>
-//                   <CardContent>
-//                     <div className="space-y-3">
-//                       <div className="flex items-center justify-between">
-//                         <span className="text-sm text-muted-foreground">Etapa:</span>
-//                         <Badge className={getEtapaColor(set.etapa)}>{set.etapa}</Badge>
-//                       </div>
-
-//                       <div className="flex items-center justify-between text-sm">
-//                         <span className="text-muted-foreground">Templates incluidos:</span>
-//                         <span className="font-medium">{set.folders.length}</span>
-//                       </div>
-
-//                       <div className="space-y-1">
-//                         <span className="text-sm text-muted-foreground">Carpetas:</span>
-//                         <div className="text-xs text-muted-foreground max-h-20 overflow-y-auto">
-//                           {set.folders.map((folder, index) => (
-//                             <div key={folder.id}>• {folder.name}</div>
-//                           ))}
-//                         </div>
-//                       </div>
-
-//                       <Separator />
-
-//                       <div className="text-xs text-muted-foreground">
-//                         <div>Creado: {set.createdAt.toLocaleDateString()}</div>
-//                         <div>Por: {set.createdBy}</div>
-//                       </div>
-//                     </div>
-//                   </CardContent>
-//                 </Card>
-//               ))}
-//             </div>
-//           </TabsContent>
-//         </Tabs>
-//       </div>
-
-//       {/* Dialog de edición */}
-//       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-//         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-//           <DialogHeader>
-//             <DialogTitle>Editar Template</DialogTitle>
-//             <DialogDescription>Modifica la plantilla de carpeta "{selectedTemplate?.name}"</DialogDescription>
-//           </DialogHeader>
-//           {selectedTemplate && (
-//             <TemplateEditor
-//               template={selectedTemplate}
-//               onSave={handleEditTemplate}
-//               onCancel={() => {
-//                 setIsEditDialogOpen(false)
-//                 setSelectedTemplate(null)
-//               }}
-//             />
-//           )}
-//         </DialogContent>
-//       </Dialog>
-//     </>
-
-//   )
-// }
-
 import { useState, useEffect } from "react"
-import { PLANTILLAS_CARPETAS } from "@/shared/data/project-data"
-import type { FolderTemplate, TemplateUsageStats } from "@/shared/types/template-types"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs"
+import { PLANTILLAS_CARPETAS, ETAPAS } from "@/shared/data/project-data"
+import type { FolderTemplate, TemplateUsageStats, TemplateSet } from "@/shared/types/template-types"
 import TemplateManager from "./_components/template-manager"
+import TemplateSetsManager from "./_components/template-sets-manager"
 
 export default function TemplatesPage() {
   const [templates, setTemplates] = useState<FolderTemplate[]>([])
+  const [templateSets, setTemplateSets] = useState<TemplateSet[]>([])
   const [usageStats, setUsageStats] = useState<TemplateUsageStats[]>([])
 
   // Inicializar con templates por defecto optimizados
@@ -444,6 +49,74 @@ export default function TemplatesPage() {
 
     const defaultTemplates = Array.from(templateMap.values())
     setTemplates(defaultTemplates)
+
+    // Crear template sets por etapa
+    const defaultTemplateSets: TemplateSet[] = ETAPAS.map((etapa, index) => {
+      const templatesForEtapa = defaultTemplates.filter(t => t.etapas.includes(etapa))
+      return {
+        id: `set-${etapa.toLowerCase().replace(/\s+/g, "-")}`,
+        name: `Plantilla Completa - ${etapa}`,
+        description: `Conjunto completo de carpetas recomendadas para proyectos en etapa: ${etapa}`,
+        etapa,
+        folders: templatesForEtapa,
+        createdAt: new Date(Date.now() - (ETAPAS.length - index) * 24 * 60 * 60 * 1000), // Fechas escalonadas
+        createdBy: "Sistema",
+        isDefault: true,
+        isActive: true,
+      }
+    })
+
+    // Agregar algunos template sets personalizados
+    const customTemplateSets: TemplateSet[] = [
+      {
+        id: "set-custom-legal",
+        name: "Paquete Legal Básico",
+        description: "Conjunto mínimo de carpetas para aspectos legales y contractuales",
+        etapa: "Proyectos en Licitación",
+        folders: defaultTemplates.filter(t =>
+          t.name.includes("Licitación") ||
+          t.name.includes("Adjudicación") ||
+          t.name.includes("Documentación Técnica")
+        ),
+        createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000),
+        createdBy: "Ana García",
+        isDefault: false,
+        isActive: true,
+      },
+      {
+        id: "set-custom-construction",
+        name: "Paquete Construcción Avanzado",
+        description: "Plantilla especializada para proyectos de construcción con seguimiento detallado",
+        etapa: "Concesiones en Construcción",
+        folders: defaultTemplates.filter(t =>
+          t.name.includes("Ejecución") ||
+          t.name.includes("Modificaciones") ||
+          t.name.includes("Informe") ||
+          t.name.includes("Construcción")
+        ),
+        createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+        createdBy: "Carlos Rodríguez",
+        isDefault: false,
+        isActive: true,
+      },
+      {
+        id: "set-custom-operations",
+        name: "Paquete Operacional Estándar",
+        description: "Carpetas esenciales para la gestión operacional de concesiones activas",
+        etapa: "Concesiones en Operación",
+        folders: defaultTemplates.filter(t =>
+          t.name.includes("Operacional") ||
+          t.name.includes("Informe") ||
+          t.name.includes("Modificaciones")
+        ),
+        createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+        createdBy: "María López",
+        isDefault: false,
+        isActive: true,
+      }
+    ]
+
+    setTemplateSets([...defaultTemplateSets, ...customTemplateSets])
 
     // Generar estadísticas de uso mock
     const mockStats: TemplateUsageStats[] = defaultTemplates.map((template) => ({
@@ -536,7 +209,35 @@ export default function TemplatesPage() {
 
   return (
     <div className="flex flex-1 flex-col p-6">
-      <TemplateManager templates={templates} onTemplatesChange={setTemplates} usageStats={usageStats} />
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold">Gestión de plantillas</h1>
+        <p className="text-muted-foreground mt-2">
+          Administra plantillas de carpetas individuales y conjuntos de plantillas para diferentes etapas de proyecto
+        </p>
+      </div>
+
+      <Tabs defaultValue="folders" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 mb-4">
+          <TabsTrigger value="folders">Carpetas individuales</TabsTrigger>
+          <TabsTrigger value="sets">Plantillas</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="folders" className="space-y-4">
+          <TemplateManager
+            templates={templates}
+            onTemplatesChange={setTemplates}
+            usageStats={usageStats}
+          />
+        </TabsContent>
+
+        <TabsContent value="sets" className="space-y-4">
+          <TemplateSetsManager
+            templateSets={templateSets}
+            onTemplateSetsChange={setTemplateSets}
+            availableTemplates={templates}
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

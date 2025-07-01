@@ -5,9 +5,10 @@ import { CreateProjectDialog } from "./_components/CreateProjectDialog"
 import ProjectView from "./_components/project-view"
 import { ProjectList } from "./_components/ProjectList"
 import type { Project } from "./_components/types"
+import { MOCK_PROJECTS } from "@/shared/data"
 
 export default function HomePage() {
-  const [projects, setProjects] = useState<Project[]>([])
+  const [projects, setProjects] = useState<Project[]>(MOCK_PROJECTS as Project[])
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
 

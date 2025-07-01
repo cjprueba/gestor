@@ -43,8 +43,6 @@ export default function StageManager({ stages, forms, onStagesChange, onFormsCha
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedTab, setSelectedTab] = useState("stages")
   const [isCreateStageOpen, setIsCreateStageOpen] = useState(false)
-  const [isCreateFormOpen, setIsCreateFormOpen] = useState(false)
-  // const [editingStage, setEditingStage] = useState<ProjectStage | null>(null)
   const [editingForm, setEditingForm] = useState<StageForm | null>(null)
   const [previewForm, setPreviewForm] = useState<StageForm | null>(null)
 
@@ -91,7 +89,7 @@ export default function StageManager({ stages, forms, onStagesChange, onFormsCha
     if (createFormForStage) {
       const newForm: StageForm = {
         id: `form-${Date.now()}`,
-        name: `Formulario - ${newStageName}`,
+        name: `${newStageName}`,
         description: `Formulario personalizado para la etapa ${newStageName}`,
         fields: [],
         createdAt: new Date(),
@@ -232,46 +230,6 @@ export default function StageManager({ stages, forms, onStagesChange, onFormsCha
             />
           </div>
         </div>
-
-        <div className="flex items-center space-x-2">
-
-
-          <Dialog open={isCreateFormOpen} onOpenChange={setIsCreateFormOpen}>
-            <DialogTrigger asChild>
-              <Button variant="secundario">
-                <FileText className="w-4 h-4 mr-2" />
-                Nuevo Formulario
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Crear Nuevo Formulario</DialogTitle>
-                <DialogDescription>
-                  Crea un formulario independiente que podrás asociar a cualquier etapa.
-                </DialogDescription>
-              </DialogHeader>
-
-              <div className="space-y-4">
-                <div>
-                  <Label>Nombre del Formulario</Label>
-                  <Input placeholder="Ej: Formulario de Evaluación Técnica" />
-                </div>
-
-                <div>
-                  <Label>Descripción</Label>
-                  <Textarea placeholder="Describe el propósito de este formulario..." />
-                </div>
-
-                <div className="flex justify-end space-x-2">
-                  <Button variant="secundario" onClick={() => setIsCreateFormOpen(false)}>
-                    Cancelar
-                  </Button>
-                  <Button>Crear y Editar</Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
       </div>
 
       {/* Tabs */}
@@ -332,7 +290,7 @@ export default function StageManager({ stages, forms, onStagesChange, onFormsCha
                           <span className="text-sm font-medium">{associatedForm.name}</span>
                         </div>
                         <Button variant="ghost" size="sm" onClick={() => setPreviewForm(associatedForm)}>
-                          <Eye className="w-3 h-3" />
+                          <Eye className="w-4 h-4" />
                         </Button>
                       </div>
                     ) : (
@@ -449,7 +407,7 @@ export default function StageManager({ stages, forms, onStagesChange, onFormsCha
         <Dialog open={!!previewForm} onOpenChange={() => setPreviewForm(null)}>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>Vista Previa: {previewForm.name}</DialogTitle>
+              <DialogTitle>Vista Previa</DialogTitle>
               <DialogDescription>
                 Así se verá el formulario cuando los usuarios creen un proyecto en esta etapa.
               </DialogDescription>

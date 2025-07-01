@@ -5,7 +5,6 @@ import { Button } from "@/shared/components/design-system/button"
 import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
 import { Card, CardContent } from "@/shared/components/ui/card"
-import { Badge } from "@/shared/components/ui/badge"
 import { Folder, FolderPlus, Edit2, Trash2, GripVertical, ChevronDown, ChevronRight, Plus } from "lucide-react"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/shared/components/ui/collapsible"
 import type { SubfolderTemplate } from "@/shared/types/template-types"
@@ -92,8 +91,6 @@ function FolderNode({ folder, onUpdate, onDelete, onAddChild, depth, maxDepth }:
                 </Collapsible>
               )}
 
-              <Folder className="w-5 h-5 text-blue-600" />
-
               {isEditing ? (
                 <div className="flex-1 space-y-2">
                   <Input
@@ -130,14 +127,6 @@ function FolderNode({ folder, onUpdate, onDelete, onAddChild, depth, maxDepth }:
                 <div className="flex-1">
                   <div className="flex items-center space-x-2">
                     <span className="font-medium">{folder.name}</span>
-                    <Badge variant="secondary" className="text-xs">
-                      {folder.minDocuments} docs
-                    </Badge>
-                    {folder.daysLimit && (
-                      <Badge variant="outline" className="text-xs">
-                        {folder.daysLimit} días
-                      </Badge>
-                    )}
                   </div>
                 </div>
               )}
