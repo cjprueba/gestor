@@ -405,14 +405,16 @@ export default function StageManager({ stages, forms, onStagesChange, onFormsCha
       {/* Form Preview Dialog */}
       {previewForm && (
         <Dialog open={!!previewForm} onOpenChange={() => setPreviewForm(null)}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Vista Previa</DialogTitle>
+          <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
+            <DialogHeader className="flex-shrink-0">
+              <DialogTitle>Vista Previa - {previewForm.name}</DialogTitle>
               <DialogDescription>
                 Así se verá el formulario cuando los usuarios creen un proyecto en esta etapa.
               </DialogDescription>
             </DialogHeader>
-            <StageFormPreview form={previewForm} />
+            <div className="flex-1 overflow-hidden">
+              <StageFormPreview form={previewForm} />
+            </div>
           </DialogContent>
         </Dialog>
       )}

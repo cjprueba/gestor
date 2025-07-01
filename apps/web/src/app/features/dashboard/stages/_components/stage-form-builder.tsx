@@ -193,7 +193,7 @@ export default function StageFormBuilder({ form, onSave, onCancel }: StageFormBu
                         variant="ghost"
                         size="sm"
                         onClick={() => removeField(field.id)}
-                        className="text-red-500 hover:text-red-700 hover:bg-red-50 h-8 w-8 p-0"
+                        className="text-red-500 hover:text-red-700 hover:bg-red-50 p-0"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
