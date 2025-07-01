@@ -1,11 +1,10 @@
-import { Activity, Clock, Download, Edit, Eye, File, FileText, FolderOpen, Share, Users } from "lucide-react"
-import { Button } from "@/shared/components/design-system/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avatar"
 import { Badge } from "@/shared/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog"
 import { Progress } from "@/shared/components/ui/progress"
-import { MOCK_USERS, MOCK_ACTIVIDADES_DOCUMENTALES } from "@/shared/data"
+import { MOCK_ACTIVIDADES_DOCUMENTALES, MOCK_USERS } from "@/shared/data"
+import { Activity, Clock, Download, Edit, Eye, File, FileText, FolderOpen, Share, Users } from "lucide-react"
 
 interface ResourceDetailsDialogProps {
   open: boolean

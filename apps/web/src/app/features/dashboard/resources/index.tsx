@@ -205,14 +205,14 @@ export default function FilesPage() {
     }
   }
 
-  const handleDeleteSelected = () => {
-    setFiles(files.filter(file => !selected.includes(file.id)))
-    setCollections(collections.map(c => ({
-      ...c,
-      fileIds: c.fileIds.filter(id => !selected.includes(id)),
-    })))
-    setSelected([])
-  }
+  // const handleDeleteSelected = () => {
+  //   setFiles(files.filter(file => !selected.includes(file.id)))
+  //   setCollections(collections.map(c => ({
+  //     ...c,
+  //     fileIds: c.fileIds.filter(id => !selected.includes(id)),
+  //   })))
+  //   setSelected([])
+  // }
 
   // const handleCollectionClick = (collectionId: string) => {
   //   setActiveCollection(collectionId)
@@ -395,8 +395,8 @@ export default function FilesPage() {
             <div className="overflow-x-auto">
               <DataTable
                 data={filteredFiles}
-                selected={selected}
-                onDeleteSelected={handleDeleteSelected}
+                // selected={selected}
+                // onDeleteSelected={handleDeleteSelected}
                 columns={getFileColumns(selected, setSelected, {
                   onClick: handleFileClick,
                   onDeleteFile: handleDeleteFile,
