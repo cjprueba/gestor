@@ -1,12 +1,7 @@
-import type {
-  StageForm,
-  FormField,
-  ProjectStage,
-} from '@/shared/types/stage-types'
+import type { StageForm, ProjectStage } from '@/shared/types/stage-types'
 import {
   ETAPAS,
   TIPOS_INICIATIVA,
-  TIPOS_OBRA,
   REGIONES,
   ROLES_INSPECTOR,
 } from './project-data'
