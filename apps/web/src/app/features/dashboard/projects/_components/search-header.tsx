@@ -3,7 +3,8 @@ import { Button } from "@/shared/components/design-system/button"
 import { Badge } from "@/shared/components/ui/badge"
 import { Card, CardContent } from "@/shared/components/ui/card"
 import { Search, Filter, X, FileText, FolderOpen } from "lucide-react"
-import { ETAPAS } from "@/shared/data/project-data"
+import { ETAPAS, TIPOS_OBRA } from "@/shared/data/project-data"
+import { TIPOS_OBRA_POR_ETAPA } from "@/shared/data/stage-forms-mock"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,6 +13,25 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu"
+
+// Crear lista única de todos los tipos de obra disponibles
+const getAllTiposObra = () => {
+  const tiposSet = new Set<string>()
+
+  // Obtener tipos de TIPOS_OBRA
+  Object.values(TIPOS_OBRA).forEach(tipos => {
+    tipos.forEach(tipo => tiposSet.add(tipo))
+  })
+
+  // Obtener tipos de TIPOS_OBRA_POR_ETAPA
+  Object.values(TIPOS_OBRA_POR_ETAPA).forEach(tipos => {
+    tipos.forEach(tipo => tiposSet.add(tipo))
+  })
+
+  return Array.from(tiposSet).sort()
+}
+
+const TODOS_LOS_TIPOS_OBRA = getAllTiposObra()
 
 interface SearchHeaderProps {
   // Búsqueda de proyectos
@@ -25,6 +45,10 @@ interface SearchHeaderProps {
   // Filtros por etapa
   selectedStages: string[]
   onStageFilterChange: (stages: string[]) => void
+
+  // Filtros por tipo de obra
+  selectedTiposObra: string[]
+  onTipoObraFilterChange: (tipos: string[]) => void
 
   // Resultados
   projectResults?: number
@@ -44,6 +68,8 @@ export function SearchHeader({
   onDocumentSearchChange,
   selectedStages,
   onStageFilterChange,
+  selectedTiposObra,
+  onTipoObraFilterChange,
   projectResults,
   documentResults,
   context,
@@ -51,13 +77,21 @@ export function SearchHeader({
 }: SearchHeaderProps) {
   // const [isExpanded, setIsExpanded] = useState(false)
 
-  const hasActiveFilters = projectSearchTerm || documentSearchTerm || selectedStages.length > 0
+  const hasActiveFilters = projectSearchTerm || documentSearchTerm || selectedStages.length > 0 || selectedTiposObra.length > 0
 
   const handleStageToggle = (stage: string) => {
     if (selectedStages.includes(stage)) {
       onStageFilterChange(selectedStages.filter((s) => s !== stage))
     } else {
       onStageFilterChange([...selectedStages, stage])
+    }
+  }
+
+  const handleTipoObraToggle = (tipo: string) => {
+    if (selectedTiposObra.includes(tipo)) {
+      onTipoObraFilterChange(selectedTiposObra.filter((t) => t !== tipo))
+    } else {
+      onTipoObraFilterChange([...selectedTiposObra, tipo])
     }
   }
 
@@ -170,15 +204,50 @@ export function SearchHeader({
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* Botón para expandir/contraer */}
-            {/* <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="bg-white/80 border border-white/50 hover:bg-white"
-            >
-              {isExpanded ? "Menos" : "Más"}
-            </Button> */}
+            {/* Filtro por tipo de obra */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="secundario"
+                  className={`bg-white/80 border-white/50 hover:bg-white ${selectedTiposObra.length > 0 ? "border-blue-200 bg-blue-50" : ""}`}
+                >
+                  <Filter className="w-4 h-4 mr-2" />
+                  Tipo de Obra
+                  {selectedTiposObra.length > 0 && (
+                    <Badge variant="secondary" className="ml-2 h-5 px-1.5 text-xs">
+                      {selectedTiposObra.length}
+                    </Badge>
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-72 max-h-80 overflow-y-auto">
+                <DropdownMenuLabel>Filtrar por tipo de obra</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {TODOS_LOS_TIPOS_OBRA.map((tipo) => (
+                  <DropdownMenuCheckboxItem
+                    key={tipo}
+                    checked={selectedTiposObra.includes(tipo)}
+                    onCheckedChange={() => handleTipoObraToggle(tipo)}
+                    className="text-sm"
+                  >
+                    {tipo}
+                  </DropdownMenuCheckboxItem>
+                ))}
+                {selectedTiposObra.length > 0 && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onTipoObraFilterChange([])}
+                      className="w-full justify-start h-8 px-2 text-xs"
+                    >
+                      Limpiar filtros
+                    </Button>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             {/* Limpiar todos los filtros */}
             {hasActiveFilters && (
@@ -194,41 +263,6 @@ export function SearchHeader({
             )}
           </div>
         </div>
-
-        {/* Sección expandida con filtros adicionales */}
-        {/* {isExpanded && (
-          <div className="mt-4 pt-4 border-t border-white/50">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Fecha de creación</label>
-                <div className="flex gap-2">
-                  <Input type="date" className="bg-white/80 border-white/50 text-xs" />
-                  <Input type="date" className="bg-white/80 border-white/50 text-xs" />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Estado</label>
-                <select className="w-full p-2 text-xs border border-white/50 rounded-md bg-white/80">
-                  <option value="">Todos los estados</option>
-                  <option value="active">Activos</option>
-                  <option value="completed">Completados</option>
-                  <option value="on-hold">En pausa</option>
-                </select>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Tipo de documento</label>
-                <select className="w-full p-2 text-xs border border-white/50 rounded-md bg-white/80">
-                  <option value="">Todos los tipos</option>
-                  <option value="pdf">PDF</option>
-                  <option value="doc">Documentos</option>
-                  <option value="img">Imágenes</option>
-                </select>
-              </div>
-            </div>
-          </div>
-        )} */}
 
         {/* Badges de filtros activos */}
         {hasActiveFilters && (
@@ -269,6 +303,20 @@ export function SearchHeader({
                   size="sm"
                   onClick={() => handleStageToggle(stage)}
                   className="ml-1 h-4 w-4 p-0 hover:bg-purple-200"
+                >
+                  <X className="w-2 h-2" />
+                </Button>
+              </Badge>
+            ))}
+
+            {selectedTiposObra.map((tipo) => (
+              <Badge key={tipo} variant="secondary" className="bg-orange-100 text-orange-800">
+                {tipo}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleTipoObraToggle(tipo)}
+                  className="ml-1 h-4 w-4 p-0 hover:bg-orange-200"
                 >
                   <X className="w-2 h-2" />
                 </Button>

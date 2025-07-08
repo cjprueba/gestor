@@ -5,6 +5,7 @@ export interface Project {
   structure: FolderStructure
   etapa: string
   projectData?: any
+  metadata?: any
 }
 
 export interface FolderStructure {

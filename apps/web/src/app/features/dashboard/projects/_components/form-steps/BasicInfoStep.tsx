@@ -1,8 +1,6 @@
 import React from "react"
 import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
-import { ETAPAS } from "@/shared/data/project-data"
 import type { ProjectFormData } from "../types"
 
 interface BasicInfoStepProps {
@@ -30,22 +28,7 @@ export const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
         {errors.nombre && <p className="text-sm text-red-500 mt-1">{errors.nombre}</p>}
       </div>
 
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="etapa">Etapa del Proyecto *</Label>
-        <Select value={formData.etapa} onValueChange={(value) => onUpdateFormData("etapa", value)}>
-          <SelectTrigger className={errors.etapa ? "border-red-500" : ""}>
-            <SelectValue placeholder="Seleccionar etapa..." />
-          </SelectTrigger>
-          <SelectContent>
-            {ETAPAS.map((etapa) => (
-              <SelectItem key={etapa} value={etapa}>
-                {etapa}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {errors.etapa && <p className="text-sm text-red-500 mt-1">{errors.etapa}</p>}
-      </div>
+
     </div>
   )
 } 

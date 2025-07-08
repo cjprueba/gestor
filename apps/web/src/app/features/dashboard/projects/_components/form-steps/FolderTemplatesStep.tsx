@@ -46,23 +46,40 @@ export const FolderTemplatesStep: React.FC<FolderTemplatesStepProps> = ({
   const [availableFolders, setAvailableFolders] = useState<string[]>([])
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
 
-  // Obtener carpetas default al cargar
-  const getDefaultFolders = (): string[] => {
-    // Combinar todas las carpetas únicas de todas las etapas
+  // Obtener todas las plantillas disponibles (combinando todas las etapas)
+  const getAllFolders = (): string[] => {
     const allFolders = new Set<string>()
 
-    // Agregar carpetas de PLANTILLAS_CARPETAS
+    // Agregar carpetas de PLANTILLAS_CARPETAS de todas las etapas
     Object.values(PLANTILLAS_CARPETAS).forEach(folders => {
       folders.forEach(folder => allFolders.add(folder))
     })
 
-    // Agregar carpetas de DEFAULT_FOLDER_TEMPLATES
+    // Agregar carpetas de DEFAULT_FOLDER_TEMPLATES de todas las etapas  
     Object.values(DEFAULT_FOLDER_TEMPLATES).forEach(folders => {
       folders.forEach(folder => allFolders.add(folder))
     })
 
     return Array.from(allFolders).sort()
   }
+
+  // Obtener carpetas default al cargar
+  // const getDefaultFolders = (): string[] => {
+  //   // Combinar todas las carpetas únicas de todas las etapas
+  //   const allFolders = new Set<string>()
+
+  //   // Agregar carpetas de PLANTILLAS_CARPETAS
+  //   Object.values(PLANTILLAS_CARPETAS).forEach(folders => {
+  //     folders.forEach(folder => allFolders.add(folder))
+  //   })
+
+  //   // Agregar carpetas de DEFAULT_FOLDER_TEMPLATES
+  //   Object.values(DEFAULT_FOLDER_TEMPLATES).forEach(folders => {
+  //     folders.forEach(folder => allFolders.add(folder))
+  //   })
+
+  //   return Array.from(allFolders).sort()
+  // }
 
   // Obtener carpetas por etapa seleccionada
   const getFoldersByEtapa = (etapa: string): string[] => {
@@ -78,15 +95,13 @@ export const FolderTemplatesStep: React.FC<FolderTemplatesStepProps> = ({
   const getFoldersByTemplate = (template: string): string[] => {
     switch (template) {
       case "plantillas_principales":
-        return [...(PLANTILLAS_CARPETAS[formData.etapa as keyof typeof PLANTILLAS_CARPETAS] || [])]
+        return getAllFolders() // Ahora carga todas las plantillas
       case "plantillas_etapa":
         return selectedEtapa ? getFoldersByEtapa(selectedEtapa) : []
-      case "todas_default":
-        return getDefaultFolders()
       case "plantillas_secundarias":
-        return [...(DEFAULT_FOLDER_TEMPLATES[formData.etapa as keyof typeof DEFAULT_FOLDER_TEMPLATES] || [])]
+        return [...(DEFAULT_FOLDER_TEMPLATES["Cartera de proyectos"] || [])]
       default:
-        return [...(PLANTILLAS_CARPETAS[formData.etapa as keyof typeof PLANTILLAS_CARPETAS] || [])]
+        return getAllFolders() // Por defecto, mostrar todas las plantillas
     }
   }
 
@@ -254,10 +269,8 @@ export const FolderTemplatesStep: React.FC<FolderTemplatesStepProps> = ({
   )
 
   const renderTemplateMode = () => {
-    // Obtener carpetas de la plantilla de la etapa actual (comportamiento original)
-    const templateFolders: string[] = formData.etapa in PLANTILLAS_CARPETAS
-      ? [...(PLANTILLAS_CARPETAS as any)[formData.etapa]]
-      : []
+    // Obtener todas las plantillas disponibles (nuevo comportamiento)
+    const templateFolders: string[] = getAllFolders()
 
     // Mostrar todas las carpetas personalizadas creadas
     const customFoldersToShow = customFolders
@@ -291,10 +304,9 @@ export const FolderTemplatesStep: React.FC<FolderTemplatesStepProps> = ({
                     <SelectValue placeholder="Selecciona una plantilla" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="plantillas_principales">Plantillas de la etapa actual</SelectItem>
+                    <SelectItem value="plantillas_principales">Todas las plantillas</SelectItem>
                     <SelectItem value="plantillas_etapa">Carpetas por etapa específica</SelectItem>
-                    <SelectItem value="todas_default">Todas las carpetas default</SelectItem>
-                    <SelectItem value="plantillas_secundarias">Plantillas secundarias</SelectItem>
+                    <SelectItem value="plantillas_secundarias">Plantillas para Cartera de proyectos</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

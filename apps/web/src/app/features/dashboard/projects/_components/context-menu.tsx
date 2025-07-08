@@ -8,7 +8,8 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog"
-import { MoreVertical, Eye, Edit, Trash2, Download, Share, Copy, Settings2 } from "lucide-react"
+import { MoreVertical, Eye, Edit, Trash2, Download, Share, Copy, Settings2, FileText } from "lucide-react"
+import { ETAPAS } from "@/shared/data/project-data"
 
 interface MenuItem {
   icon: any
@@ -21,24 +22,28 @@ interface ContextMenuProps {
   type: "project" | "folder" | "document"
   item: any
   onViewDetails: () => void
+  onViewProjectDetails?: () => void
   onConfig?: () => void
   onEdit?: () => void
   onDelete?: () => void
   onDownload?: () => void
   onShare?: () => void
   onDuplicate?: () => void
+  onAdvanceStage?: () => void
 }
 
 export default function ContextMenu({
   type,
   item,
   onViewDetails,
+  onViewProjectDetails,
   onConfig,
   onEdit,
   onDelete,
   onDownload,
   onShare,
   onDuplicate,
+  onAdvanceStage,
 }: ContextMenuProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
@@ -89,7 +94,7 @@ export default function ContextMenu({
     }
 
     if (type === "folder") {
-      return [
+      const folderItems = [
         ...commonItems,
         {
           icon: Edit,
@@ -108,11 +113,27 @@ export default function ContextMenu({
           destructive: true,
         },
       ]
+
+      if (onViewProjectDetails) {
+        folderItems.splice(2, 0, {
+          icon: FileText,
+          label: "Ver ficha de etapa",
+          action: onViewProjectDetails,
+        })
+      }
+
+      return folderItems
     }
 
     if (type === "project") {
-      return [
+      const isLastStage = ETAPAS[ETAPAS.length - 1] === item.etapa
+      const projectItems = [
         ...commonItems,
+        !isLastStage ? {
+          icon: MoreVertical,
+          label: "Avanzar a siguiente etapa",
+          action: onAdvanceStage,
+        } : undefined,
         {
           icon: Edit,
           label: "Editar",
@@ -129,7 +150,8 @@ export default function ContextMenu({
           action: () => setIsDeleteDialogOpen(true),
           destructive: true,
         },
-      ]
+      ].filter(x => !!x) as MenuItem[]
+      return projectItems
     }
 
     return commonItems
@@ -156,13 +178,12 @@ export default function ContextMenu({
                 <item.icon className="w-4 h-4 mr-2" />
                 {item.label}
               </DropdownMenuItem>
-              {index === 0 && <DropdownMenuSeparator />}
+              {(index === 0 || (item.label === "Ver ficha de etapa")) && <DropdownMenuSeparator />}
             </div>
           ))}
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Dialog de confirmación para eliminar */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>

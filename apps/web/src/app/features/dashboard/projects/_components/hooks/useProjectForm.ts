@@ -7,7 +7,7 @@ export const useProjectForm = () => {
   const [currentStep, setCurrentStep] = useState(1)
   const [formData, setFormData] = useState<ProjectFormData>({
     nombre: '',
-    etapa: '',
+    etapa: 'Cartera de proyectos',
     descripcion: '',
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -161,7 +161,7 @@ export const useProjectForm = () => {
   const canProceedToNextStep = (): boolean => {
     switch (currentStep) {
       case 1:
-        return !!formData.nombre.trim() && !!formData.etapa
+        return !!formData.nombre.trim()
       case 2:
         return true // Las validaciones se harán en el submit final
       case 3:
@@ -196,7 +196,7 @@ export const useProjectForm = () => {
     setCurrentStep(1)
     setFormData({
       nombre: '',
-      etapa: '',
+      etapa: 'Cartera de proyectos',
       descripcion: '',
     })
     setErrors({})

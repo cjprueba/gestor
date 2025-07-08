@@ -28,10 +28,6 @@ export const validateProjectForm = (
     errors.nombre = 'El nombre del proyecto es obligatorio'
   }
 
-  if (!formData.etapa) {
-    errors.etapa = 'Debe seleccionar una etapa'
-  }
-
   // Validaciones específicas por etapa
   if (formData.etapa && formData.etapa !== 'Cartera de proyectos') {
     if (!formData.tipoIniciativa) {

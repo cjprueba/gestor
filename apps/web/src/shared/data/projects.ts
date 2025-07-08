@@ -68,21 +68,21 @@ const alphaStructure: FolderStructure = createFolderStructure(
   [
     createFolderStructure(
       'folder-licitacion-alpha',
-      'Proceso de licitacion',
+      'Proceso de Licitación',
       3,
       'root-alpha',
       'proj-alpha'
     ),
     createFolderStructure(
       'folder-adjudicacion-alpha',
-      'Proceso de adjudicacion',
+      'Proceso de Adjudicación',
       2,
       'root-alpha',
       'proj-alpha'
     ),
     createFolderStructure(
       'folder-otros-alpha',
-      'Otros documentos',
+      'Otros Documentos',
       1,
       'root-alpha',
       'proj-alpha'
@@ -100,35 +100,35 @@ const betaStructure: FolderStructure = createFolderStructure(
   [
     createFolderStructure(
       'folder-licitacion-beta',
-      'Proceso de licitacion',
+      'Proceso de Licitación',
       2,
       'root-beta',
       'proj-beta'
     ),
     createFolderStructure(
       'folder-adjudicacion-beta',
-      'Proceso de adjudicacion',
+      'Proceso de Adjudicación',
       2,
       'root-beta',
       'proj-beta'
     ),
     createFolderStructure(
       'folder-ejecucion-beta',
-      'Ejecucion',
+      'Ejecución',
       3,
       'root-beta',
       'proj-beta'
     ),
     createFolderStructure(
       'folder-modificaciones-beta',
-      'Modificacion de obras y convenios',
+      'Modificación de Obras y Convenios',
       1,
       'root-beta',
       'proj-beta'
     ),
     createFolderStructure(
       'folder-informe-beta',
-      'Informe de estado mensual de la consecion',
+      'Informe Mensual de la Concesión',
       2,
       'root-beta',
       'proj-beta'
@@ -160,21 +160,21 @@ const gammaStructure: FolderStructure = createFolderStructure(
   [
     createFolderStructure(
       'folder-licitacion-gamma',
-      'Proceso de licitacion',
+      'Proceso de Licitación',
       1,
       'root-gamma',
       'proj-gamma'
     ),
     createFolderStructure(
       'folder-adjudicacion-gamma',
-      'Proceso de adjudicacion',
+      'Proceso de Adjudicación',
       1,
       'root-gamma',
       'proj-gamma'
     ),
     createFolderStructure(
       'folder-ejecucion-gamma',
-      'Ejecucion',
+      'Ejecución',
       1,
       'root-gamma',
       'proj-gamma'
@@ -379,38 +379,38 @@ export const getProjectsByStage = (etapa: string) => {
 
 // Templates de carpetas por etapa (usando las carpetas default requeridas)
 export const DEFAULT_FOLDER_TEMPLATES = {
-  'Cartera de proyectos': ['Proceso de licitacion', 'Otros documentos'],
+  'Cartera de proyectos': ['Proceso de Licitación', 'Otros Documentos'],
   'Proyectos en Licitación': [
-    'Proceso de licitacion',
-    'Proceso de adjudicacion',
-    'Otros documentos',
+    'Proceso de Licitación',
+    'Proceso de Adjudicación',
+    'Otros Documentos',
   ],
   'Concesiones en Operación': [
-    'Proceso de licitacion',
-    'Proceso de adjudicacion',
-    'Ejecucion',
-    'Modificacion de obras y convenios',
-    'Informe de estado mensual de la consecion',
+    'Proceso de Licitación',
+    'Proceso de Adjudicación',
+    'Ejecución',
+    'Modificación de Obras y Convenios',
+    'Informe Mensual de la Concesión',
   ],
   'Concesiones en Construcción': [
-    'Proceso de licitacion',
-    'Proceso de adjudicacion',
-    'Ejecucion',
-    'Modificacion de obras y convenios',
-    'Informe de estado mensual de la consecion',
+    'Proceso de Licitación',
+    'Proceso de Adjudicación',
+    'Ejecución',
+    'Modificación de Obras y Convenios',
+    'Informe Mensual de la Concesión',
   ],
   'Concesiones en Operación y Construcción': [
-    'Proceso de licitacion',
-    'Proceso de adjudicacion',
-    'Ejecucion',
-    'Modificacion de obras y convenios',
-    'Informe de estado mensual de la consecion',
-    'Otros documentos',
+    'Proceso de Licitación',
+    'Proceso de Adjudicación',
+    'Ejecución',
+    'Modificación de Obras y Convenios',
+    'Informe Mensual de la Concesión',
+    'Otros Documentos',
   ],
   'Concesiones Finalizadas': [
-    'Proceso de licitacion',
-    'Proceso de adjudicacion',
-    'Ejecucion',
-    'Otros documentos',
+    'Proceso de Licitación',
+    'Proceso de Adjudicación',
+    'Ejecución',
+    'Otros Documentos',
   ],
 } as const

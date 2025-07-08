@@ -15,7 +15,9 @@ import { Label } from "@/shared/components/ui/label"
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
 import { useProjectNavigationContext } from "@/shared/contexts/ProjectNavigationContext"
+import { ETAPAS } from "@/shared/data/project-data"
 import { cn } from "@/shared/lib/utils"
+import { getStageBorderClassFromBadge, getStageColor } from "@/shared/utils/stage-colors"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import { ArrowLeft, Calendar, CalendarIcon, FileText, Folder, FolderOpen, Plus, Upload } from "lucide-react"
@@ -24,6 +26,10 @@ import AlertsPanel from "./alerts-panel"
 import ContextMenu from "./context-menu"
 import DetailsSheet from "./details-sheet"
 import DocumentConfigDialog from "./document-config-dialog"
+import { StageSpecificFieldsStep } from "./form-steps/StageSpecificFieldsStep"
+import { ProjectDetailsModal } from "./project-details-modal"
+import { SearchHeader } from "./search-header"
+import { validateProjectForm } from "./utils/validation"
 
 interface Project {
   id: string
@@ -158,6 +164,15 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
   const [newFolderName, setNewFolderName] = useState("")
   const [newFolderMinDocs, setNewFolderMinDocs] = useState(3)
 
+  // Estados para búsqueda
+  const [folderSearchTerm, setFolderSearchTerm] = useState("")
+  const [documentSearchTerm, setDocumentSearchTerm] = useState("")
+  const [selectedStages, setSelectedStages] = useState<string[]>([])
+  const [selectedTiposObra, setSelectedTiposObra] = useState<string[]>([])
+
+  // Estado para el modal de detalles del proyecto
+  const [isProjectDetailsModalOpen, setIsProjectDetailsModalOpen] = useState(false)
+
   // Agregar estados para configuración de documentos
   const [documentConfig, setDocumentConfig] = useState({
     hasAlert: false,
@@ -167,6 +182,11 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
   })
   const [showDestinationSelector, setShowDestinationSelector] = useState(false)
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
+
+  // Nuevo estado para el modal de avance de etapa
+  const [isAdvanceStageModalOpen, setIsAdvanceStageModalOpen] = useState(false)
+  const [advanceStageFormData, setAdvanceStageFormData] = useState<any>({})
+  const [advanceStageErrors, setAdvanceStageErrors] = useState<any>({})
 
   // Sincronizar el estado local con el contexto
   useEffect(() => {
@@ -543,6 +563,158 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
     setDetailsSheetOpen(true)
   }
 
+  const openProjectDetails = () => {
+    setIsProjectDetailsModalOpen(true)
+  }
+
+  // Función para buscar carpetas en la estructura
+  const searchFoldersInStructure = (structure: FolderStructure, searchTerm: string): FolderStructure[] => {
+    const results: FolderStructure[] = []
+
+    if (structure.name.toLowerCase().includes(searchTerm.toLowerCase())) {
+      results.push(structure)
+    }
+
+    structure.subfolders.forEach(subfolder => {
+      results.push(...searchFoldersInStructure(subfolder, searchTerm))
+    })
+
+    return results
+  }
+
+  // Función para buscar documentos en la estructura
+  const searchDocumentsInStructure = (structure: FolderStructure, searchTerm: string): Document[] => {
+    const results: Document[] = []
+
+    // Buscar en documentos de la carpeta actual
+    structure.documents.forEach(doc => {
+      if (doc.name.toLowerCase().includes(searchTerm.toLowerCase())) {
+        results.push(doc)
+      }
+    })
+
+    // Buscar en subcarpetas
+    structure.subfolders.forEach(subfolder => {
+      results.push(...searchDocumentsInStructure(subfolder, searchTerm))
+    })
+
+    return results
+  }
+
+  // Función para obtener carpetas y documentos filtrados
+  const getFilteredContent = () => {
+    const currentFolder = getCurrentFolder()
+
+    let filteredFolders = [...currentFolder.subfolders]
+    let filteredDocuments = [...currentFolder.documents]
+
+    // Lógica de filtrado inteligente: mostrar solo el tipo que se está buscando
+    if (folderSearchTerm && !documentSearchTerm) {
+      // Solo búsqueda de carpetas: mostrar solo carpetas
+      filteredFolders = currentFolder.subfolders.filter(folder =>
+        folder.name.toLowerCase().includes(folderSearchTerm.toLowerCase())
+      )
+      filteredDocuments = [] // Ocultar documentos
+    } else if (documentSearchTerm && !folderSearchTerm) {
+      // Solo búsqueda de documentos: mostrar solo documentos
+      filteredDocuments = searchDocumentsInStructure(currentFolder, documentSearchTerm)
+      filteredFolders = [] // Ocultar carpetas
+    } else if (folderSearchTerm && documentSearchTerm) {
+      // Búsqueda en ambos: mostrar ambos filtrados
+      filteredFolders = currentFolder.subfolders.filter(folder =>
+        folder.name.toLowerCase().includes(folderSearchTerm.toLowerCase())
+      )
+      filteredDocuments = searchDocumentsInStructure(currentFolder, documentSearchTerm)
+    }
+    // Si no hay búsquedas, mostrar todo (comportamiento por defecto)
+
+    // Filtrar por etapas (si aplica)
+    if (selectedStages.length > 0) {
+      // Aquí podrías filtrar por etapas si los documentos tienen metadata de etapa
+      // Por ahora mantenemos todos los documentos
+    }
+
+    return {
+      folders: filteredFolders,
+      documents: filteredDocuments,
+      folderResults: filteredFolders.length,
+      documentResults: filteredDocuments.length
+    }
+  }
+
+  // Función para limpiar filtros
+  const clearAllFilters = () => {
+    setFolderSearchTerm("")
+    setDocumentSearchTerm("")
+    setSelectedStages([])
+    setSelectedTiposObra([])
+  }
+
+  // Obtener contenido filtrado
+  const { folders: filteredFolders, documents: filteredDocuments, folderResults, documentResults } = getFilteredContent()
+
+  // Lógica para avanzar a la siguiente etapa
+  const getNextStage = (): typeof ETAPAS[number] | null => {
+    const idx = ETAPAS.indexOf(project.etapa as typeof ETAPAS[number])
+    if (idx >= 0 && idx < ETAPAS.length - 1) {
+      return ETAPAS[idx + 1]
+    }
+    return null
+  }
+
+  // const handleOpenAdvanceStage = () => {
+  //   // Heredar todos los campos del projectData
+  //   setAdvanceStageFormData({ ...project.projectData })
+  //   setAdvanceStageErrors({})
+  //   setIsAdvanceStageModalOpen(true)
+  // }
+
+  const handleCloseAdvanceStage = () => {
+    setIsAdvanceStageModalOpen(false)
+    setAdvanceStageFormData({})
+    setAdvanceStageErrors({})
+  }
+
+  const handleAdvanceStage = () => {
+    const nextStage = getNextStage()
+    if (!nextStage) return
+    // Validar el formulario con la etapa siguiente
+    const dataToValidate = { ...advanceStageFormData, etapa: nextStage }
+    const errors = validateProjectForm(dataToValidate)
+    setAdvanceStageErrors(errors)
+    if (Object.keys(errors).length > 0) return
+    // Actualizar el proyecto
+    const updatedProject = {
+      ...project,
+      etapa: nextStage,
+      projectData: dataToValidate,
+      metadata: {
+        ...project.metadata,
+        lastModifiedAt: new Date(),
+        lastModifiedBy: "Usuario Actual",
+        history: [
+          {
+            id: Date.now().toString(),
+            timestamp: new Date(),
+            userId: "user-1",
+            userName: "Usuario Actual",
+            action: "stage_changed" as const,
+            details: {
+              field: "etapa",
+              oldValue: project.etapa,
+              newValue: nextStage,
+            },
+          },
+          ...(project.metadata?.history || []),
+        ],
+      },
+    }
+    onUpdateProject(updatedProject)
+    setIsAdvanceStageModalOpen(false)
+    setAdvanceStageFormData({})
+    setAdvanceStageErrors({})
+  }
+
   return (
     <div className="container mx-auto p-6">
       {/* Header */}
@@ -552,6 +724,18 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
             <ArrowLeft className="w-4 h-4 mr-2" />
             Volver
           </Button>
+          <div className="flex items-center gap-3">
+            <div>
+              <h1 className="text-2xl font-bold">{project.name}</h1>
+              <div className="flex items-center gap-2 mt-1">
+                <div
+                  className="w-3 h-3 rounded-full"
+                  style={{ backgroundColor: getStageColor(project.etapa) }}
+                />
+                <p className="text-sm text-muted-foreground">Etapa: {project.etapa}</p>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="flex flex-row gap-2">
@@ -926,36 +1110,21 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
         </div>
       </div>
 
-      {/* Breadcrumb Navigation */}
-      {/* <Breadcrumb className="mb-6">
-        <BreadcrumbList>
-          <BreadcrumbItem className="hidden lg:block">
-            <BreadcrumbPage className="text-muted-foreground font-bold text-md">Proyecto</BreadcrumbPage>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-
-          {breadcrumbPath.map((item, index) => (
-            <div key={item.id} className="flex items-center">
-              {index > 0 && <BreadcrumbSeparator />}
-              <BreadcrumbItem className="hidden lg:block px-1">
-                {index === breadcrumbPath.length - 1 ? (
-                  <BreadcrumbPage>{item.name}</BreadcrumbPage>
-                ) : (
-                  <BreadcrumbLink
-                    onClick={() => {
-                      if (index === 0) navigateToRoot()
-                      else setLocalCurrentPath(localCurrentPath.slice(0, index))
-                    }}
-                    className="cursor-pointer"
-                  >
-                    {item.name}
-                  </BreadcrumbLink>
-                )}
-              </BreadcrumbItem>
-            </div>
-          ))}
-        </BreadcrumbList>
-      </Breadcrumb> */}
+      {/* Search Header */}
+      <SearchHeader
+        projectSearchTerm={folderSearchTerm}
+        onProjectSearchChange={setFolderSearchTerm}
+        documentSearchTerm={documentSearchTerm}
+        onDocumentSearchChange={setDocumentSearchTerm}
+        selectedStages={selectedStages}
+        onStageFilterChange={setSelectedStages}
+        selectedTiposObra={selectedTiposObra}
+        onTipoObraFilterChange={setSelectedTiposObra}
+        projectResults={folderResults}
+        documentResults={documentResults}
+        context="project-detail"
+        onClearFilters={clearAllFilters}
+      />
 
       {/* Alerts Panel */}
       <AlertsPanel
@@ -976,13 +1145,13 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
 
       {/* Folder Content */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {currentFolder.subfolders.map((folder) => {
+        {filteredFolders.map((folder) => {
           // const folderAlerts = getFolderAlerts(folder)
           const totalDocs =
             folder.documents.length + folder.subfolders.reduce((acc, sub) => acc + sub.documents.length, 0)
 
           return (
-            <Card key={folder.id} className="cursor-pointer hover:shadow-lg transition-shadow">
+            <Card key={folder.id} className={`cursor-pointer hover:shadow-lg transition-all border-1 ${getStageBorderClassFromBadge(project.etapa)}`}>
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <div className="flex items-center space-x-2 flex-1" onClick={() => navigateToFolderLocal(folder.id)}>
@@ -995,6 +1164,7 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
                       type="folder"
                       item={folder}
                       onViewDetails={() => openDetails(folder, "folder")}
+                      onViewProjectDetails={openProjectDetails}
                       onConfig={() => openConfigDialog(folder)}
                       onEdit={() => {
                         /* Implementar edición */
@@ -1039,7 +1209,7 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
         })}
 
         {/* Documents in current folder */}
-        {currentFolder.documents.map((doc) => (
+        {filteredDocuments.map((doc) => (
           <Card key={doc.id}>
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -1100,16 +1270,31 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
       </div>
 
       {/* Empty state */}
-      {currentFolder.subfolders.length === 0 && currentFolder.documents.length === 0 && (
+      {filteredFolders.length === 0 && filteredDocuments.length === 0 && (
         <Card className="text-center py-12">
           <CardContent>
-            <Folder className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-xl font-semibold mb-2">Carpeta vacía</h3>
-            <p className="text-muted-foreground mb-4">Esta carpeta no contiene documentos ni subcarpetas</p>
-            <Button onClick={() => setIsUploadDialogOpen(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Agregar primer documento
-            </Button>
+            {folderSearchTerm || documentSearchTerm ? (
+              <>
+                <FileText className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-xl font-semibold mb-2">No se encontraron resultados</h3>
+                <p className="text-muted-foreground mb-4">
+                  No hay carpetas o documentos que coincidan con tu búsqueda
+                </p>
+                <Button onClick={clearAllFilters} variant="secundario">
+                  Limpiar filtros
+                </Button>
+              </>
+            ) : (
+              <>
+                <Folder className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-xl font-semibold mb-2">Carpeta vacía</h3>
+                <p className="text-muted-foreground mb-4">Esta carpeta no contiene documentos ni subcarpetas</p>
+                <Button onClick={() => setIsUploadDialogOpen(true)}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Agregar primer documento
+                </Button>
+              </>
+            )}
           </CardContent>
         </Card>
       )}
@@ -1127,6 +1312,38 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
           // Implementar actualización para folders y documents
         }}
       />
+
+      {/* Modal de detalles del proyecto */}
+      <ProjectDetailsModal
+        project={project}
+        isOpen={isProjectDetailsModalOpen}
+        onClose={() => setIsProjectDetailsModalOpen(false)}
+      />
+
+      {/* Modal para avanzar de etapa */}
+      <Dialog open={isAdvanceStageModalOpen} onOpenChange={setIsAdvanceStageModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Avanzar a siguiente etapa</DialogTitle>
+            <DialogDescription>
+              Completa los campos requeridos para la etapa <b>{getNextStage()}</b>
+            </DialogDescription>
+          </DialogHeader>
+          <StageSpecificFieldsStep
+            formData={getNextStage() ? { ...advanceStageFormData, etapa: getNextStage() as typeof ETAPAS[number] } : advanceStageFormData}
+            errors={advanceStageErrors}
+            provinciasDisponibles={[]}
+            comunasDisponibles={[]}
+            onUpdateFormData={(field: string, value: any) => setAdvanceStageFormData((prev: any) => ({ ...prev, [field]: value }))}
+          />
+          <div className="flex justify-end gap-2 mt-4">
+            <Button variant="secundario" onClick={handleCloseAdvanceStage}>Cancelar</Button>
+            <Button variant="primario" onClick={handleAdvanceStage}>
+              Guardar y avanzar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

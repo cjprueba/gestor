@@ -72,6 +72,14 @@ const filterByStages = (projects: any[], selectedStages: string[]) => {
   return projects.filter(project => selectedStages.includes(project.etapa))
 }
 
+// Función helper para filtrar por tipos de obra
+const filterByTiposObra = (projects: any[], selectedTiposObra: string[]) => {
+  if (selectedTiposObra.length === 0) return projects
+  return projects.filter(project =>
+    project.projectData?.tipoObra && selectedTiposObra.includes(project.projectData.tipoObra)
+  )
+}
+
 export const ProjectList: React.FC<ProjectListProps> = ({
   projects,
   onSelectProject,
@@ -80,6 +88,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({
   const [projectSearchTerm, setProjectSearchTerm] = useState("")
   const [documentSearchTerm, setDocumentSearchTerm] = useState("")
   const [selectedStages, setSelectedStages] = useState<string[]>([])
+  const [selectedTiposObra, setSelectedTiposObra] = useState<string[]>([])
 
   // Lógica de filtrado usando useMemo para optimizar performance
   const filteredProjects = useMemo(() => {
@@ -91,8 +100,11 @@ export const ProjectList: React.FC<ProjectListProps> = ({
     // Filtrar por etapas seleccionadas
     filtered = filterByStages(filtered, selectedStages)
 
+    // Filtrar por tipos de obra seleccionados
+    filtered = filterByTiposObra(filtered, selectedTiposObra)
+
     return filtered
-  }, [projects, projectSearchTerm, selectedStages])
+  }, [projects, projectSearchTerm, selectedStages, selectedTiposObra])
 
   // Búsqueda de documentos en todos los proyectos
   const searchedDocuments = useMemo(() => {
@@ -104,6 +116,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({
     setProjectSearchTerm("")
     setDocumentSearchTerm("")
     setSelectedStages([])
+    setSelectedTiposObra([])
   }
 
   if (projects.length === 0) {
@@ -133,6 +146,8 @@ export const ProjectList: React.FC<ProjectListProps> = ({
         onDocumentSearchChange={setDocumentSearchTerm}
         selectedStages={selectedStages}
         onStageFilterChange={setSelectedStages}
+        selectedTiposObra={selectedTiposObra}
+        onTipoObraFilterChange={setSelectedTiposObra}
         projectResults={filteredProjects.length}
         documentResults={searchedDocuments.length}
         context="projects"
@@ -182,7 +197,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({
       )}
 
       {/* Mostrar mensaje si no hay resultados */}
-      {(projectSearchTerm || selectedStages.length > 0) && filteredProjects.length === 0 && (
+      {(projectSearchTerm || selectedStages.length > 0 || selectedTiposObra.length > 0) && filteredProjects.length === 0 && (
         <Card className="text-center py-8">
           <CardContent>
             <FolderOpen className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
