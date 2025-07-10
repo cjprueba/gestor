@@ -1,8 +1,8 @@
 // Colores de las etapas del proyecto - CENTRALIZADOS
 export const STAGE_COLORS = {
-  'Cartera de proyectos': 'bg-blue-100',
-  'Proyectos en Licitación': 'bg-yellow-100',
-  'Concesiones en Operación': 'bg-green-100', // amber
+  'Cartera de proyectos': '#3b82f6', // blue
+  'Proyectos en Licitación': '#eab308', // yellow
+  'Concesiones en Operación': '#10b981', // green
   'Concesiones en Construcción': '#ef4444', // red
   'Concesiones en Operación y Construcción': '#8b5cf6', // violet
   'Concesiones Finalizadas': '#06b6d4', // cyan
@@ -20,8 +20,8 @@ export const getStageBorderClasses = (etapa: string): string => {
   // Mapear colores hexadecimales a clases de Tailwind
   const colorMap: Record<string, string> = {
     '#3b82f6': 'border-blue-500', // Cartera de proyectos
-    '#10b981': 'border-emerald-500', // Proyectos en Licitación
-    '#f59e0b': 'border-amber-500', // Concesiones en Operación
+    '#eab308': 'border-yellow-500', // Proyectos en Licitación
+    '#10b981': 'border-green-500', // Concesiones en Operación
     '#ef4444': 'border-red-500', // Concesiones en Construcción
     '#8b5cf6': 'border-violet-500', // Concesiones en Operación y Construcción
     '#06b6d4': 'border-cyan-500', // Concesiones Finalizadas
@@ -37,8 +37,8 @@ export const getStageBorderHoverClasses = (etapa: string): string => {
   // Mapear colores hexadecimales a clases de Tailwind con hover
   const colorMap: Record<string, string> = {
     '#3b82f6': 'border-blue-500 hover:border-blue-600', // Cartera de proyectos
-    '#10b981': 'border-emerald-500 hover:border-emerald-600', // Proyectos en Licitación
-    '#f59e0b': 'border-amber-500 hover:border-amber-600', // Concesiones en Operación
+    '#eab308': 'border-yellow-500 hover:border-yellow-600', // Proyectos en Licitación
+    '#10b981': 'border-green-500 hover:border-green-600', // Concesiones en Operación
     '#ef4444': 'border-red-500 hover:border-red-600', // Concesiones en Construcción
     '#8b5cf6': 'border-violet-500 hover:border-violet-600', // Concesiones en Operación y Construcción
     '#06b6d4': 'border-cyan-500 hover:border-cyan-600', // Concesiones Finalizadas
@@ -54,8 +54,8 @@ export const getStageBackgroundClasses = (etapa: string): string => {
   // Mapear colores hexadecimales a clases de fondo sutil
   const colorMap: Record<string, string> = {
     '#3b82f6': 'bg-blue-50', // Cartera de proyectos
-    '#10b981': 'bg-emerald-50', // Proyectos en Licitación
-    '#f59e0b': 'bg-amber-50', // Concesiones en Operación
+    '#eab308': 'bg-yellow-50', // Proyectos en Licitación
+    '#10b981': 'bg-green-50', // Concesiones en Operación
     '#ef4444': 'bg-red-50', // Concesiones en Construcción
     '#8b5cf6': 'bg-violet-50', // Concesiones en Operación y Construcción
     '#06b6d4': 'bg-cyan-50', // Concesiones Finalizadas
@@ -71,11 +71,10 @@ export const getStageBadgeClasses = (etapa: string): string => {
     'Proyectos en Licitación':
       'bg-yellow-100 text-yellow-800 border-yellow-300',
     'Concesiones en Operación': 'bg-green-100 text-green-800 border-green-300',
-    'Concesiones en Construcción':
-      'bg-orange-100 text-orange-800 border-orange-300',
+    'Concesiones en Construcción': 'bg-red-100 text-red-800 border-red-300',
     'Concesiones en Operación y Construcción':
-      'bg-purple-100 text-purple-800 border-purple-300',
-    'Concesiones Finalizadas': 'bg-gray-100 text-gray-800 border-gray-300',
+      'bg-violet-100 text-violet-800 border-violet-300',
+    'Concesiones Finalizadas': 'bg-cyan-100 text-cyan-800 border-cyan-300',
   }
   return (
     colors[etapa as keyof typeof colors] ||

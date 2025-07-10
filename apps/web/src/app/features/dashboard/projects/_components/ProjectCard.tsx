@@ -12,7 +12,7 @@ import { Label } from "@/shared/components/ui/label"
 import { ETAPAS } from "@/shared/data/project-data"
 import { MOCK_STAGE_FORMS } from "@/shared/data/stage-forms-mock"
 import { getStageBadgeClasses, getStageBorderClassFromBadge } from "@/shared/utils/stage-colors"
-import { Calendar, Eye, FileText, FolderOpen, MoreVertical } from "lucide-react"
+import { ArrowRightFromLine, Calendar, Eye, FileText, FolderOpen, MoreVertical } from "lucide-react"
 import React, { useState } from "react"
 import { ProjectDetailsModal } from "./project-details-modal"
 import type { FolderStructure, ProjectCardProps } from "./types"
@@ -42,7 +42,6 @@ export const ProjectCard: React.FC<ProjectCardProps & { onUpdateProject?: (proje
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false)
   const [isAdvanceStageModalOpen, setIsAdvanceStageModalOpen] = useState(false)
   const [advanceStageFormData, setAdvanceStageFormData] = useState<any>({})
-  const [setAdvanceStageErrors] = useState<any>({})
 
   // const totalAlerts = getTotalAlerts(project.structure)
   const totalFolders = project.structure.subfolders.length
@@ -78,14 +77,12 @@ export const ProjectCard: React.FC<ProjectCardProps & { onUpdateProject?: (proje
   const handleOpenAdvanceStage = (e: React.MouseEvent) => {
     e.stopPropagation()
     setAdvanceStageFormData({ ...project.projectData })
-    setAdvanceStageErrors({})
     setIsAdvanceStageModalOpen(true)
   }
 
   const handleCloseAdvanceStage = () => {
     setIsAdvanceStageModalOpen(false)
     setAdvanceStageFormData({})
-    setAdvanceStageErrors({})
   }
 
   const handleAdvanceStage = () => {
@@ -93,7 +90,6 @@ export const ProjectCard: React.FC<ProjectCardProps & { onUpdateProject?: (proje
     if (!nextStage) return
     const dataToValidate = { ...advanceStageFormData, etapa: nextStage }
     const errors = validateProjectForm(dataToValidate)
-    setAdvanceStageErrors(errors)
     if (Object.keys(errors).length > 0) return
     // Actualizar el proyecto
     if (onUpdateProject) {
@@ -126,7 +122,6 @@ export const ProjectCard: React.FC<ProjectCardProps & { onUpdateProject?: (proje
     }
     setIsAdvanceStageModalOpen(false)
     setAdvanceStageFormData({})
-    setAdvanceStageErrors({})
   }
 
   const handleCardClick = (e: React.MouseEvent) => {
@@ -143,6 +138,9 @@ export const ProjectCard: React.FC<ProjectCardProps & { onUpdateProject?: (proje
   }
 
   const nextStage = getNextStage()
+
+  // DEBUG: Agregar console.log temporal para verificar la lógica
+  console.log('Proyecto:', project.name, 'Etapa actual:', project.etapa, 'Próxima etapa:', nextStage)
 
   return (
     <>
@@ -191,7 +189,7 @@ export const ProjectCard: React.FC<ProjectCardProps & { onUpdateProject?: (proje
                   </DropdownMenuItem>
                   {nextStage && (
                     <DropdownMenuItem onClick={handleOpenAdvanceStage}>
-                      <MoreVertical className="w-4 h-4 mr-2" />
+                      <ArrowRightFromLine className="w-4 h-4 mr-2" />
                       Avanzar a siguiente etapa
                     </DropdownMenuItem>
                   )}

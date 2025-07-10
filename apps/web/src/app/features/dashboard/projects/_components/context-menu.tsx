@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog"
-import { MoreVertical, Eye, Edit, Trash2, Download, Share, Copy, Settings2, FileText } from "lucide-react"
+import { MoreVertical, ArrowRightFromLine, Eye, Edit, Trash2, Download, Share, Copy, Settings2, FileText } from "lucide-react"
 import { ETAPAS } from "@/shared/data/project-data"
 
 interface MenuItem {
@@ -130,7 +130,7 @@ export default function ContextMenu({
       const projectItems = [
         ...commonItems,
         !isLastStage ? {
-          icon: MoreVertical,
+          icon: ArrowRightFromLine,
           label: "Avanzar a siguiente etapa",
           action: onAdvanceStage,
         } : undefined,
