@@ -5,7 +5,7 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Instala pnpm globalmente
-RUN npm install -g pnpm@8.15.6
+RUN npm install -g pnpm@10.13.1
 
 # Copia los archivos de dependencias
 COPY package.json ./
