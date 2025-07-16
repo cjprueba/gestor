@@ -2,9 +2,8 @@ import { Input } from "@/shared/components/ui/input"
 import { Button } from "@/shared/components/design-system/button"
 import { Badge } from "@/shared/components/ui/badge"
 import { Card, CardContent } from "@/shared/components/ui/card"
-import { Search, Filter, X, FileText, FolderOpen } from "lucide-react"
-import { ETAPAS, TIPOS_OBRA } from "@/shared/data/project-data"
-import { TIPOS_OBRA_POR_ETAPA } from "@/shared/data/stage-forms-mock"
+import { Search, Filter, X, FileText, FolderOpen, Loader2 } from "lucide-react"
+import { useEtapasTipo, useTiposObras } from "@/lib/api"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,25 +12,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu"
-
-// Crear lista única de todos los tipos de obra disponibles
-const getAllTiposObra = () => {
-  const tiposSet = new Set<string>()
-
-  // Obtener tipos de TIPOS_OBRA
-  Object.values(TIPOS_OBRA).forEach(tipos => {
-    tipos.forEach(tipo => tiposSet.add(tipo))
-  })
-
-  // Obtener tipos de TIPOS_OBRA_POR_ETAPA
-  Object.values(TIPOS_OBRA_POR_ETAPA).forEach(tipos => {
-    tipos.forEach(tipo => tiposSet.add(tipo))
-  })
-
-  return Array.from(tiposSet).sort()
-}
-
-const TODOS_LOS_TIPOS_OBRA = getAllTiposObra()
 
 interface SearchHeaderProps {
   // Búsqueda de proyectos
@@ -74,8 +54,16 @@ export function SearchHeader({
   documentResults,
   context,
   onClearFilters,
-}: SearchHeaderProps) {
-  // const [isExpanded, setIsExpanded] = useState(false)
+  isLoadingProjects = false,
+  isLoadingDocuments = false,
+}: SearchHeaderProps & { isLoadingProjects?: boolean; isLoadingDocuments?: boolean }) {
+  // Obtener datos de etapas y tipos de obra desde la API
+  const { data: etapasData, isFetching: isLoadingEtapas } = useEtapasTipo()
+  const { data: tiposObraData, isFetching: isLoadingTiposObra } = useTiposObras()
+
+  // Debug logging
+  // console.log("Etapas data:", etapasData)
+  // console.log("Tipos obra data:", tiposObraData)
 
   const hasActiveFilters = projectSearchTerm || documentSearchTerm || selectedStages.length > 0 || selectedTiposObra.length > 0
 
@@ -96,71 +84,80 @@ export function SearchHeader({
   }
 
   return (
-    <Card className="mb-6 border-0 shadow-sm bg-blue-50">
-      <CardContent >
-        {/* Header principal con buscadores */}
-        <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
-          {/* Buscador de proyectos */}
-          <div className="flex-1 min-w-0">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-              <Input
-                placeholder={context === "projects" ? "Buscar proyectos..." : "Buscar en proyecto actual..."}
-                value={projectSearchTerm}
-                onChange={(e) => onProjectSearchChange(e.target.value)}
-                className="pl-10 bg-white/80 border-white/50 focus:bg-white focus:border-blue-200"
-              />
-              {projectSearchTerm && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onProjectSearchChange("")}
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 hover:bg-gray-100"
-                >
-                  <X className="w-3 h-3" />
-                </Button>
+    <Card className="border-0 shadow-sm bg-blue-50">
+      <CardContent>
+        <div className="flex flex-col lg:flex-row gap-4">
+          <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center flex-1">
+            {/* Buscador de proyectos */}
+            <div className="flex-1 min-w-0">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Input
+                  placeholder={context === "projects" ? "Buscar proyectos..." : "Buscar carpetas..."}
+                  value={projectSearchTerm}
+                  onChange={(e) => onProjectSearchChange(e.target.value)}
+                  className="pl-10 pr-10 bg-white/80 border-white/50 focus:bg-white focus:border-blue-200"
+                />
+                {projectSearchTerm && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onProjectSearchChange("")}
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 p-0 hover:bg-gray-100"
+                  >
+                    <X className="w-3 h-3" />
+                  </Button>
+                )}
+                {/* Loader en input de proyectos */}
+                {isLoadingProjects && (
+                  <Loader2 className="absolute right-8 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-400 animate-spin" />
+                )}
+              </div>
+              {/* Resultados de búsqueda de proyectos */}
+              {projectResults !== undefined && projectSearchTerm && (
+                <div className="mt-1 flex items-center text-xs text-muted-foreground">
+                  <FolderOpen className="w-3 h-3 mr-1" />
+                  {projectResults} {context === "projects" ? "proyectos" : "carpetas"} encontradas
+                </div>
               )}
             </div>
-            {projectResults !== undefined && projectSearchTerm && (
-              <div className="flex items-center mt-1 text-xs text-muted-foreground">
-                <FolderOpen className="w-3 h-3 mr-1" />
-                {projectResults} {context === "projects" ? "proyectos" : "carpetas"} encontradas
-              </div>
-            )}
-          </div>
 
-          {/* Buscador de documentos */}
-          <div className="flex-1 min-w-0">
-            <div className="relative">
-              <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-              <Input
-                placeholder="Buscar documentos..."
-                value={documentSearchTerm}
-                onChange={(e) => onDocumentSearchChange(e.target.value)}
-                className="pl-10 bg-white/80 border-white/50 focus:bg-white focus:border-blue-200"
-              />
-              {documentSearchTerm && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onDocumentSearchChange("")}
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 hover:bg-gray-100"
-                >
-                  <X className="w-3 h-3" />
-                </Button>
+            {/* Buscador de documentos */}
+            <div className="flex-1 min-w-0">
+              <div className="relative">
+                <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Input
+                  placeholder="Buscar documentos..."
+                  value={documentSearchTerm}
+                  onChange={(e) => onDocumentSearchChange(e.target.value)}
+                  className="pl-10 pr-10 bg-white/80 border-white/50 focus:bg-white focus:border-blue-200"
+                />
+                {documentSearchTerm && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onDocumentSearchChange("")}
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 p-0 hover:bg-gray-100"
+                  >
+                    <X className="w-3 h-3" />
+                  </Button>
+                )}
+                {/* Loader en input de documentos */}
+                {isLoadingDocuments && (
+                  <Loader2 className="absolute right-8 top-1/2 -translate-y-1/2 w-4 h-4 text-green-400 animate-spin" />
+                )}
+              </div>
+              {/* Resultados de búsqueda de documentos */}
+              {documentResults !== undefined && documentSearchTerm && (
+                <div className="mt-1 flex items-center text-xs text-muted-foreground">
+                  <FileText className="w-3 h-3 mr-1" />
+                  {documentResults} documentos encontrados
+                </div>
               )}
             </div>
-            {documentResults !== undefined && documentSearchTerm && (
-              <div className="flex items-center mt-1 text-xs text-muted-foreground">
-                <FileText className="w-3 h-3 mr-1" />
-                {documentResults} documentos encontrados
-              </div>
-            )}
           </div>
-
-          {/* Filtros y acciones */}
-          <div className="flex items-center gap-2">
-            {/* Filtro por etapas */}
+          {/* Filtro por etapas */}
+          <div className="flex gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -179,15 +176,44 @@ export function SearchHeader({
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>Filtrar por etapas</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                {ETAPAS.map((etapa) => (
-                  <DropdownMenuCheckboxItem
-                    key={etapa}
-                    checked={selectedStages.includes(etapa)}
-                    onCheckedChange={() => handleStageToggle(etapa)}
-                  >
-                    {etapa}
-                  </DropdownMenuCheckboxItem>
-                ))}
+                {isLoadingEtapas ? (
+                  <div className="px-2 py-1 text-sm text-muted-foreground">Cargando...</div>
+                ) : Array.isArray(etapasData) && etapasData.length > 0 ? (
+                  etapasData.map((etapa) => (
+                    <DropdownMenuCheckboxItem
+                      key={etapa.id}
+                      checked={selectedStages.includes(etapa.nombre)}
+                      onCheckedChange={() => handleStageToggle(etapa.nombre)}
+                    >
+                      {etapa.nombre}
+                    </DropdownMenuCheckboxItem>
+                  ))
+                ) : (
+                  // Fallback con datos mock si la API no está disponible
+                  <>
+                    <DropdownMenuCheckboxItem
+                      key="cartera"
+                      checked={selectedStages.includes("Cartera de proyectos")}
+                      onCheckedChange={() => handleStageToggle("Cartera de proyectos")}
+                    >
+                      Cartera de proyectos
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem
+                      key="licitacion"
+                      checked={selectedStages.includes("Proyectos en Licitación")}
+                      onCheckedChange={() => handleStageToggle("Proyectos en Licitación")}
+                    >
+                      Proyectos en Licitación
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem
+                      key="operacion"
+                      checked={selectedStages.includes("Concesiones en Operación")}
+                      onCheckedChange={() => handleStageToggle("Concesiones en Operación")}
+                    >
+                      Concesiones en Operación
+                    </DropdownMenuCheckboxItem>
+                  </>
+                )}
                 {selectedStages.length > 0 && (
                   <>
                     <DropdownMenuSeparator />
@@ -223,16 +249,48 @@ export function SearchHeader({
               <DropdownMenuContent align="end" className="w-72 max-h-80 overflow-y-auto">
                 <DropdownMenuLabel>Filtrar por tipo de obra</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                {TODOS_LOS_TIPOS_OBRA.map((tipo) => (
-                  <DropdownMenuCheckboxItem
-                    key={tipo}
-                    checked={selectedTiposObra.includes(tipo)}
-                    onCheckedChange={() => handleTipoObraToggle(tipo)}
-                    className="text-sm"
-                  >
-                    {tipo}
-                  </DropdownMenuCheckboxItem>
-                ))}
+                {isLoadingTiposObra ? (
+                  <div className="px-2 py-1 text-sm text-muted-foreground">Cargando...</div>
+                ) : Array.isArray(tiposObraData) && tiposObraData.length > 0 ? (
+                  tiposObraData.map((tipo) => (
+                    <DropdownMenuCheckboxItem
+                      key={tipo.id}
+                      checked={selectedTiposObra.includes(tipo.nombre)}
+                      onCheckedChange={() => handleTipoObraToggle(tipo.nombre)}
+                      className="text-sm"
+                    >
+                      {tipo.nombre}
+                    </DropdownMenuCheckboxItem>
+                  ))
+                ) : (
+                  // Fallback con datos mock si la API no está disponible
+                  <>
+                    <DropdownMenuCheckboxItem
+                      key="carretera"
+                      checked={selectedTiposObra.includes("Carretera")}
+                      onCheckedChange={() => handleTipoObraToggle("Carretera")}
+                      className="text-sm"
+                    >
+                      Carretera
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem
+                      key="puente"
+                      checked={selectedTiposObra.includes("Puente")}
+                      onCheckedChange={() => handleTipoObraToggle("Puente")}
+                      className="text-sm"
+                    >
+                      Puente
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem
+                      key="tunel"
+                      checked={selectedTiposObra.includes("Túnel")}
+                      onCheckedChange={() => handleTipoObraToggle("Túnel")}
+                      className="text-sm"
+                    >
+                      Túnel
+                    </DropdownMenuCheckboxItem>
+                  </>
+                )}
                 {selectedTiposObra.length > 0 && (
                   <>
                     <DropdownMenuSeparator />

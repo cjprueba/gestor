@@ -1,232 +1,639 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { Button } from "@/shared/components/design-system/button"
 import { Badge } from "@/shared/components/ui/badge"
 import { Checkbox } from "@/shared/components/ui/checkbox"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/shared/components/ui/dialog"
 import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
-import { Plus, FolderIcon, Folder, InfoIcon, Filter } from "lucide-react"
-import { PLANTILLAS_CARPETAS, ETAPAS } from "@/shared/data/project-data"
-import { DEFAULT_FOLDER_TEMPLATES } from "@/shared/data/projects"
-import type { ProjectFormData, FolderStructure, FolderConfig } from "../types"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
+import { Plus, Folder, Check, X, Pencil, Trash } from "lucide-react"
+import type { CreateProjectFormData } from "@/shared/types/project-types"
+import { useFormContext } from 'react-hook-form'
 
-interface FolderTemplatesStepProps {
-  formData: ProjectFormData
-  selectedFolders: string[]
-  folderConfigs: Record<string, FolderConfig>
-  customFolders: FolderStructure[]
-  useCustomTemplates: boolean
-  showFolderTemplates: boolean
-  onSetSelectedFolders: (folders: string[]) => void
-  onSetFolderConfigs: (configs: Record<string, FolderConfig>) => void
-  onSetUseCustomTemplates: (use: boolean) => void
-  onSetShowFolderTemplates: (show: boolean) => void
-  onCreateCustomFolder: (name: string, minDocs: number) => void
+interface Subcarpeta {
+  id: string;
+  nombre: string;
+  parentId: string;
+  subcarpetas?: Subcarpeta[];
 }
 
-export const FolderTemplatesStep: React.FC<FolderTemplatesStepProps> = ({
-  formData,
-  selectedFolders,
-  folderConfigs,
-  customFolders,
-  useCustomTemplates,
-  showFolderTemplates,
-  onSetSelectedFolders,
-  onSetFolderConfigs,
-  onSetUseCustomTemplates,
-  onCreateCustomFolder,
+interface CarpetaPersonalizada {
+  id: string;
+  nombre: string;
+  subcarpetas: Subcarpeta[];
+}
+
+interface FolderTemplatesStepProps {
+  carpetasIniciales: Array<{ nombre: string }>;
+}
+
+interface FolderConfigCardProps {
+  folder: CarpetaPersonalizada;
+  isSelected: boolean;
+  onToggle: () => void;
+  onSubfolderAdd: (subfolderName: string, parentId?: string) => void;
+  onSubfolderEdit: (subfolderId: string, newName: string) => void;
+  onSubfolderDelete: (subfolderId: string) => void;
+  onFolderNameEdit: (folderId: string, newName: string) => void;
+}
+
+const FolderConfigCard: React.FC<FolderConfigCardProps> = ({
+  folder,
+  isSelected,
+  onToggle,
+  onSubfolderAdd,
+  onSubfolderEdit,
+  onSubfolderDelete,
+  onFolderNameEdit,
 }) => {
-  const [isCreateFolderDialogOpen, setIsCreateFolderDialogOpen] = useState(false)
-  const [newFolderName, setNewFolderName] = useState("")
-  const [selectedEtapa, setSelectedEtapa] = useState<string>(formData.etapa || "")
-  const [selectedTemplate, setSelectedTemplate] = useState<string>("plantillas_principales")
-  const [availableFolders, setAvailableFolders] = useState<string[]>([])
-  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
+  const [isEditingFolderName, setIsEditingFolderName] = useState(false)
+  const [editedFolderName, setEditedFolderName] = useState(folder.nombre)
+  const [showAddSubfolder, setShowAddSubfolder] = useState<string | null>(null)
+  const [newSubfolderName, setNewSubfolderName] = useState("")
+  const [editingSubfolder, setEditingSubfolder] = useState<string | null>(null)
+  const [editedSubfolderName, setEditedSubfolderName] = useState("")
 
-  // Obtener todas las plantillas disponibles (combinando todas las etapas)
-  const getAllFolders = (): string[] => {
-    const allFolders = new Set<string>()
-
-    // Agregar carpetas de PLANTILLAS_CARPETAS de todas las etapas
-    Object.values(PLANTILLAS_CARPETAS).forEach(folders => {
-      folders.forEach(folder => allFolders.add(folder))
-    })
-
-    // Agregar carpetas de DEFAULT_FOLDER_TEMPLATES de todas las etapas  
-    Object.values(DEFAULT_FOLDER_TEMPLATES).forEach(folders => {
-      folders.forEach(folder => allFolders.add(folder))
-    })
-
-    return Array.from(allFolders).sort()
+  const handleFolderNameDoubleClick = () => {
+    setIsEditingFolderName(true)
+    setEditedFolderName(folder.nombre)
   }
 
-  // Obtener carpetas default al cargar
-  // const getDefaultFolders = (): string[] => {
-  //   // Combinar todas las carpetas únicas de todas las etapas
-  //   const allFolders = new Set<string>()
-
-  //   // Agregar carpetas de PLANTILLAS_CARPETAS
-  //   Object.values(PLANTILLAS_CARPETAS).forEach(folders => {
-  //     folders.forEach(folder => allFolders.add(folder))
-  //   })
-
-  //   // Agregar carpetas de DEFAULT_FOLDER_TEMPLATES
-  //   Object.values(DEFAULT_FOLDER_TEMPLATES).forEach(folders => {
-  //     folders.forEach(folder => allFolders.add(folder))
-  //   })
-
-  //   return Array.from(allFolders).sort()
-  // }
-
-  // Obtener carpetas por etapa seleccionada
-  const getFoldersByEtapa = (etapa: string): string[] => {
-    const plantillasCarpetas = PLANTILLAS_CARPETAS[etapa as keyof typeof PLANTILLAS_CARPETAS] || []
-    const defaultCarpetas = DEFAULT_FOLDER_TEMPLATES[etapa as keyof typeof DEFAULT_FOLDER_TEMPLATES] || []
-
-    // Combinar ambas fuentes y eliminar duplicados
-    const combinedFolders = [...[...plantillasCarpetas], ...[...defaultCarpetas]]
-    return Array.from(new Set(combinedFolders)).sort()
+  const saveFolderName = () => {
+    if (editedFolderName.trim() && editedFolderName !== folder.nombre) {
+      onFolderNameEdit(folder.id, editedFolderName.trim())
+    }
+    setIsEditingFolderName(false)
   }
 
-  // Obtener carpetas por plantilla seleccionada
-  const getFoldersByTemplate = (template: string): string[] => {
-    switch (template) {
-      case "plantillas_principales":
-        return getAllFolders() // Ahora carga todas las plantillas
-      case "plantillas_etapa":
-        return selectedEtapa ? getFoldersByEtapa(selectedEtapa) : []
-      case "plantillas_secundarias":
-        return [...(DEFAULT_FOLDER_TEMPLATES["Cartera de proyectos"] || [])]
-      default:
-        return getAllFolders() // Por defecto, mostrar todas las plantillas
+  const addSubfolder = (parentId: string) => {
+    if (newSubfolderName.trim()) {
+      onSubfolderAdd(newSubfolderName.trim(), parentId)
+      setNewSubfolderName("")
+      setShowAddSubfolder(null)
     }
   }
 
-  // Actualizar carpetas disponibles cuando cambia la selección de etapa o plantilla
-  const updateAvailableFolders = () => {
-    let folders: string[] = []
-
-    if (selectedTemplate === "plantillas_etapa" && selectedEtapa) {
-      folders = getFoldersByEtapa(selectedEtapa)
-    } else {
-      folders = getFoldersByTemplate(selectedTemplate)
+  const saveSubfolderEdit = () => {
+    if (editingSubfolder && editedSubfolderName.trim()) {
+      onSubfolderEdit(editingSubfolder, editedSubfolderName.trim())
     }
-
-    setAvailableFolders(folders)
+    setEditingSubfolder(null)
+    setEditedSubfolderName("")
   }
 
-  // Efecto para inicializar carpetas default al cargar
-  React.useEffect(() => {
-    if (!selectedEtapa && formData.etapa) {
-      setSelectedEtapa(formData.etapa)
-    }
-    updateAvailableFolders()
-  }, [formData.etapa, selectedEtapa])
+  const renderSubfolders = (subfolders: Subcarpeta[], depth = 0) => {
+    if (depth >= 4) return null
 
-  // Efecto para actualizar carpetas cuando cambian los selectores
-  React.useEffect(() => {
-    updateAvailableFolders()
-  }, [selectedEtapa, selectedTemplate, formData.etapa])
+    return subfolders.map((subfolder) => (
+      <div key={subfolder.id} className="border-l border-gray-200 pl-3 mt-2 ml-4 ">
+        <div className="flex items-center justify-between py-1 bg-white rounded border border-gray-200 px-2">
+          <div className="flex items-center space-x-2 flex-1">
+            {editingSubfolder === subfolder.id ? (
+              <Input
+                value={editedSubfolderName}
+                onChange={(e) => setEditedSubfolderName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") saveSubfolderEdit()
+                  if (e.key === "Escape") {
+                    setEditingSubfolder(null)
+                    setEditedSubfolderName("")
+                  }
+                }}
+                className="h-6"
+                autoFocus
+              />
+            ) : (
+              <span
+                className="text-sm cursor-pointer hover:bg-gray-100 px-1 rounded"
+                onDoubleClick={() => {
+                  setEditingSubfolder(subfolder.id)
+                  setEditedSubfolderName(subfolder.nombre)
+                }}
+              >
+                {subfolder.nombre}
+              </span>
+            )}
+          </div>
 
-  // Función para manejar el toggle de carpetas
-  const handleFolderToggle = (folderName: string) => {
-    if (selectedFolders.includes(folderName)) {
-      // Remover carpeta
-      onSetSelectedFolders(selectedFolders.filter((f) => f !== folderName))
-      const newConfigs = { ...folderConfigs }
-      delete newConfigs[folderName]
-      onSetFolderConfigs(newConfigs)
-    } else {
-      // Agregar carpeta
-      onSetSelectedFolders([...selectedFolders, folderName])
-      onSetFolderConfigs({
-        ...folderConfigs,
-        [folderName]: { minDocs: 3, daysLimit: 30 },
-      })
-    }
-  }
-
-  // Función para crear carpeta personalizada
-  const handleCreateCustomFolder = () => {
-    if (!newFolderName.trim()) return
-
-    onCreateCustomFolder(newFolderName.trim(), 3)
-    setNewFolderName("")
-    setIsCreateFolderDialogOpen(false)
-  }
-
-  // Función para seleccionar todas las carpetas disponibles
-  const handleSelectAllFolders = () => {
-    const foldersToAdd = availableFolders.filter(folder => !selectedFolders.includes(folder))
-    const newSelectedFolders = [...selectedFolders, ...foldersToAdd]
-
-    const newConfigs = { ...folderConfigs }
-    foldersToAdd.forEach(folder => {
-      newConfigs[folder] = { minDocs: 3, daysLimit: 30 }
-    })
-
-    onSetSelectedFolders(newSelectedFolders)
-    onSetFolderConfigs(newConfigs)
-  }
-
-  // Función para deseleccionar todas las carpetas disponibles
-  // const handleDeselectAllFolders = () => {
-  //   const foldersToRemove = availableFolders.filter(folder => selectedFolders.includes(folder))
-  //   const newSelectedFolders = selectedFolders.filter(folder => !foldersToRemove.includes(folder))
-
-  //   const newConfigs = { ...folderConfigs }
-  //   foldersToRemove.forEach(folder => {
-  //     delete newConfigs[folder]
-  //   })
-
-  //   onSetSelectedFolders(newSelectedFolders)
-  //   onSetFolderConfigs(newConfigs)
-  // }
-
-  const renderCustomTemplateMode = () => (
-    <div className="space-y-4">
-      <div className="border-2 border-dashed border-green-200 bg-green-50 p-6 rounded-lg">
-        <div className="text-center">
-          <Plus className="w-12 h-12 mx-auto text-green-600 mb-3" />
-          <h3 className="font-medium text-green-900 mb-2">Crear carpetas personalizadas</h3>
-          <p className="text-sm text-green-700 mb-4">
-            En este modo puedes crear carpetas específicas para este proyecto, sin usar plantillas predefinidas.
-            Ideal cuando tienes necesidades muy específicas.
-          </p>
-          <div className="flex items-center justify-center space-x-2">
-            <Button variant="secundario" size="sm" onClick={() => onSetUseCustomTemplates(false)}>
-              <FolderIcon className="w-4 h-4 mr-2" />
-              Cambiar a plantillas
-            </Button>
+          <div className="flex items-center">
+            {editingSubfolder === subfolder.id ? (
+              <>
+                <Button variant="ghost" size="sm" onClick={saveSubfolderEdit} className=" text-green-600">
+                  <Check className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setEditingSubfolder(null)
+                    setEditedSubfolderName("")
+                  }}
+                  className=" text-red-600"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </>
+            ) : (
+              <>
+                {depth < 3 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowAddSubfolder(subfolder.id)}
+                    title="Agregar subcarpeta"
+                  >
+                    <Plus className="w-4 h-4 " />
+                  </Button>
+                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setEditingSubfolder(subfolder.id)
+                    setEditedSubfolderName(subfolder.nombre)
+                  }}
+                  title="Editar nombre"
+                >
+                  <Pencil className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onSubfolderDelete(subfolder.id)}
+                  className=" text-red-600"
+                  title="Eliminar subcarpeta"
+                >
+                  <Trash className="w-4 h-4" />
+                </Button>
+              </>
+            )}
           </div>
         </div>
+
+        {/* Input para agregar subcarpeta */}
+        {showAddSubfolder === subfolder.id && (
+          <div className="mt-2 flex items-center space-x-2 ml-4">
+            <Input
+              value={newSubfolderName}
+              onChange={(e) => setNewSubfolderName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") addSubfolder(subfolder.id)
+                if (e.key === "Escape") {
+                  setShowAddSubfolder(null)
+                  setNewSubfolderName("")
+                }
+              }}
+              placeholder="Nombre de subcarpeta"
+              className="text-xs"
+              autoFocus
+            />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => addSubfolder(subfolder.id)}
+            >
+              <Check className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setShowAddSubfolder(null)
+                setNewSubfolderName("")
+              }}
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+        )}
+
+        {/* Renderizar subcarpetas anidadas */}
+        {subfolder.subcarpetas && subfolder.subcarpetas.length > 0 && (
+          <div className="mt-1">{renderSubfolders(subfolder.subcarpetas, depth + 1)}</div>
+        )}
+      </div>
+    ))
+  }
+
+  return (
+    <div className="border rounded-lg p-4">
+      <div className="flex items-center space-x-3 mb-3">
+        <input type="checkbox" id={folder.id} checked={isSelected} onChange={onToggle} className="w-4 h-4" />
+
+        {isEditingFolderName ? (
+          <Input
+            value={editedFolderName}
+            onChange={(e) => setEditedFolderName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") saveFolderName()
+              if (e.key === "Escape") setIsEditingFolderName(false)
+            }}
+            onBlur={saveFolderName}
+            className="h-8 font-medium"
+            autoFocus
+          />
+        ) : (
+          <label
+            htmlFor={folder.id}
+            className="font-medium cursor-pointer hover:bg-gray-100 px-2 py-1 rounded"
+            onDoubleClick={handleFolderNameDoubleClick}
+            title="Doble click para editar"
+          >
+            {folder.nombre}
+          </label>
+        )}
       </div>
 
-      {/* Lista de carpetas personalizadas creadas */}
-      {customFolders.length > 0 && (
-        <div className="space-y-3">
-          <h4 className="font-medium text-sm">Carpetas personalizadas creadas:</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {customFolders.map((folder) => (
-              <div
-                key={folder.id}
-                className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+      {isSelected && (
+        <div className="ml-7 space-y-3 bg-muted/60 p-3 rounded">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium">Subcarpetas</span>
+            <Button
+              variant="secundario"
+              size="sm"
+              onClick={() => setShowAddSubfolder(folder.id)}
+              className="h-7 px-2 text-xs"
+            >
+              <Plus className="w-4 h-4" />
+              Agregar subcarpeta
+            </Button>
+          </div>
+
+          {/* Input para agregar subcarpeta principal */}
+          {showAddSubfolder === folder.id && (
+            <div className="flex items-center space-x-2">
+              <Input
+                value={newSubfolderName}
+                onChange={(e) => setNewSubfolderName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") addSubfolder(folder.id)
+                  if (e.key === "Escape") {
+                    setShowAddSubfolder(null)
+                    setNewSubfolderName("")
+                  }
+                }}
+                placeholder="Nombre de la subcarpeta"
+                className="text-xs"
+                autoFocus
+              />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => addSubfolder(folder.id)}
               >
-                <Checkbox
-                  id={folder.id}
-                  checked={selectedFolders.includes(folder.id)}
-                  onCheckedChange={() => handleFolderToggle(folder.id)}
-                />
-                <div className="flex items-center space-x-2 flex-1">
-                  <Folder className="w-4 h-4 text-green-500" />
-                  <label htmlFor={folder.id} className="text-sm font-medium cursor-pointer flex-1">
-                    {folder.name}
-                  </label>
-                  <Badge variant="outline" className="text-xs">
-                    Min: {folder.minDocuments}
+                <Check className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setShowAddSubfolder(null)
+                  setNewSubfolderName("")
+                }}
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
+
+          {/* Renderizar subcarpetas */}
+          {folder.subcarpetas && folder.subcarpetas.length > 0 && (
+            <div className="space-y-1">{renderSubfolders(folder.subcarpetas)}</div>
+          )}
+
+          {(!folder.subcarpetas || folder.subcarpetas.length === 0) && showAddSubfolder !== folder.id && (
+            <div className="text-xs text-muted-foreground">
+              No hay subcarpetas. Haz clic en "Agregar Subcarpeta" para crear una.
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+export const FolderTemplatesStep: React.FC<FolderTemplatesStepProps> = ({ carpetasIniciales }) => {
+  const { watch, setValue, formState: { errors } } = useFormContext<CreateProjectFormData>();
+  const [isCreateFolderDialogOpen, setIsCreateFolderDialogOpen] = useState(false);
+  const [newFolderName, setNewFolderName] = useState("");
+  const [customFolders, setCustomFolders] = useState<CarpetaPersonalizada[]>([]);
+
+  const watchedCarpetas = watch('createProjectStepThree.carpetas');
+
+  // Efecto para inicializar las carpetas iniciales cuando se cargan
+  useEffect(() => {
+    if (carpetasIniciales.length > 0 && (!watchedCarpetas || watchedCarpetas.length === 0)) {
+      // Inicializar con las carpetas iniciales
+      setValue('createProjectStepThree.carpetas', carpetasIniciales);
+    }
+  }, [carpetasIniciales, setValue, watchedCarpetas]);
+
+
+
+  const isCustomFolderSelected = (carpeta: CarpetaPersonalizada) => {
+    return watchedCarpetas?.some(c => c.nombre === carpeta.nombre) || false;
+  };
+
+  const handleCustomFolderToggle = (carpeta: CarpetaPersonalizada) => {
+    const currentCarpetas = watchedCarpetas || [];
+    const isSelected = currentCarpetas.some(c => c.nombre === carpeta.nombre);
+
+    if (isSelected) {
+      // Remover carpeta y todas sus subcarpetas del array plano
+      const filteredCarpetas = currentCarpetas.filter(c =>
+        c.nombre !== carpeta.nombre &&
+        !(carpeta.subcarpetas || []).some(sub => sub.nombre === c.nombre)
+      );
+      setValue('createProjectStepThree.carpetas', filteredCarpetas);
+    } else {
+      // Agregar carpeta y todas sus subcarpetas al array plano
+      const subcarpetasToAdd = (carpeta.subcarpetas || []).map(sub => ({ nombre: sub.nombre }));
+      const carpetasToAdd = [{ nombre: carpeta.nombre }, ...subcarpetasToAdd];
+      setValue('createProjectStepThree.carpetas', [...currentCarpetas, ...carpetasToAdd]);
+    }
+  };
+
+  const handleCreateCustomFolder = () => {
+    if (!newFolderName.trim()) return;
+
+    const newFolder: CarpetaPersonalizada = {
+      id: `custom-${Date.now()}`,
+      nombre: newFolderName.trim(),
+      subcarpetas: []
+    };
+
+    const updatedCustomFolders = [...customFolders, newFolder];
+    setCustomFolders(updatedCustomFolders);
+
+    // Actualizar directamente con estructura jerárquica completa
+    const hierarchicalData = [
+      ...carpetasIniciales.map(carpeta => ({
+        tipo: 'inicial' as const,
+        nombre: carpeta.nombre,
+        subcarpetas: []
+      })),
+      ...updatedCustomFolders.map(carpeta => ({
+        tipo: 'carpeta' as const,
+        id: carpeta.id,
+        nombre: carpeta.nombre,
+        subcarpetas: carpeta.subcarpetas || []
+      }))
+    ];
+
+    setValue('createProjectStepThree.carpetas', hierarchicalData);
+    setNewFolderName("");
+    setIsCreateFolderDialogOpen(false);
+  };
+
+  // Función para editar nombre de carpeta
+  const editFolderName = (folderId: string, newName: string) => {
+    const updatedFolders = customFolders.map(folder =>
+      folder.id === folderId
+        ? { ...folder, nombre: newName }
+        : folder
+    );
+
+    setCustomFolders(updatedFolders);
+
+    // Actualizar directamente con estructura jerárquica completa
+    const hierarchicalData = [
+      ...carpetasIniciales.map(carpeta => ({
+        tipo: 'inicial' as const,
+        nombre: carpeta.nombre,
+        subcarpetas: []
+      })),
+      ...updatedFolders.map(carpeta => ({
+        tipo: 'carpeta' as const,
+        id: carpeta.id,
+        nombre: carpeta.nombre,
+        subcarpetas: carpeta.subcarpetas || []
+      }))
+    ];
+
+    setValue('createProjectStepThree.carpetas', hierarchicalData);
+  };
+
+  // Función para eliminar subcarpeta
+  const deleteSubfolder = (subfolderId: string) => {
+    const findSubfolderRecursively = (folders: CarpetaPersonalizada[]): Subcarpeta | null => {
+      for (const folder of folders) {
+        // Buscar en las subcarpetas directas de la carpeta
+        const found = (folder.subcarpetas || []).find(sub => sub.id === subfolderId);
+        if (found) return found;
+
+        // Buscar recursivamente en las subcarpetas anidadas
+        const foundNested = findInSubfolders(folder.subcarpetas || []);
+        if (foundNested) return foundNested;
+      }
+      return null;
+    };
+
+    const findInSubfolders = (subfolders: Subcarpeta[]): Subcarpeta | null => {
+      for (const subfolder of subfolders) {
+        if (subfolder.id === subfolderId) return subfolder;
+
+        const found = findInSubfolders(subfolder.subcarpetas || []);
+        if (found) return found;
+      }
+      return null;
+    };
+
+    const updateFoldersRecursively = (folders: CarpetaPersonalizada[]): CarpetaPersonalizada[] => {
+      return folders.map(folder => ({
+        ...folder,
+        subcarpetas: updateSubfoldersRecursively(folder.subcarpetas || [])
+      }));
+    };
+
+    const updateSubfoldersRecursively = (subfolders: Subcarpeta[]): Subcarpeta[] => {
+      return subfolders
+        .filter(sub => sub.id !== subfolderId)
+        .map(sub => ({
+          ...sub,
+          subcarpetas: updateSubfoldersRecursively(sub.subcarpetas || [])
+        }));
+    };
+
+    // Buscar la subcarpeta a eliminar antes de eliminarla
+    const subfolderToDelete = findSubfolderRecursively(customFolders);
+
+    const updatedFolders = updateFoldersRecursively(customFolders);
+    setCustomFolders(updatedFolders);
+
+    // Actualizar directamente con estructura jerárquica completa
+    const hierarchicalData = [
+      ...carpetasIniciales.map(carpeta => ({
+        tipo: 'inicial' as const,
+        nombre: carpeta.nombre,
+        subcarpetas: []
+      })),
+      ...updatedFolders.map(carpeta => ({
+        tipo: 'carpeta' as const,
+        id: carpeta.id,
+        nombre: carpeta.nombre,
+        subcarpetas: carpeta.subcarpetas || []
+      }))
+    ];
+
+    setValue('createProjectStepThree.carpetas', hierarchicalData);
+  };
+
+  // Función para agregar subcarpeta
+  const addSubfolder = (subfolderName: string, parentId?: string) => {
+    if (!parentId) return;
+
+    const newSubfolder: Subcarpeta = {
+      id: `${parentId}-sub-${Date.now()}`,
+      nombre: subfolderName,
+      parentId: parentId,
+      subcarpetas: []
+    };
+
+    const updateFolderRecursively = (folders: CarpetaPersonalizada[]): CarpetaPersonalizada[] => {
+      return folders.map(folder => {
+        if (folder.id === parentId) {
+          return { ...folder, subcarpetas: [...(folder.subcarpetas || []), newSubfolder] };
+        }
+        return {
+          ...folder,
+          subcarpetas: updateSubfoldersRecursively(folder.subcarpetas || [])
+        };
+      });
+    };
+
+    const updateSubfoldersRecursively = (subfolders: Subcarpeta[]): Subcarpeta[] => {
+      return subfolders.map(subfolder => {
+        if (subfolder.id === parentId) {
+          return { ...subfolder, subcarpetas: [...(subfolder.subcarpetas || []), newSubfolder] };
+        }
+        return {
+          ...subfolder,
+          subcarpetas: updateSubfoldersRecursively(subfolder.subcarpetas || [])
+        };
+      });
+    };
+
+    const updatedFolders = updateFolderRecursively(customFolders);
+    setCustomFolders(updatedFolders);
+
+    // Actualizar directamente con estructura jerárquica completa
+    const hierarchicalData = [
+      ...carpetasIniciales.map(carpeta => ({
+        tipo: 'inicial' as const,
+        nombre: carpeta.nombre,
+        subcarpetas: []
+      })),
+      ...updatedFolders.map(carpeta => ({
+        tipo: 'carpeta' as const,
+        id: carpeta.id,
+        nombre: carpeta.nombre,
+        subcarpetas: carpeta.subcarpetas || []
+      }))
+    ];
+
+    setValue('createProjectStepThree.carpetas', hierarchicalData);
+  };
+
+  // Función para editar subcarpeta
+  const editSubfolder = (subfolderId: string, newName: string) => {
+    const findSubfolderRecursively = (folders: CarpetaPersonalizada[]): Subcarpeta | null => {
+      for (const folder of folders) {
+        const found = (folder.subcarpetas || []).find(sub => sub.id === subfolderId);
+        if (found) return found;
+
+        const foundNested = findInSubfolders(folder.subcarpetas || []);
+        if (foundNested) return foundNested;
+      }
+      return null;
+    };
+
+    const findInSubfolders = (subfolders: Subcarpeta[]): Subcarpeta | null => {
+      for (const subfolder of subfolders) {
+        if (subfolder.id === subfolderId) return subfolder;
+
+        const found = findInSubfolders(subfolder.subcarpetas || []);
+        if (found) return found;
+      }
+      return null;
+    };
+
+    const updateFoldersRecursively = (folders: CarpetaPersonalizada[]): CarpetaPersonalizada[] => {
+      return folders.map(folder => ({
+        ...folder,
+        subcarpetas: updateSubfoldersRecursively(folder.subcarpetas || [])
+      }));
+    };
+
+    const updateSubfoldersRecursively = (subfolders: Subcarpeta[]): Subcarpeta[] => {
+      return subfolders.map(sub => ({
+        ...sub,
+        nombre: sub.id === subfolderId ? newName : sub.nombre,
+        subcarpetas: updateSubfoldersRecursively(sub.subcarpetas || [])
+      }));
+    };
+
+    // Buscar la subcarpeta antes de actualizarla
+    const subfolderToUpdate = findSubfolderRecursively(customFolders);
+
+    const updatedFolders = updateFoldersRecursively(customFolders);
+    setCustomFolders(updatedFolders);
+
+    // Actualizar directamente con estructura jerárquica completa
+    const hierarchicalData = [
+      ...carpetasIniciales.map(carpeta => ({
+        tipo: 'inicial' as const,
+        nombre: carpeta.nombre,
+        subcarpetas: []
+      })),
+      ...updatedFolders.map(carpeta => ({
+        tipo: 'carpeta' as const,
+        id: carpeta.id,
+        nombre: carpeta.nombre,
+        subcarpetas: carpeta.subcarpetas || []
+      }))
+    ];
+
+    setValue('createProjectStepThree.carpetas', hierarchicalData);
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Carpetas iniciales - siempre marcadas y deshabilitadas */}
+      {carpetasIniciales.length > 0 && (
+        <div className="space-y-4">
+          <div>
+            <Label className="text-base font-medium">Carpetas Iniciales</Label>
+            <p className="text-sm text-muted-foreground mt-1">
+              Las carpetas iniciales se crean automáticamente según la etapa seleccionada
+            </p>
+          </div>
+
+          {errors.createProjectStepThree?.carpetas && (
+            <p className="text-sm text-red-500">
+              {errors.createProjectStepThree.carpetas.message}
+            </p>
+          )}
+
+          <h4 className="font-medium text-sm text-muted-foreground">Carpetas iniciales de la etapa:</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {carpetasIniciales.map((carpeta) => (
+              <div
+                key={carpeta.nombre}
+                className="p-4 border rounded-lg bg-muted/30"
+              >
+                <div className="flex items-center space-x-3">
+                  <Checkbox
+                    checked={true}
+                    disabled={true}
+                    className="mt-0"
+                  />
+                  <div className="flex items-center space-x-2 flex-1">
+                    <Folder className="w-5 h-5 text-primary" />
+                    <span className="text-sm font-medium">{carpeta.nombre}</span>
+                  </div>
+                  <Badge variant="secondary" className="text-xs">
+                    Inicial
                   </Badge>
                 </div>
               </div>
@@ -235,267 +642,77 @@ export const FolderTemplatesStep: React.FC<FolderTemplatesStepProps> = ({
         </div>
       )}
 
-      {/* Botón para crear nueva carpeta */}
-      <div className="flex items-center justify-center pt-4">
-        <Dialog open={isCreateFolderDialogOpen} onOpenChange={setIsCreateFolderDialogOpen}>
-          <DialogTrigger asChild>
-            <Button variant="primario" size="sm">
-              <Plus className="w-4 h-4 mr-1" />
-              Nueva carpeta personalizada
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Crear carpeta personalizada</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="folderName">Nombre de la carpeta</Label>
-                <Input
-                  id="folderName"
-                  value={newFolderName}
-                  onChange={(e) => setNewFolderName(e.target.value)}
-                  placeholder="Ej: Documentación Técnica"
-                />
-              </div>
-              <Button onClick={handleCreateCustomFolder} className="w-full">
-                Crear carpeta
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
-    </div>
-  )
-
-  const renderTemplateMode = () => {
-    // Obtener todas las plantillas disponibles (nuevo comportamiento)
-    const templateFolders: string[] = getAllFolders()
-
-    // Mostrar todas las carpetas personalizadas creadas
-    const customFoldersToShow = customFolders
-
-    return (
+      {/* Carpetas personalizadas */}
       <div className="space-y-4">
-        {/* Nuevos filtros avanzados - colapsables */}
-        <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Filter className="w-4 h-4 text-blue-600" />
-              <h4 className="font-medium text-blue-800 text-sm">Filtros avanzados</h4>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-              className="text-xs"
-            >
-              {showAdvancedFilters ? "Ocultar" : "Mostrar"} opciones
-            </Button>
-          </div>
-
-          {showAdvancedFilters && (
-            <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
-              {/* Selector de Plantilla */}
-              <div className="space-y-2">
-                <Label htmlFor="template-select" className="text-xs">Seleccionar plantilla</Label>
-                <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
-                  <SelectTrigger id="template-select" className="h-8 text-sm">
-                    <SelectValue placeholder="Selecciona una plantilla" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="plantillas_principales">Todas las plantillas</SelectItem>
-                    <SelectItem value="plantillas_etapa">Carpetas por etapa específica</SelectItem>
-                    <SelectItem value="plantillas_secundarias">Plantillas para Cartera de proyectos</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Selector de Etapa (solo visible cuando se selecciona "plantillas_etapa") */}
-              {selectedTemplate === "plantillas_etapa" && (
-                <div className="space-y-2">
-                  <Label htmlFor="etapa-select" className="text-xs">Seleccionar etapa</Label>
-                  <Select value={selectedEtapa} onValueChange={setSelectedEtapa}>
-                    <SelectTrigger id="etapa-select" className="h-8 text-sm">
-                      <SelectValue placeholder="Selecciona una etapa" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {ETAPAS.map((etapa) => (
-                        <SelectItem key={etapa} value={etapa}>
-                          {etapa}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Lista principal de carpetas - comportamiento original mejorado */}
-        <div>
-          <div className="flex justify-between items-center mb-3">
-            <h4 className="font-medium">Seleccionar carpetas</h4>
-            {/* Controles de selección masiva para carpetas filtradas */}
-            {availableFolders.length > 0 && availableFolders.length !== templateFolders.length && (
-              <div className="flex gap-2">
-                <Button
-                  variant="secundario"
-                  size="sm"
-                  onClick={handleSelectAllFolders}
-                  disabled={availableFolders.every(folder => selectedFolders.includes(folder))}
-                  className="text-xs"
-                >
-                  Seleccionar todas filtradas
-                </Button>
-              </div>
-            )}
-          </div>
-
-          {/* Mostrar carpetas según el filtro seleccionado o las de la etapa por defecto */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {/* Carpetas principales (de la etapa o filtradas) */}
-            {(selectedTemplate !== "plantillas_principales" ? availableFolders : templateFolders).map((folder) => (
-              <div key={folder} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors">
-                <Checkbox
-                  id={folder}
-                  checked={selectedFolders.includes(folder)}
-                  onCheckedChange={() => handleFolderToggle(folder)}
-                />
-                <div className="flex items-center space-x-2 flex-1">
-                  <Folder className="w-4 h-4 text-blue-500" />
-                  <label htmlFor={folder} className="text-sm font-medium cursor-pointer flex-1">
-                    {folder}
-                  </label>
-                </div>
-              </div>
-            ))}
-
-            {/* Carpetas personalizadas */}
-            {customFoldersToShow.map((folder) => (
-              <div
-                key={folder.id}
-                className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors bg-green-50 border-green-200"
-              >
-                <Checkbox
-                  id={`template-custom-${folder.id}`}
-                  checked={selectedFolders.includes(folder.id)}
-                  onCheckedChange={() => handleFolderToggle(folder.id)}
-                />
-                <div className="flex items-center space-x-2 flex-1">
-                  <Folder className="w-4 h-4 text-green-600" />
-                  <label htmlFor={`template-custom-${folder.id}`} className="text-sm font-medium cursor-pointer flex-1">
-                    {folder.name} <span className="text-xs text-green-600">(personalizada)</span>
-                  </label>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Sección de resumen y opciones adicionales - original */}
-        <div className="flex flex-row border-t pt-4">
-          <div className="bg-blue-50 p-3 rounded-lg w-fit h-fit">
-            <div className="text-sm">
-              <strong>Carpetas seleccionadas:</strong> {selectedFolders.length}
-              {selectedFolders.length === 0 && (
-                <span className="text-destructive ml-2">⚠ Debes seleccionar al menos una carpeta</span>
-              )}
-            </div>
-          </div>
-          <div className="ml-auto">
-            <div className="flex items-center gap-6 mb-2">
-              <span className="text-sm font-medium">¿Necesitas carpetas adicionales?</span>
-              <Dialog open={isCreateFolderDialogOpen} onOpenChange={setIsCreateFolderDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="primario" size="sm">
-                    <Plus className="w-4 h-4 mr-1" />
-                    Nueva carpeta
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-md">
-                  <DialogHeader>
-                    <DialogTitle>Crear carpeta personalizada</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="folderName">Nombre de la carpeta</Label>
-                      <Input
-                        id="folderName"
-                        value={newFolderName}
-                        onChange={(e) => setNewFolderName(e.target.value)}
-                        placeholder="Ej: Documentación Técnica"
-                      />
-                    </div>
-                    <Button onClick={handleCreateCustomFolder} className="w-full">
-                      Crear carpeta
-                    </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Puedes combinar plantillas con carpetas personalizadas para este proyecto
+        <div className="flex justify-between items-center">
+          <div>
+            <Label className="text-base font-medium">Carpetas Personalizadas</Label>
+            <p className="text-sm text-muted-foreground mt-1">
+              Agrega carpetas adicionales con subcarpetas opcionales.
             </p>
           </div>
+          <Dialog open={isCreateFolderDialogOpen} onOpenChange={setIsCreateFolderDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="primario" size="sm">
+                <Plus className="w-4 h-4 mr-1" />
+                Nueva Carpeta
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Crear carpeta personalizada</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="folderName">Nombre de la carpeta</Label>
+                  <Input
+                    id="folderName"
+                    value={newFolderName}
+                    onChange={(e) => setNewFolderName(e.target.value)}
+                    placeholder="Ej: Documentación Técnica"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleCreateCustomFolder();
+                      }
+                    }}
+                  />
+                </div>
+                <Button onClick={handleCreateCustomFolder} className="w-full">
+                  Crear Carpeta
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
-      </div>
-    )
-  }
 
-  return (
-    <div className="space-y-4 max-w-2xl mx-auto">
-      {/* Sección informativa original */}
-      <div className="bg-yellow-50 p-4 rounded-lg border border-warning-200">
-        <div className="flex items-start space-x-3">
-          <InfoIcon className="w-6 h-6 text-warning-600 mt-0.5 flex-shrink-0" />
-          <div>
-            <h3 className="font-medium text-warning-600 mb-2">Opciones para organizar tu proyecto</h3>
-            <div className="text-sm text-warning-800 space-y-2">
-              <p>
-                <strong className="text-warning-400">Opción 1:</strong> Usa plantillas predefinidas según la etapa de tu proyecto (recomendado para
-                comenzar rápido)
-              </p>
-              <p>
-                <strong className="text-warning-400">Opción 2:</strong> Crea carpetas personalizadas una por una para este proyecto específico
-              </p>
-              <p>
-                <strong className="text-warning-400">Opción 3:</strong> Combina ambas - usa algunas plantillas y agrega carpetas personalizadas
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Selector de modo */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h4 className="font-medium">Configuración de carpetas</h4>
-          <p className="text-sm text-muted-foreground">
-            {useCustomTemplates
-              ? "Modo personalizado: Crea carpetas específicas para este proyecto"
-              : "Modo plantillas: Selecciona carpetas predefinidas disponibles"}
-          </p>
-        </div>
-        <div className="flex items-center">
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="useCustomTemplates"
-              checked={useCustomTemplates}
-              onCheckedChange={(checked) => onSetUseCustomTemplates(!!checked)}
+        {/* Lista de carpetas personalizadas creadas */}
+        <div className="space-y-3">
+          {customFolders.map((folder) => (
+            <FolderConfigCard
+              key={folder.id}
+              folder={folder}
+              isSelected={isCustomFolderSelected(folder)}
+              onToggle={() => handleCustomFolderToggle(folder)}
+              onSubfolderAdd={(subfolderName, parentId) => addSubfolder(subfolderName, parentId)}
+              onSubfolderEdit={(subfolderId, newName) => editSubfolder(subfolderId, newName)}
+              onSubfolderDelete={(subfolderId) => deleteSubfolder(subfolderId)}
+              onFolderNameEdit={(folderId, newName) => editFolderName(folderId, newName)}
             />
-            <Label htmlFor="useCustomTemplates" className="text-sm font-medium cursor-pointer">
-              Modo personalizado
-            </Label>
-          </div>
+          ))}
         </div>
+
+        {customFolders.length === 0 && (
+          <div className="text-center py-8 text-muted-foreground">
+            <Folder className="w-12 h-12 mx-auto mb-4 opacity-50" />
+            <p>No hay carpetas personalizadas. Haz clic en "Nueva Carpeta" para crear una.</p>
+          </div>
+        )}
       </div>
 
-      {/* Mostrar opciones según el modo */}
-      {showFolderTemplates && (
-        <div className="space-y-4">
-          {useCustomTemplates ? renderCustomTemplateMode() : renderTemplateMode()}
+      {carpetasIniciales.length === 0 && customFolders.length === 0 && (
+        <div className="text-center py-8 text-muted-foreground">
+          <Folder className="w-12 h-12 mx-auto mb-4 opacity-50" />
+          <p>No hay carpetas disponibles para esta etapa</p>
         </div>
       )}
     </div>

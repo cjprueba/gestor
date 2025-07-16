@@ -1,20 +1,17 @@
 import React from "react"
+import { useFormContext } from 'react-hook-form';
 import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
 import { AlertTriangle, CalendarDays } from "lucide-react"
-import type { ProjectFormData } from "../types"
+import type { CreateProjectFormData } from "@/shared/types/project-types"
 
 interface ProjectAlertsStepProps {
-  formData: ProjectFormData
-  errors: Record<string, string>
-  onUpdateFormData: (field: keyof ProjectFormData, value: string) => void
+  // Este paso se mantiene simple ya que las alertas se configuran después de crear el proyecto
 }
 
-export const ProjectAlertsStep: React.FC<ProjectAlertsStepProps> = ({
-  formData,
-  errors,
-  onUpdateFormData,
-}) => {
+export const ProjectAlertsStep: React.FC<ProjectAlertsStepProps> = () => {
+  const { register, formState: { errors } } = useFormContext<CreateProjectFormData>();
+
   return (
     <div className="space-y-4">
       <div>
@@ -32,20 +29,17 @@ export const ProjectAlertsStep: React.FC<ProjectAlertsStepProps> = ({
           <Label htmlFor="alertaFechaLimite">Fecha límite de alerta</Label>
           <Input
             id="alertaFechaLimite"
-            value={formData.alertaFechaLimite || ""}
-            onChange={(e) => onUpdateFormData("alertaFechaLimite", e.target.value)}
-            placeholder="dd-mm-yyyy"
-            className={`max-w-3xs ${errors.alertaFechaLimite ? "border-red-500" : ""}`}
+            type="date"
+            {...register('createProjectStepTwo.fecha_llamado_licitacion')}
+            className="max-w-3xs"
           />
-          {errors.alertaFechaLimite && <p className="text-sm text-red-500 mt-1">{errors.alertaFechaLimite}</p>}
         </div>
 
         <div className="flex flex-col gap-2">
           <Label htmlFor="alertaDescripcion">Descripción de la Alerta</Label>
           <Input
             id="alertaDescripcion"
-            value={formData.alertaDescripcion || ""}
-            onChange={(e) => onUpdateFormData("alertaDescripcion", e.target.value)}
+            {...register('createProjectStepTwo.valor_referencia')}
             placeholder="Ej: Entrega de documentos finales"
             className="max-w-3xs"
           />

@@ -1,21 +1,21 @@
-import React from "react"
-import { Button } from "@/shared/components/design-system/button"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog"
-import { Badge } from "@/shared/components/ui/badge"
-import { Check, Loader2 } from "lucide-react"
-import clsx from "clsx"
-import { BasicInfoStep } from "./form-steps/BasicInfoStep"
-import { StageSpecificFieldsStep } from "./form-steps/StageSpecificFieldsStep"
-import { FolderTemplatesStep } from "./form-steps/FolderTemplatesStep"
-import { ProjectAlertsStep } from "./form-steps/ProjectAlertsStep"
-import { useProjectForm } from "./hooks/useProjectForm"
-import type { Project } from "./types"
-import { PLANTILLAS_CARPETAS } from "@/shared/data/project-data"
+import React from "react";
+import { FormProvider } from "react-hook-form";
+import { Button } from "@/shared/components/design-system/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog";
+import { Badge } from "@/shared/components/ui/badge";
+import { Check, Loader2 } from "lucide-react";
+import clsx from "clsx";
+import { BasicInfoStep } from "./form-steps/BasicInfoStep";
+import { StageSpecificFieldsStep } from "./form-steps/StageSpecificFieldsStep";
+import { FolderTemplatesStep } from "./form-steps/FolderTemplatesStep";
+import { ProjectAlertsStep } from "./form-steps/ProjectAlertsStep";
+import { useCreateProjectForm } from "./hooks/useCreateProjectForm";
+import type { Project } from "./types";
 
 interface CreateProjectDialogProps {
-  isOpen: boolean
-  onClose: () => void
-  onCreateProject: (project: Project) => void
+  isOpen: boolean;
+  onClose: () => void;
+  onCreateProject: (project: Project) => void;
 }
 
 export const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
@@ -24,169 +24,129 @@ export const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
   onCreateProject,
 }) => {
   const {
-    // State
+    // Estado del formulario
     currentStep,
-    formData,
-    errors,
-    comunasDisponibles,
-    provinciasDisponibles,
-    selectedFolders,
-    folderConfigs,
-    customFolders,
-    useCustomTemplates,
-    showFolderTemplates,
-    isLoading,
-
-    // Actions
     setCurrentStep,
-    updateFormData,
+    methods,
+    isLoading,
+    selectedEtapaId,
+
+    // Datos de las queries
+    stageTypes,
+    stageTypeDetail,
+    tiposIniciativa,
+    tiposObra,
+    regiones,
+    provincias,
+    comunas,
+    inspectoresFiscales,
+
+    // Funciones
     canProceedToNextStep,
-    createCustomFolder,
+    handleCreateProject,
     resetForm,
-    setSelectedFolders,
-    setFolderConfigs,
-    setUseCustomTemplates,
-    setShowFolderTemplates,
-    setIsLoading,
-  } = useProjectForm()
+    getCarpetasIniciales,
+  } = useCreateProjectForm();
 
   const getStepTitle = () => {
     switch (currentStep) {
       case 1:
-        return "Información básica"
+        return "Información básica";
       case 2:
-        return "Detalles del proyecto"
+        return "Detalles del proyecto";
       case 3:
-        return "Plantillas de carpetas"
+        return "Plantillas de carpetas";
       case 4:
-        return "Alertas del proyecto"
+        return "Alertas del proyecto";
       default:
-        return "Crear proyecto"
+        return "Crear proyecto";
     }
-  }
+  };
 
   const getDialogWidth = () => {
     switch (currentStep) {
       case 1:
-        return "max-w-md sm:max-w-lg"
+        return "max-w-md sm:max-w-lg";
       case 2:
-        return "max-w-2xl sm:max-w-2xl"
+        return "max-w-2xl sm:max-w-2xl";
       case 3:
-        return "max-w-3xl sm:max-w-3xl"
+        return "max-w-3xl sm:max-w-3xl";
       case 4:
-        return "max-w-lg sm:max-w-lg"
+        return "max-w-lg sm:max-w-lg";
       default:
-        return "max-w-lg"
+        return "max-w-lg";
     }
-  }
+  };
 
-  const handleCreateProject = () => {
-    if (!formData.nombre.trim()) return
+  const handleCreateProjectSubmit = async () => {
+    // Mostrar contexto del formulario antes de enviar
+    console.log("=== ENVIANDO PROYECTO A LA API ===");
+    console.log("Form Values:", methods.getValues());
+    console.log("Stage Type Detail:", stageTypeDetail);
+    console.log("Selected Etapa ID:", selectedEtapaId);
+    console.log("===================================");
 
-    setIsLoading(true)
-
-    // Obtener carpetas de plantilla específicas de la etapa seleccionada
-    const templateFolders: string[] = formData.etapa in PLANTILLAS_CARPETAS
-      ? [...(PLANTILLAS_CARPETAS as any)[formData.etapa]]
-      : []
-
-    // Convertir carpetas de plantilla seleccionadas a objetos FolderStructure
-    const selectedTemplateFolders = templateFolders
-      .filter(folderName => selectedFolders.includes(folderName))
-      .map(folderName => ({
-        id: `template-${folderName.toLowerCase().replace(/\s+/g, '-')}`,
-        name: folderName,
-        minDocuments: folderConfigs[folderName]?.minDocs || 3,
-        documents: [],
-        subfolders: [],
-        daysLimit: folderConfigs[folderName]?.daysLimit,
-      }))
-
-    // Obtener carpetas personalizadas seleccionadas
-    const selectedCustomFolders = customFolders
-      .filter(folder => selectedFolders.includes(folder.id))
-      .map(folder => ({
-        ...folder,
-        minDocuments: folderConfigs[folder.id]?.minDocs || folder.minDocuments,
-        daysLimit: folderConfigs[folder.id]?.daysLimit,
-      }))
-
-    // Combinar todas las carpetas seleccionadas
-    const selectedStructure = [...selectedTemplateFolders, ...selectedCustomFolders]
-
-    const newProject: Project = {
-      id: Date.now().toString(),
-      name: formData.nombre,
-      createdAt: new Date(),
-      etapa: formData.etapa,
-      projectData: formData,
-      structure: {
-        id: "root",
-        name: formData.nombre,
-        minDocuments: 0,
-        documents: [],
-        subfolders: selectedStructure,
-      },
+    const success = await handleCreateProject();
+    if (success) {
+      // Crear un proyecto mock para mantener compatibilidad
+      const formData = methods.getValues();
+      const newProject: Project = {
+        id: Date.now().toString(),
+        name: formData.createProjectStepOne.nombre,
+        createdAt: new Date(),
+        etapa: formData.createProjectStepOne.etapa,
+        projectData: {
+          nombre: formData.createProjectStepOne.nombre,
+          etapa: formData.createProjectStepOne.etapa,
+        },
+        structure: {
+          id: "root",
+          name: formData.createProjectStepOne.nombre,
+          minDocuments: 0,
+          documents: [],
+          subfolders: formData.createProjectStepThree.carpetas.map(carpeta => ({
+            id: `folder-${carpeta.nombre.toLowerCase().replace(/\s+/g, '-')}`,
+            name: carpeta.nombre,
+            minDocuments: 3,
+            documents: [],
+            subfolders: [],
+          })),
+        },
+      };
+      onCreateProject(newProject);
+      handleCloseDialog();
     }
-
-    onCreateProject(newProject)
-    handleCloseDialog()
-    setIsLoading(false)
-  }
+  };
 
   const handleCloseDialog = () => {
-    resetForm()
-    onClose()
-  }
+    resetForm();
+    onClose();
+  };
 
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
-        return (
-          <BasicInfoStep
-            formData={formData}
-            errors={errors}
-            onUpdateFormData={updateFormData}
-          />
-        )
+        return <BasicInfoStep stageTypes={stageTypes} />;
       case 2:
         return (
           <StageSpecificFieldsStep
-            formData={formData}
-            errors={errors}
-            provinciasDisponibles={provinciasDisponibles}
-            comunasDisponibles={comunasDisponibles}
-            onUpdateFormData={updateFormData}
+            tiposIniciativa={tiposIniciativa}
+            tiposObra={tiposObra}
+            regiones={regiones}
+            provincias={provincias}
+            comunas={comunas}
+            inspectoresFiscales={inspectoresFiscales}
+            stageTypeDetail={stageTypeDetail}
           />
-        )
+        );
       case 3:
-        return (
-          <FolderTemplatesStep
-            formData={formData}
-            selectedFolders={selectedFolders}
-            folderConfigs={folderConfigs}
-            customFolders={customFolders}
-            useCustomTemplates={useCustomTemplates}
-            showFolderTemplates={showFolderTemplates}
-            onSetSelectedFolders={setSelectedFolders}
-            onSetFolderConfigs={setFolderConfigs}
-            onSetUseCustomTemplates={setUseCustomTemplates}
-            onSetShowFolderTemplates={setShowFolderTemplates}
-            onCreateCustomFolder={createCustomFolder}
-          />
-        )
+        return <FolderTemplatesStep carpetasIniciales={getCarpetasIniciales()} />;
       case 4:
-        return (
-          <ProjectAlertsStep
-            formData={formData}
-            errors={errors}
-            onUpdateFormData={updateFormData}
-          />
-        )
+        return <ProjectAlertsStep />;
       default:
-        return null
+        return null;
     }
-  }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleCloseDialog}>
@@ -237,16 +197,18 @@ export const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
           ))}
         </div>
 
-        <div className="space-y-6">{renderStepContent()}</div>
+        <FormProvider {...methods}>
+          <div className="space-y-6">{renderStepContent()}</div>
+        </FormProvider>
 
         <div className="flex justify-between pt-6 border-t">
           <Button
             variant="secundario"
             onClick={() => {
               if (currentStep > 1) {
-                setCurrentStep(currentStep - 1)
+                setCurrentStep(currentStep - 1);
               } else {
-                handleCloseDialog()
+                handleCloseDialog();
               }
             }}
           >
@@ -263,22 +225,17 @@ export const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
               </Button>
             ) : (
               <Button
-                onClick={handleCreateProject}
+                onClick={handleCreateProjectSubmit}
                 className="w-full"
-                disabled={
-                  selectedFolders.length === 0 ||
-                  !formData.nombre.trim() ||
-                  isLoading ||
-                  !canProceedToNextStep()
-                }
+                disabled={isLoading || !canProceedToNextStep()}
               >
                 {isLoading ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Creando Proyecto...
+                    Creando proyecto...
                   </>
                 ) : (
-                  `Crear proyecto (${selectedFolders.length} carpetas seleccionadas)`
+                  "Crear proyecto"
                 )}
               </Button>
             )}
@@ -286,5 +243,5 @@ export const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
         </div>
       </DialogContent>
     </Dialog>
-  )
-} 
+  );
+}; 

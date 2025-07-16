@@ -15,9 +15,9 @@ import { Label } from "@/shared/components/ui/label"
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
 import { useProjectNavigationContext } from "@/shared/contexts/ProjectNavigationContext"
-import { ETAPAS } from "@/shared/data/project-data"
 import { cn } from "@/shared/lib/utils"
 import { getStageBorderClassFromBadge, getStageColor } from "@/shared/utils/stage-colors"
+import { getTotalDocumentsInFolder, getTotalSubfoldersInFolder } from "@/shared/utils/project-utils"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import { ArrowLeft, Calendar, CalendarIcon, FileText, Folder, FolderOpen, Plus, Upload } from "lucide-react"
@@ -26,10 +26,8 @@ import AlertsPanel from "./alerts-panel"
 import ContextMenu from "./context-menu"
 import DetailsSheet from "./details-sheet"
 import DocumentConfigDialog from "./document-config-dialog"
-import { StageSpecificFieldsStep } from "./form-steps/StageSpecificFieldsStep"
 import { ProjectDetailsModal } from "./project-details-modal"
 import { SearchHeader } from "./search-header"
-import { validateProjectForm } from "./utils/validation"
 
 interface Project {
   id: string
@@ -183,10 +181,7 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
   const [showDestinationSelector, setShowDestinationSelector] = useState(false)
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
 
-  // Nuevo estado para el modal de avance de etapa
-  const [isAdvanceStageModalOpen, setIsAdvanceStageModalOpen] = useState(false)
-  const [advanceStageFormData, setAdvanceStageFormData] = useState<any>({})
-  const [advanceStageErrors, setAdvanceStageErrors] = useState<any>({})
+
 
   // Sincronizar el estado local con el contexto
   useEffect(() => {
@@ -198,22 +193,22 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
 
     let current = project.structure
     for (const pathSegment of localCurrentPath) {
-      const found = current.subfolders.find((f) => f.id === pathSegment)
+      const found = current.subfolders.find((f) => f.name === pathSegment)
       if (found) current = found
     }
     return current
   }
 
-  const navigateToFolderLocal = (folderId: string) => {
-    const newPath = [...localCurrentPath, folderId]
+  const navigateToFolderLocal = (folderName: string) => {
+    const newPath = [...localCurrentPath, folderName]
     setLocalCurrentPath(newPath)
 
     // Encontrar los nombres de las carpetas
     const folderNames: string[] = []
     let current = project.structure
 
-    for (const pathId of newPath) {
-      const found = current.subfolders.find((f) => f.id === pathId)
+    for (const pathName of newPath) {
+      const found = current.subfolders.find((f) => f.name === pathName)
       if (found) {
         folderNames.push(found.name)
         current = found
@@ -242,8 +237,8 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
       const folderNames: string[] = []
       let current = project.structure
 
-      for (const pathId of newPath) {
-        const found = current.subfolders.find((f) => f.id === pathId)
+      for (const pathName of newPath) {
+        const found = current.subfolders.find((f) => f.name === pathName)
         if (found) {
           folderNames.push(found.name)
           current = found
@@ -280,7 +275,7 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
   const uploadDocuments = () => {
     if (selectedFiles.length === 0) return
 
-    const targetFolderId = selectedFolderId || getCurrentFolder().id
+    const targetFolderName = selectedFolderId || getCurrentFolder().name
 
     selectedFiles.forEach((file) => {
       let dueDate: Date | undefined
@@ -304,7 +299,7 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
       }
 
       const updateFolder = (folder: FolderStructure): FolderStructure => {
-        if (folder.id === targetFolderId) {
+        if (folder.name === targetFolderName) {
           return { ...folder, documents: [...folder.documents, newDoc] }
         }
         return {
@@ -385,11 +380,11 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
       minDocuments: newFolderMinDocs,
       documents: [],
       subfolders: [],
-      parentId: getCurrentFolder().id,
+      parentId: getCurrentFolder().name,
     }
 
     const updateFolder = (folder: FolderStructure): FolderStructure => {
-      if (folder.id === getCurrentFolder().id) {
+      if (folder.name === getCurrentFolder().name) {
         return { ...folder, subfolders: [...folder.subfolders, newFolder] }
       }
       return { ...folder, subfolders: folder.subfolders.map(updateFolder) }
@@ -422,7 +417,7 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
   // }
 
   const openConfigDialog = (folder: FolderStructure) => {
-    setConfigFolderId(folder.id)
+    setConfigFolderId(folder.name)
     setConfigMinDocs(folder.minDocuments)
     setConfigDaysLimit(folder.daysLimit)
     setIsConfigDialogOpen(true)
@@ -430,7 +425,7 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
 
   const saveConfig = () => {
     const updateFolder = (folder: FolderStructure): FolderStructure => {
-      if (folder.id === configFolderId) {
+      if (folder.name === configFolderId) {
         return {
           ...folder,
           minDocuments: configMinDocs,
@@ -459,10 +454,10 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
     // Alerta por documentos faltantes
     if (folder.documents.length < folder.minDocuments) {
       alerts.push({
-        id: `missing-${folder.id}`,
+        id: `missing-${folder.name.replace(/\s+/g, '-').toLowerCase()}`,
         type: "missing",
         severity: "high",
-        folderId: folder.id,
+        folderId: folder.name, // Usar el nombre como ID
         folderName: folder.name,
         folderPath: currentPath.join(" > "),
         message: `Faltan ${folder.minDocuments - folder.documents.length} de ${folder.minDocuments} documentos`,
@@ -480,7 +475,7 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
         id: `overdue-${doc.id}`,
         type: "overdue",
         severity: "critical",
-        folderId: folder.id,
+        folderId: folder.name, // Usar el nombre como ID
         folderName: folder.name,
         folderPath: currentPath.join(" > "),
         documentName: doc.name,
@@ -509,18 +504,18 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
 
     let current = project.structure
     for (let i = 0; i < localCurrentPath.length - 1; i++) {
-      const found = current.subfolders.find((f) => f.id === localCurrentPath[i])
+      const found = current.subfolders.find((f) => f.name === localCurrentPath[i])
       if (found) current = found
     }
     return current
   }
 
-  const findPathToFolder = (structure: FolderStructure, targetId: string): string[] | null => {
+  const findPathToFolder = (structure: FolderStructure, targetName: string): string[] | null => {
     const search = (folder: FolderStructure, path: string[]): string[] | null => {
-      if (folder.id === targetId) return path
+      if (folder.name === targetName) return path
 
       for (const subfolder of folder.subfolders) {
-        const result = search(subfolder, [...path, subfolder.id])
+        const result = search(subfolder, [...path, subfolder.name])
         if (result) return result
       }
       return null
@@ -652,68 +647,6 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
 
   // Obtener contenido filtrado
   const { folders: filteredFolders, documents: filteredDocuments, folderResults, documentResults } = getFilteredContent()
-
-  // Lógica para avanzar a la siguiente etapa
-  const getNextStage = (): typeof ETAPAS[number] | null => {
-    const idx = ETAPAS.indexOf(project.etapa as typeof ETAPAS[number])
-    if (idx >= 0 && idx < ETAPAS.length - 1) {
-      return ETAPAS[idx + 1]
-    }
-    return null
-  }
-
-  // const handleOpenAdvanceStage = () => {
-  //   // Heredar todos los campos del projectData
-  //   setAdvanceStageFormData({ ...project.projectData })
-  //   setAdvanceStageErrors({})
-  //   setIsAdvanceStageModalOpen(true)
-  // }
-
-  const handleCloseAdvanceStage = () => {
-    setIsAdvanceStageModalOpen(false)
-    setAdvanceStageFormData({})
-    setAdvanceStageErrors({})
-  }
-
-  const handleAdvanceStage = () => {
-    const nextStage = getNextStage()
-    if (!nextStage) return
-    // Validar el formulario con la etapa siguiente
-    const dataToValidate = { ...advanceStageFormData, etapa: nextStage }
-    const errors = validateProjectForm(dataToValidate)
-    setAdvanceStageErrors(errors)
-    if (Object.keys(errors).length > 0) return
-    // Actualizar el proyecto
-    const updatedProject = {
-      ...project,
-      etapa: nextStage,
-      projectData: dataToValidate,
-      metadata: {
-        ...project.metadata,
-        lastModifiedAt: new Date(),
-        lastModifiedBy: "Usuario Actual",
-        history: [
-          {
-            id: Date.now().toString(),
-            timestamp: new Date(),
-            userId: "user-1",
-            userName: "Usuario Actual",
-            action: "stage_changed" as const,
-            details: {
-              field: "etapa",
-              oldValue: project.etapa,
-              newValue: nextStage,
-            },
-          },
-          ...(project.metadata?.history || []),
-        ],
-      },
-    }
-    onUpdateProject(updatedProject)
-    setIsAdvanceStageModalOpen(false)
-    setAdvanceStageFormData({})
-    setAdvanceStageErrors({})
-  }
 
   return (
     <div className="container mx-auto p-6">
@@ -862,10 +795,10 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
                         </SelectTrigger>
                         <SelectContent>
                           {project.structure.subfolders.map((folder) => (
-                            <div key={folder.id}>
-                              <SelectItem value={folder.id}>{folder.name}</SelectItem>
+                            <div key={folder.name}>
+                              <SelectItem value={folder.name}>{folder.name}</SelectItem>
                               {folder.subfolders.map((subfolder) => (
-                                <SelectItem key={subfolder.id} value={subfolder.id}>
+                                <SelectItem key={subfolder.name} value={subfolder.name}>
                                   {folder.name} / {subfolder.name}
                                 </SelectItem>
                               ))}
@@ -890,7 +823,7 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
                           <SelectItem value="keep-current">Mantener carpeta actual</SelectItem>
                           {/* Mostrar solo carpetas del mismo nivel y subcarpetas */}
                           {getCurrentParentFolder()?.subfolders.map((folder) => (
-                            <SelectItem key={folder.id} value={folder.id}>
+                            <SelectItem key={folder.name} value={folder.name}>
                               {folder.name}
                             </SelectItem>
                           ))}
@@ -1129,16 +1062,16 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
       {/* Alerts Panel */}
       <AlertsPanel
         alerts={allAlerts}
-        onNavigateToFolder={(folderId) => {
+        onNavigateToFolder={(folderName) => {
           // Navegar a la carpeta específica
-          const pathToFolder = findPathToFolder(project.structure, folderId)
+          const pathToFolder = findPathToFolder(project.structure, folderName)
           if (pathToFolder) {
             setLocalCurrentPath(pathToFolder)
           }
         }}
-        onUploadDocument={(folderId) => {
+        onUploadDocument={(folderName) => {
           // Abrir diálogo de subida con carpeta preseleccionada
-          setSelectedFolderId(folderId)
+          setSelectedFolderId(folderName)
           setIsUploadDialogOpen(true)
         }}
       />
@@ -1147,14 +1080,14 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredFolders.map((folder) => {
           // const folderAlerts = getFolderAlerts(folder)
-          const totalDocs =
-            folder.documents.length + folder.subfolders.reduce((acc, sub) => acc + sub.documents.length, 0)
+          const totalDocs = getTotalDocumentsInFolder(folder)
+          const totalSubfolders = getTotalSubfoldersInFolder(folder)
 
           return (
-            <Card key={folder.id} className={`cursor-pointer hover:shadow-lg transition-all border-1 ${getStageBorderClassFromBadge(project.etapa)}`}>
+            <Card key={folder.name} className={`cursor-pointer hover:shadow-lg transition-all border-1 ${getStageBorderClassFromBadge(project.etapa)}`}>
               <CardHeader>
                 <div className="flex justify-between items-start">
-                  <div className="flex items-center space-x-2 flex-1" onClick={() => navigateToFolderLocal(folder.id)}>
+                  <div className="flex items-center space-x-2 flex-1" onClick={() => navigateToFolderLocal(folder.name)}>
                     <Folder className="w-5 h-5 text-blue-500" />
                     <CardTitle className="text-lg">{folder.name}</CardTitle>
                   </div>
@@ -1200,7 +1133,7 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
                   </div>
                   <div className="flex justify-between text-sm text-muted-foreground">
                     <span>Subcarpetas:</span>
-                    <span>{folder.subfolders.length}</span>
+                    <span>{totalSubfolders}</span>
                   </div>
                 </div>
               </CardContent>
@@ -1320,30 +1253,7 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
         onClose={() => setIsProjectDetailsModalOpen(false)}
       />
 
-      {/* Modal para avanzar de etapa */}
-      <Dialog open={isAdvanceStageModalOpen} onOpenChange={setIsAdvanceStageModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Avanzar a siguiente etapa</DialogTitle>
-            <DialogDescription>
-              Completa los campos requeridos para la etapa <b>{getNextStage()}</b>
-            </DialogDescription>
-          </DialogHeader>
-          <StageSpecificFieldsStep
-            formData={getNextStage() ? { ...advanceStageFormData, etapa: getNextStage() as typeof ETAPAS[number] } : advanceStageFormData}
-            errors={advanceStageErrors}
-            provinciasDisponibles={[]}
-            comunasDisponibles={[]}
-            onUpdateFormData={(field: string, value: any) => setAdvanceStageFormData((prev: any) => ({ ...prev, [field]: value }))}
-          />
-          <div className="flex justify-end gap-2 mt-4">
-            <Button variant="secundario" onClick={handleCloseAdvanceStage}>Cancelar</Button>
-            <Button variant="primario" onClick={handleAdvanceStage}>
-              Guardar y avanzar
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+
     </div>
   )
 }

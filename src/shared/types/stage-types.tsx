@@ -128,6 +128,7 @@ export interface StageTypeDetail {
   decreto_adjudicacion: boolean;
   sociedad_concesionaria: boolean;
   inspector_fiscal_id: boolean;
+  carpetas_iniciales?: Record<string, any>;
 }
 
 export interface StageTypeDetailResponse {

@@ -225,17 +225,15 @@ export default function StageManager({ forms, onFormsChange }: StageManagerProps
                     </CardHeader>
 
                     <CardContent className="space-y-3">
-                      <div className="flex items-center bg-muted rounded-md p-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleViewStageTypeForm(stage.id)}
-                          className="text-xs"
-                        >
-                          Ver formulario
-                        </Button>
+                      <Button
+                        variant="secundario"
+                        size="sm"
+                        onClick={() => handleViewStageTypeForm(stage.id)}
+                        className="text-xs"
+                      >
+                        Ver formulario
                         <Eye className="w-4 h-4" />
-                      </div>
+                      </Button>
                     </CardContent>
                   </Card>
                 )
@@ -248,50 +246,54 @@ export default function StageManager({ forms, onFormsChange }: StageManagerProps
       </Tabs>
 
       {/* Form Builder Sheet */}
-      {editingForm && (
-        <Sheet open={!!editingForm} onOpenChange={() => setEditingForm(null)}>
-          {/* <SheetContent className="w-full sm:max-w-4xl">
+      {
+        editingForm && (
+          <Sheet open={!!editingForm} onOpenChange={() => setEditingForm(null)}>
+            {/* <SheetContent className="w-full sm:max-w-4xl">
             <SheetHeader>
               <SheetTitle>Configuración del formulario</SheetTitle>
               <SheetDescription>Diseña los campos que aparecerán en el formulario de esta etapa.</SheetDescription>
             </SheetHeader> */}
-          <SheetContent className="w-full sm:max-w-2xl flex flex-col h-full">
-            <SheetHeader className="flex-shrink-0">
-              <SheetTitle className="flex items-center space-x-2">
-                <span>Configuración del formulario</span>
-              </SheetTitle>
-              <SheetDescription>Diseña los campos que aparecerán en el formulario de esta etapa.</SheetDescription>
-            </SheetHeader>
-            <div className="px-4">
-              <h4 className="mb-4">Estas configurando: <span className="font-medium">{editingForm.name}</span></h4>
-              <StageFormBuilder
-                form={editingForm}
-                onSave={(updatedForm) => {
-                  const updatedForms = forms.map((f) => (f.id === updatedForm.id ? updatedForm : f))
-                  onFormsChange(updatedForms)
-                  setEditingForm(null)
-                }}
-                onCancel={() => setEditingForm(null)}
-              />
-            </div>
-          </SheetContent>
-        </Sheet>
-      )}
+            <SheetContent className="w-full sm:max-w-2xl flex flex-col h-full">
+              <SheetHeader className="flex-shrink-0">
+                <SheetTitle className="flex items-center space-x-2">
+                  <span>Configuración del formulario</span>
+                </SheetTitle>
+                <SheetDescription>Diseña los campos que aparecerán en el formulario de esta etapa.</SheetDescription>
+              </SheetHeader>
+              <div className="px-4">
+                <h4 className="mb-4">Estas configurando: <span className="font-medium">{editingForm.name}</span></h4>
+                <StageFormBuilder
+                  form={editingForm}
+                  onSave={(updatedForm) => {
+                    const updatedForms = forms.map((f) => (f.id === updatedForm.id ? updatedForm : f))
+                    onFormsChange(updatedForms)
+                    setEditingForm(null)
+                  }}
+                  onCancel={() => setEditingForm(null)}
+                />
+              </div>
+            </SheetContent>
+          </Sheet>
+        )
+      }
 
       {/* Form Preview Dialog */}
-      {previewForm && (
-        <Dialog open={!!previewForm} onOpenChange={() => setPreviewForm(null)}>
-          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto flex flex-col">
-            <DialogHeader className="flex-shrink-0">
-              <DialogTitle>Vista Previa - {previewForm.name}</DialogTitle>
-              <DialogDescription>
-                Así se verá el formulario cuando los usuarios creen un proyecto en esta etapa.
-              </DialogDescription>
-            </DialogHeader>
-            <StageFormPreview form={previewForm} />
-          </DialogContent>
-        </Dialog>
-      )}
+      {
+        previewForm && (
+          <Dialog open={!!previewForm} onOpenChange={() => setPreviewForm(null)}>
+            <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto flex flex-col">
+              <DialogHeader className="flex-shrink-0">
+                <DialogTitle>Vista Previa - {previewForm.name}</DialogTitle>
+                <DialogDescription>
+                  Así se verá el formulario cuando los usuarios creen un proyecto en esta etapa.
+                </DialogDescription>
+              </DialogHeader>
+              <StageFormPreview form={previewForm} />
+            </DialogContent>
+          </Dialog>
+        )
+      }
 
       <ScrollArea className="h-full">
         {/* Stage Type Form Preview Dialog */}

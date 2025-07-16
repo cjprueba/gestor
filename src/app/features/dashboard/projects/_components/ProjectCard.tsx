@@ -17,6 +17,7 @@ import React, { useState } from "react"
 import { ProjectDetailsModal } from "./project-details-modal"
 import type { FolderStructure, ProjectCardProps } from "./types"
 import { validateProjectForm } from "./utils/validation"
+import { getTotalCarpetasPrincipales } from "@/shared/utils/project-utils"
 
 const getTotalAlerts = (folder: FolderStructure): number => {
   let alerts = 0
@@ -44,7 +45,12 @@ export const ProjectCard: React.FC<ProjectCardProps & { onUpdateProject?: (proje
   const [advanceStageFormData, setAdvanceStageFormData] = useState<any>({})
 
   // const totalAlerts = getTotalAlerts(project.structure)
-  const totalFolders = project.structure.subfolders.length
+
+  // Obtener el total de carpetas principales desde carpeta_inicial
+  const carpetaInicial = project.projectData?.carpetaInicial || {};
+  const totalFolders = getTotalCarpetasPrincipales(carpetaInicial);
+
+  // Contar documentos totales
   const totalDocuments = project.structure.subfolders.reduce(
     (acc, folder) =>
       acc +
@@ -206,7 +212,7 @@ export const ProjectCard: React.FC<ProjectCardProps & { onUpdateProject?: (proje
             </div>
             <div className="flex items-center text-sm text-muted-foreground">
               <FileText className="w-4 h-4 mr-2" />
-              {totalDocuments} documentos totales
+              {totalDocuments === 0 ? "0 documentos" : `${totalDocuments} documentos totales`}
             </div>
             <div className="flex items-center text-sm text-muted-foreground">
               <Calendar className="w-4 h-4 mr-2" />

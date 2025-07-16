@@ -1,194 +1,334 @@
+import { useFormContext } from 'react-hook-form';
 import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
-import { REGIONES, TIPOS_INICIATIVA, TIPOS_OBRA_POR_ETAPA } from "@/shared/data"
-import React from "react"
-import type { ProjectFormData } from "../types"
+import { Badge } from "@/shared/components/ui/badge"
+import type { CreateProjectFormData } from "@/shared/types/project-types"
+import type { TipoIniciativa, TipoObra, Region, Provincia, Comuna, InspectorFiscal } from "@/shared/types/project-types"
 
 interface StageSpecificFieldsStepProps {
-  formData: ProjectFormData
-  errors: Record<string, string>
-  provinciasDisponibles: Array<{ id: string; nombre: string }>
-  comunasDisponibles: Array<{ id: string; nombre: string }>
-  onUpdateFormData: (field: keyof ProjectFormData, value: string) => void
+  tiposIniciativa: TipoIniciativa[];
+  tiposObra: TipoObra[];
+  regiones: Region[];
+  provincias: Provincia[];
+  comunas: Comuna[];
+  inspectoresFiscales: InspectorFiscal[];
+  stageTypeDetail?: {
+    tipo_iniciativa: boolean;
+    tipo_obra: boolean;
+    region: boolean;
+    provincia: boolean;
+    comuna: boolean;
+    volumen: boolean;
+    presupuesto_oficial: boolean;
+    bip: boolean;
+    fecha_llamado_licitacion: boolean;
+    fecha_recepcion_ofertas_tecnicas: boolean;
+    fecha_apertura_ofertas_economicas: boolean;
+    fecha_inicio_concesion: boolean;
+    plazo_total_concesion: boolean;
+    decreto_adjudicacion: boolean;
+    sociedad_concesionaria: boolean;
+    inspector_fiscal_id: boolean;
+  };
 }
 
 export const StageSpecificFieldsStep: React.FC<StageSpecificFieldsStepProps> = ({
-  formData,
-  errors,
-  provinciasDisponibles,
-  comunasDisponibles,
-  onUpdateFormData,
+  tiposIniciativa,
+  tiposObra,
+  regiones,
+  provincias,
+  comunas,
+  inspectoresFiscales,
+  stageTypeDetail,
 }) => {
+  const { register, formState: { errors }, watch, setValue } = useFormContext<CreateProjectFormData>();
+
+  const watchedStepTwo = watch('createProjectStepTwo');
+
   const renderCommonFields = () => (
     <div className="flex flex-col gap-6">
       <div className="flex flex-row gap-4 mt-2">
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="tipoIniciativa">Tipo de Iniciativa *</Label>
-          <Select
-            value={formData.tipoIniciativa || ""}
-            onValueChange={(value) => onUpdateFormData("tipoIniciativa", value)}
-          >
-            <SelectTrigger className={errors.tipoIniciativa ? "border-red-500" : ""}>
-              <SelectValue placeholder="Seleccionar..." />
-            </SelectTrigger>
-            <SelectContent>
-              {TIPOS_INICIATIVA.map((tipo) => (
-                <SelectItem key={tipo} value={tipo}>
-                  {tipo}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {errors.tipoIniciativa && <p className="text-sm text-red-500 mt-1">{errors.tipoIniciativa}</p>}
-        </div>
+        {stageTypeDetail?.tipo_iniciativa && (
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="tipo_iniciativa_id">Tipo de iniciativa</Label>
+            <Select
+              value={watchedStepTwo.tipo_iniciativa_id > 0 ? watchedStepTwo.tipo_iniciativa_id.toString() : ""}
+              onValueChange={(value) => setValue('createProjectStepTwo.tipo_iniciativa_id', parseInt(value))}
+            >
+              <SelectTrigger className={errors.createProjectStepTwo?.tipo_iniciativa_id ? "border-red-500" : ""}>
+                <SelectValue placeholder="Seleccionar..." />
+              </SelectTrigger>
+              <SelectContent>
+                {tiposIniciativa.map((tipo) => (
+                  <SelectItem key={tipo.id} value={tipo.id.toString()}>
+                    {tipo.nombre}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.createProjectStepTwo?.tipo_iniciativa_id && (
+              <p className="text-sm text-red-500 mt-1">{errors.createProjectStepTwo.tipo_iniciativa_id.message}</p>
+            )}
+          </div>
+        )}
 
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="tipoObra">Tipo de Obra *</Label>
-          <Select value={formData.tipoObra || ""} onValueChange={(value) => onUpdateFormData("tipoObra", value)}>
-            <SelectTrigger className={errors.tipoObra ? "border-red-500" : ""}>
-              <SelectValue placeholder="Seleccionar..." />
-            </SelectTrigger>
-            <SelectContent>
-              {(TIPOS_OBRA_POR_ETAPA["Cartera de proyectos"] || []).map((tipo) => (
-                <SelectItem key={tipo} value={tipo}>
-                  {tipo}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {errors.tipoObra && <p className="text-sm text-red-500 mt-1">{errors.tipoObra}</p>}
-        </div>
+        {stageTypeDetail?.tipo_obra && (
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="tipo_obra_id">Tipo de obra</Label>
+            <Select
+              value={watchedStepTwo.tipo_obra_id > 0 ? watchedStepTwo.tipo_obra_id.toString() : ""}
+              onValueChange={(value) => setValue('createProjectStepTwo.tipo_obra_id', parseInt(value))}
+            >
+              <SelectTrigger className={errors.createProjectStepTwo?.tipo_obra_id ? "border-red-500" : ""}>
+                <SelectValue placeholder="Seleccionar..." />
+              </SelectTrigger>
+              <SelectContent>
+                {tiposObra.map((tipo) => (
+                  <SelectItem key={tipo.id} value={tipo.id.toString()}>
+                    {tipo.nombre}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.createProjectStepTwo?.tipo_obra_id && (
+              <p className="text-sm text-red-500 mt-1">{errors.createProjectStepTwo.tipo_obra_id.message}</p>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Cascada de ubicación */}
-      <div className="flex flex-row gap-4 ">
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="region">Región *</Label>
-          <Select value={formData.region || ""} onValueChange={(value) => onUpdateFormData("region", value)}>
-            <SelectTrigger className={errors.region ? "border-red-500" : ""}>
-              <SelectValue placeholder="Seleccionar región..." />
-            </SelectTrigger>
-            <SelectContent>
-              {REGIONES.map((region) => (
-                <SelectItem key={region.id} value={region.id}>
-                  {region.nombre}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {errors.region && <p className="text-sm text-red-500 mt-1">{errors.region}</p>}
-        </div>
+      <div className="flex flex-row gap-4">
+        {stageTypeDetail?.region && (
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="region_id">Región</Label>
+            <Select
+              value={watchedStepTwo.region_id > 0 ? watchedStepTwo.region_id.toString() : ""}
+              onValueChange={(value) => setValue('createProjectStepTwo.region_id', parseInt(value))}
+            >
+              <SelectTrigger className={errors.createProjectStepTwo?.region_id ? "border-red-500" : ""}>
+                <SelectValue placeholder="Seleccionar región..." />
+              </SelectTrigger>
+              <SelectContent>
+                {regiones.map((region) => (
+                  <SelectItem key={region.id} value={region.id.toString()}>
+                    {region.nombre}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.createProjectStepTwo?.region_id && (
+              <p className="text-sm text-red-500 mt-1">{errors.createProjectStepTwo.region_id.message}</p>
+            )}
+          </div>
+        )}
 
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="provincia">Provincia *</Label>
-          <Select
-            value={formData.provincia || ""}
-            onValueChange={(value) => onUpdateFormData("provincia", value)}
-            disabled={!formData.region}
-          >
-            <SelectTrigger className={errors.provincia ? "border-red-500" : ""}>
-              <SelectValue placeholder="Seleccionar provincia..." />
-            </SelectTrigger>
-            <SelectContent>
-              {provinciasDisponibles.map((provincia) => (
-                <SelectItem key={provincia.id} value={provincia.id}>
-                  {provincia.nombre}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {errors.provincia && <p className="text-sm text-red-500 mt-1">{errors.provincia}</p>}
-        </div>
+        {stageTypeDetail?.provincia && (
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="provincia_id">Provincia</Label>
+            <Select
+              value={watchedStepTwo.provincia_id > 0 ? watchedStepTwo.provincia_id.toString() : ""}
+              onValueChange={(value) => setValue('createProjectStepTwo.provincia_id', parseInt(value))}
+              disabled={!watchedStepTwo.region_id}
+            >
+              <SelectTrigger className={errors.createProjectStepTwo?.provincia_id ? "border-red-500" : ""}>
+                <SelectValue placeholder="Seleccionar provincia..." />
+              </SelectTrigger>
+              <SelectContent>
+                {provincias.map((provincia) => (
+                  <SelectItem key={provincia.id} value={provincia.id.toString()}>
+                    {provincia.nombre}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.createProjectStepTwo?.provincia_id && (
+              <p className="text-sm text-red-500 mt-1">{errors.createProjectStepTwo.provincia_id.message}</p>
+            )}
+          </div>
+        )}
 
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="comuna">Comuna *</Label>
-          <Select
-            value={formData.comuna || ""}
-            onValueChange={(value) => onUpdateFormData("comuna", value)}
-            disabled={!formData.provincia}
-          >
-            <SelectTrigger className={errors.comuna ? "border-red-500" : ""}>
-              <SelectValue placeholder="Seleccionar comuna..." />
-            </SelectTrigger>
-            <SelectContent>
-              {comunasDisponibles.map((comuna) => (
-                <SelectItem key={comuna.id} value={comuna.id}>
-                  {comuna.nombre}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {errors.comuna && <p className="text-sm text-red-500 mt-1">{errors.comuna}</p>}
-        </div>
+        {stageTypeDetail?.comuna && (
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="comuna_id">Comuna</Label>
+            <Select
+              value={watchedStepTwo.comuna_id > 0 ? watchedStepTwo.comuna_id.toString() : ""}
+              onValueChange={(value) => setValue('createProjectStepTwo.comuna_id', parseInt(value))}
+              disabled={!watchedStepTwo.provincia_id}
+            >
+              <SelectTrigger className={errors.createProjectStepTwo?.comuna_id ? "border-red-500" : ""}>
+                <SelectValue placeholder="Seleccionar comuna..." />
+              </SelectTrigger>
+              <SelectContent>
+                {comunas.map((comuna) => (
+                  <SelectItem key={comuna.id} value={comuna.id.toString()}>
+                    {comuna.nombre}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.createProjectStepTwo?.comuna_id && (
+              <p className="text-sm text-red-500 mt-1">{errors.createProjectStepTwo.comuna_id.message}</p>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="flex flex-row gap-12">
+        {stageTypeDetail?.volumen && (
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="volumen">Volumen</Label>
+            <Input
+              id="volumen"
+              {...register('createProjectStepTwo.volumen')}
+              placeholder="Ej: 50 km, 1000 m³"
+              className="max-w-3xs"
+            />
+          </div>
+        )}
+
+        {stageTypeDetail?.presupuesto_oficial && (
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="presupuesto_oficial">Presupuesto oficial</Label>
+            <Input
+              id="presupuesto_oficial"
+              {...register('createProjectStepTwo.presupuesto_oficial')}
+              placeholder="Ej: $50.000.000.000"
+              className="max-w-3xs"
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Campos específicos según la etapa */}
+      {stageTypeDetail?.bip && (
         <div className="flex flex-col gap-2">
-          <Label htmlFor="volumen">Volumen</Label>
+          <Label htmlFor="bip">BIP</Label>
           <Input
-            id="volumen"
-            value={formData.volumen || ""}
-            onChange={(e) => onUpdateFormData("volumen", e.target.value)}
-            placeholder="Ej: 50 km, 1000 m³"
+            id="bip"
+            {...register('createProjectStepTwo.bip')}
+            placeholder="Código BIP"
             className="max-w-3xs"
           />
         </div>
+      )}
 
+      {stageTypeDetail?.fecha_llamado_licitacion && (
         <div className="flex flex-col gap-2">
-          <Label htmlFor="presupuestoOficial">Presupuesto Oficial</Label>
+          <Label htmlFor="fecha_llamado_licitacion">Fecha llamado a licitación</Label>
           <Input
-            id="presupuestoOficial"
-            value={formData.presupuestoOficial || ""}
-            onChange={(e) => onUpdateFormData("presupuestoOficial", e.target.value)}
-            placeholder="Ej: $50.000.000.000"
+            id="fecha_llamado_licitacion"
+            type="date"
+            {...register('createProjectStepTwo.fecha_llamado_licitacion')}
             className="max-w-3xs"
           />
         </div>
-      </div>
-    </div>
-  )
+      )}
 
-  // Campos específicos para "Cartera de proyectos"
-  const renderCarteraFields = () => (
-    <div className="flex flex-row gap-12">
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="llamadoLicitacion">Llamado a Licitación (Año)</Label>
-        <Input
-          id="llamadoLicitacion"
-          value={formData.llamadoLicitacion || ""}
-          onChange={(e) => onUpdateFormData("llamadoLicitacion", e.target.value)}
-          placeholder="YYYY"
-          maxLength={4}
-          className={`max-w-3xs ${errors.llamadoLicitacion ? "border-red-500" : ""}`}
-        />
-        {errors.llamadoLicitacion && <p className="text-sm text-red-500 mt-1">{errors.llamadoLicitacion}</p>}
-      </div>
+      {stageTypeDetail?.fecha_recepcion_ofertas_tecnicas && (
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="fecha_recepcion_ofertas_tecnicas">Fecha Recepción Ofertas Técnicas</Label>
+          <Input
+            id="fecha_recepcion_ofertas_tecnicas"
+            type="date"
+            {...register('createProjectStepTwo.fecha_recepcion_ofertas_tecnicas')}
+            className="max-w-3xs"
+          />
+        </div>
+      )}
 
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="plazoConcesion">Plazo de la Concesión</Label>
-        <Input
-          id="plazoConcesion"
-          value={formData.plazoConcesion || ""}
-          onChange={(e) => onUpdateFormData("plazoConcesion", e.target.value)}
-          placeholder="dd-mm-yyyy"
-          className={`max-w-3xs ${errors.plazoConcesion ? "border-red-500" : ""}`}
-        />
-        {errors.plazoConcesion && <p className="text-sm text-red-500 mt-1">{errors.plazoConcesion}</p>}
-      </div>
+      {stageTypeDetail?.fecha_apertura_ofertas_economicas && (
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="fecha_apertura_ofertas_economicas">Fecha Apertura Ofertas Económicas</Label>
+          <Input
+            id="fecha_apertura_ofertas_economicas"
+            type="date"
+            {...register('createProjectStepTwo.fecha_apertura_ofertas_economicas')}
+            className="max-w-3xs"
+          />
+        </div>
+      )}
+
+      {stageTypeDetail?.decreto_adjudicacion && (
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="decreto_adjudicacion">Decreto Adjudicación</Label>
+          <Input
+            id="decreto_adjudicacion"
+            {...register('createProjectStepTwo.decreto_adjudicacion')}
+            placeholder="Número de decreto"
+            className="max-w-3xs"
+          />
+        </div>
+      )}
+
+      {stageTypeDetail?.sociedad_concesionaria && (
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="sociedad_concesionaria">Sociedad Concesionaria</Label>
+          <Input
+            id="sociedad_concesionaria"
+            {...register('createProjectStepTwo.sociedad_concesionaria')}
+            placeholder="Nombre de la sociedad"
+            className="max-w-3xs"
+          />
+        </div>
+      )}
+
+      {stageTypeDetail?.fecha_inicio_concesion && (
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="fecha_inicio_concesion">Fecha Inicio Concesión</Label>
+          <Input
+            id="fecha_inicio_concesion"
+            type="date"
+            {...register('createProjectStepTwo.fecha_inicio_concesion')}
+            className="max-w-3xs"
+          />
+        </div>
+      )}
+
+      {stageTypeDetail?.plazo_total_concesion && (
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="plazo_total_concesion">Plazo total concesión</Label>
+          <Input
+            id="plazo_total_concesion"
+            {...register('createProjectStepTwo.plazo_total_concesion')}
+            placeholder="Ej: 30 años"
+            className="max-w-3xs"
+          />
+        </div>
+      )}
+
+      {stageTypeDetail?.inspector_fiscal_id && (
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="inspector_fiscal_id">Inspector Fiscal</Label>
+          <Select
+            value={watchedStepTwo.inspector_fiscal_id && watchedStepTwo.inspector_fiscal_id > 0 ? watchedStepTwo.inspector_fiscal_id.toString() : ""}
+            onValueChange={(value) => setValue('createProjectStepTwo.inspector_fiscal_id', parseInt(value))}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Seleccionar inspector..." />
+            </SelectTrigger>
+            <SelectContent>
+              {inspectoresFiscales.map((inspector) => (
+                <SelectItem key={inspector.id} value={inspector.id.toString()}>
+                  {inspector.nombre} {inspector.apellido}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
     </div>
   )
 
   return (
     <div className="space-y-8">
       <div>
+        <div className="flex items-center space-x-2 mb-4">
+          <Badge variant="outline">Campos específicos para esta etapa</Badge>
+        </div>
         <h3 className="text-lg font-medium mb-4">Información del Proyecto</h3>
         {renderCommonFields()}
-      </div>
-
-      <div>
-        <h3 className="text-lg font-medium mb-4">Campos Específicos - Cartera de Proyectos</h3>
-        {renderCarteraFields()}
       </div>
     </div>
   )

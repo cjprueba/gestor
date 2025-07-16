@@ -5,6 +5,7 @@ import { FileText, FolderOpen, Plus } from "lucide-react"
 import { ProjectCard } from "./ProjectCard"
 import type { ProjectListProps, FolderStructure, Document } from "./types"
 import { SearchHeader } from "./search-header"
+import { useProjectSearch, useFileSearch, useFolderSearch } from "@/lib/api"
 
 // Función helper para obtener todos los documentos de un proyecto
 const getAllDocumentsFromProject = (structure: FolderStructure): Array<Document & { folderPath: string }> => {
@@ -90,11 +91,40 @@ export const ProjectList: React.FC<ProjectListProps> = ({
   const [selectedStages, setSelectedStages] = useState<string[]>([])
   const [selectedTiposObra, setSelectedTiposObra] = useState<string[]>([])
 
+  // Hooks de búsqueda con la API
+  const { data: apiSearchResults, isFetching: isSearchingProjects } = useProjectSearch(projectSearchTerm)
+  const { data: apiFileResults, isFetching: isSearchingFiles } = useFileSearch(documentSearchTerm)
+  const { data: apiFolderResults } = useFolderSearch(documentSearchTerm)
+
   // Lógica de filtrado usando useMemo para optimizar performance
   const filteredProjects = useMemo(() => {
     let filtered = projects
 
-    // Filtrar por término de búsqueda de proyectos
+    // Si hay búsqueda activa en la API, usar esos resultados
+    if (projectSearchTerm && apiSearchResults) {
+      // Mapear los resultados de la API al formato esperado
+      const apiProjects = apiSearchResults.map(proyecto => ({
+        id: proyecto.id.toString(),
+        name: proyecto.nombre,
+        createdAt: new Date(proyecto.created_at),
+        etapa: proyecto.etapas_registro?.[0]?.etapa_tipo?.nombre || "Sin etapa",
+        projectData: {
+          nombre: proyecto.nombre,
+          etapa: proyecto.etapas_registro?.[0]?.etapa_tipo?.nombre || "Sin etapa",
+          creador: proyecto.creador?.nombre_completo
+        },
+        structure: {
+          id: `root-${proyecto.id}`,
+          name: proyecto.nombre,
+          minDocuments: 0,
+          documents: [],
+          subfolders: []
+        }
+      }))
+      return apiProjects
+    }
+
+    // Filtrar por término de búsqueda de proyectos (búsqueda local)
     filtered = searchInProjects(filtered, projectSearchTerm)
 
     // Filtrar por etapas seleccionadas
@@ -104,12 +134,26 @@ export const ProjectList: React.FC<ProjectListProps> = ({
     filtered = filterByTiposObra(filtered, selectedTiposObra)
 
     return filtered
-  }, [projects, projectSearchTerm, selectedStages, selectedTiposObra])
+  }, [projects, projectSearchTerm, selectedStages, selectedTiposObra, apiSearchResults])
 
-  // Búsqueda de documentos en todos los proyectos
+  // Búsqueda de documentos usando la API
   const searchedDocuments = useMemo(() => {
+    if (documentSearchTerm && apiFileResults) {
+      return apiFileResults.map(file => ({
+        id: file.id.toString(),
+        name: file.nombre,
+        uploadedAt: new Date(file.fecha_subida),
+        folderPath: file.carpeta,
+        projectName: file.proyecto_nombre,
+        projectId: file.proyecto_id.toString(),
+        tipo: file.tipo,
+        tamaño: file.tamaño
+      }))
+    }
+
+    // Fallback a búsqueda local si no hay resultados de la API
     return searchDocumentsInProjects(projects, documentSearchTerm)
-  }, [projects, documentSearchTerm])
+  }, [projects, documentSearchTerm, apiFileResults])
 
   // Función para limpiar todos los filtros
   const clearAllFilters = () => {
@@ -148,10 +192,12 @@ export const ProjectList: React.FC<ProjectListProps> = ({
         onStageFilterChange={setSelectedStages}
         selectedTiposObra={selectedTiposObra}
         onTipoObraFilterChange={setSelectedTiposObra}
-        projectResults={filteredProjects.length}
-        documentResults={searchedDocuments.length}
+        projectResults={isSearchingProjects ? undefined : filteredProjects.length}
+        documentResults={isSearchingFiles ? undefined : searchedDocuments.length}
         context="projects"
         onClearFilters={clearAllFilters}
+        isLoadingProjects={isSearchingProjects}
+        isLoadingDocuments={isSearchingFiles}
       />
 
       {/* Mostrar resultados de búsqueda de documentos */}
@@ -188,6 +234,45 @@ export const ProjectList: React.FC<ProjectListProps> = ({
                   </div>
                   <div className="text-xs text-muted-foreground">
                     {doc.uploadedAt.toLocaleDateString()}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Mostrar resultados de búsqueda de carpetas */}
+      {documentSearchTerm && apiFolderResults && apiFolderResults.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Carpetas encontradas</CardTitle>
+            <CardDescription>
+              {apiFolderResults.length} carpetas coinciden con "{documentSearchTerm}"
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              {apiFolderResults.map((folder) => (
+                <div
+                  key={`${folder.proyecto_id}-${folder.id}`}
+                  className="flex items-center justify-between p-2 hover:bg-muted rounded cursor-pointer"
+                  onClick={() => {
+                    // Buscar y seleccionar el proyecto que contiene esta carpeta
+                    const project = projects.find(p => p.id === folder.proyecto_id.toString())
+                    if (project) {
+                      onSelectProject(project)
+                    }
+                  }}
+                >
+                  <div className="flex items-center space-x-3">
+                    <FolderOpen className="w-4 h-4 text-green-500" />
+                    <div>
+                      <div className="font-medium">{folder.nombre}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {folder.proyecto_nombre} - {folder.ruta}
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))}

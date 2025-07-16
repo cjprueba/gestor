@@ -1,34 +1,41 @@
 import React from "react"
+import { useFormContext } from 'react-hook-form';
 import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
-import type { ProjectFormData } from "../types"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
+import type { CreateProjectFormData } from "@/shared/types/project-types"
+import { Badge } from "@/shared/components/ui/badge";
 
 interface BasicInfoStepProps {
-  formData: ProjectFormData
-  errors: Record<string, string>
-  onUpdateFormData: (field: keyof ProjectFormData, value: string) => void
+  stageTypes: Array<{ id: number; nombre: string; descripcion: string; color: string | null }>;
 }
 
-export const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
-  formData,
-  errors,
-  onUpdateFormData,
-}) => {
+export const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ stageTypes }) => {
+  const { register, formState: { errors }, watch, setValue } = useFormContext<CreateProjectFormData>();
+
+  const watchedEtapa = watch('createProjectStepOne.etapa');
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 flex flex-col gap-4">
       <div className="flex flex-col gap-2">
         <Label htmlFor="nombre">Nombre del Proyecto *</Label>
         <Input
           id="nombre"
-          value={formData.nombre}
-          onChange={(e) => onUpdateFormData("nombre", e.target.value)}
+          {...register('createProjectStepOne.nombre')}
           placeholder="Ej: Autopista Central Norte"
-          className={`max-w-3xs ${errors.nombre ? "border-red-500" : ""}`}
+          className={`max-w-3xs ${errors.createProjectStepOne?.nombre ? "border-red-500" : ""}`}
         />
-        {errors.nombre && <p className="text-sm text-red-500 mt-1">{errors.nombre}</p>}
+        {errors.createProjectStepOne?.nombre && (
+          <p className="text-sm text-red-500 mt-1">{errors.createProjectStepOne.nombre.message}</p>
+        )}
       </div>
 
-
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="etapa">Etapa del Proyecto</Label>
+        <Badge variant="outline">
+          Cartera de proyectos
+        </Badge>
+      </div>
     </div>
   )
 } 
