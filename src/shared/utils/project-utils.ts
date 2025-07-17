@@ -105,6 +105,7 @@ export const transformApiProjectToComponent = (
     id: number;
     nombre: string;
     carpeta_inicial: string;
+    carpeta_raiz_id: number;
     created_at: string;
     etapas_registro: Array<{
       id: number;
@@ -218,6 +219,7 @@ export const transformApiProjectToComponent = (
     name: proyectoLista.nombre,
     description: "", // No viene en la API
     createdAt: new Date(proyectoLista.created_at),
+    carpeta_raiz_id: proyectoDetalle?.carpeta_raiz_id,
     structure,
     etapa,
     projectData: {

@@ -1,12 +1,13 @@
-import React from "react"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog"
+import { useProyectoDetalle } from "@/lib/api/hooks/useProjects"
 import { Badge } from "@/shared/components/ui/badge"
-import { Separator } from "@/shared/components/ui/separator"
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog"
 import { Label } from "@/shared/components/ui/label"
-import { REGIONES, PROVINCIAS, COMUNAS } from "@/shared/data"
+import { Separator } from "@/shared/components/ui/separator"
+import { Input } from "@/shared/components/ui/input"
+import { Loader2 } from "lucide-react"
+import React from "react"
 import type { Project } from "./types"
-import { MOCK_STAGE_FORMS } from "@/shared/data/stage-forms-mock"
-import { ETAPAS } from "@/shared/data/project-data"
 
 interface ProjectDetailsModalProps {
   project: Project | null
@@ -19,255 +20,237 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
   isOpen,
   onClose,
 }) => {
+
   if (!project) return null
 
-  // Helper para obtener nombre de región, provincia y comuna
-  const getLocationName = (id: string, type: 'region' | 'provincia' | 'comuna') => {
-    switch (type) {
-      case 'region':
-        return REGIONES.find(r => r.id === id)?.nombre || id
-      case 'provincia':
-        return PROVINCIAS[project.projectData?.region || '']?.find(p => p.id === id)?.nombre || id
-      case 'comuna':
-        return COMUNAS[project.projectData?.provincia || '']?.find(c => c.id === id)?.nombre || id
-      default:
-        return id
-    }
+  // Obtener datos del proyecto desde la API
+  const { data: proyectoDetalle, isLoading: isLoadingProyecto } = useProyectoDetalle(parseInt(project.id))
+
+  if (isLoadingProyecto) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto">
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+            <span className="ml-2 text-muted-foreground">Cargando detalles del proyecto...</span>
+          </div>
+        </DialogContent>
+      </Dialog>
+    )
   }
 
-  // Helper para obtener los campos agrupados por etapa
-  const getFieldsByStage = (projectData: any) => {
-    return ETAPAS.map(etapa => {
-      const form = MOCK_STAGE_FORMS.find(f => f.name.includes(etapa))
-      if (!form) return null
-      const fields = form.fields.filter(field => projectData[field.name] !== undefined && projectData[field.name] !== "")
-      if (fields.length === 0) return null
-      return {
-        etapa,
-        fields: fields.map(field => ({
-          label: field.label,
-          value: projectData[field.name],
-        })),
-      }
-    }).filter(Boolean)
+  const proyecto = proyectoDetalle?.data
+  if (!proyecto) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto">
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">No se pudieron cargar los detalles del proyecto</p>
+          </div>
+        </DialogContent>
+      </Dialog>
+    )
   }
 
-  const renderCommonFields = () => (
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label className="text-sm font-medium text-muted-foreground">Tipo de Iniciativa</Label>
-          <p className="mt-1">{project.projectData?.tipoIniciativa || 'No especificado'}</p>
-        </div>
-        <div>
-          <Label className="text-sm font-medium text-muted-foreground">Tipo de Obra</Label>
-          <p className="mt-1">{project.projectData?.tipoObra || 'No especificado'}</p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-3 gap-4">
-        <div>
-          <Label className="text-sm font-medium text-muted-foreground">Región</Label>
-          <p className="mt-1">{project.projectData?.region ? getLocationName(project.projectData.region, 'region') : 'No especificado'}</p>
-        </div>
-        <div>
-          <Label className="text-sm font-medium text-muted-foreground">Provincia</Label>
-          <p className="mt-1">{project.projectData?.provincia ? getLocationName(project.projectData.provincia, 'provincia') : 'No especificado'}</p>
-        </div>
-        <div>
-          <Label className="text-sm font-medium text-muted-foreground">Comuna</Label>
-          <p className="mt-1">{project.projectData?.comuna ? getLocationName(project.projectData.comuna, 'comuna') : 'No especificado'}</p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label className="text-sm font-medium text-muted-foreground">Volumen</Label>
-          <p className="mt-1">{project.projectData?.volumen || 'No especificado'}</p>
-        </div>
-        <div>
-          <Label className="text-sm font-medium text-muted-foreground">Presupuesto Oficial</Label>
-          <p className="mt-1">{project.projectData?.presupuestoOficial || 'No especificado'}</p>
-        </div>
-      </div>
-    </div>
-  )
-
-  // const renderStageSpecificFields = () => {
-  //   const { etapa, projectData } = project
-
-  //   switch (etapa) {
-  //     case 'Cartera de proyectos':
-  //       return (
-  //         <div className="space-y-4">
-  //           <h4 className="font-medium">Campos Específicos - Cartera de Proyectos</h4>
-  //           <div className="grid grid-cols-2 gap-4">
-  //             <div>
-  //               <Label className="text-sm font-medium text-muted-foreground">Llamado a Licitación (Año)</Label>
-  //               <p className="mt-1">{projectData?.llamadoLicitacion || 'No especificado'}</p>
-  //             </div>
-  //             <div>
-  //               <Label className="text-sm font-medium text-muted-foreground">Plazo de la Concesión</Label>
-  //               <p className="mt-1">{projectData?.plazoConcesion || 'No especificado'}</p>
-  //             </div>
-  //           </div>
-  //         </div>
-  //       )
-
-  //     case 'Proyectos en Licitación':
-  //       return (
-  //         <div className="space-y-4">
-  //           <h4 className="font-medium">Campos Específicos - Proyectos en Licitación</h4>
-  //           <div className="grid grid-cols-3 gap-4">
-  //             <div>
-  //               <Label className="text-sm font-medium text-muted-foreground">Fecha Llamado a Licitación</Label>
-  //               <p className="mt-1">{projectData?.fechaLlamadoLicitacion || 'No especificado'}</p>
-  //             </div>
-  //             <div>
-  //               <Label className="text-sm font-medium text-muted-foreground">Fecha Recepción de Ofertas</Label>
-  //               <p className="mt-1">{projectData?.fechaRecepcionOfertas || 'No especificado'}</p>
-  //             </div>
-  //             <div>
-  //               <Label className="text-sm font-medium text-muted-foreground">Fecha Apertura de Ofertas</Label>
-  //               <p className="mt-1">{projectData?.fechaAperturaOfertas || 'No especificado'}</p>
-  //             </div>
-  //           </div>
-  //         </div>
-  //       )
-
-  //     case 'Concesiones en Operación':
-  //     case 'Concesiones en Construcción':
-  //     case 'Concesiones en Operación y Construcción':
-  //       return (
-  //         <div className="space-y-4">
-  //           <h4 className="font-medium">Campos Específicos - Concesiones Activas</h4>
-  //           <div className="grid grid-cols-2 gap-4">
-  //             <div>
-  //               <Label className="text-sm font-medium text-muted-foreground">Decreto de Adjudicación</Label>
-  //               <p className="mt-1">{projectData?.decretoAdjudicacion || 'No especificado'}</p>
-  //             </div>
-  //             <div>
-  //               <Label className="text-sm font-medium text-muted-foreground">Sociedad Concesionaria</Label>
-  //               <p className="mt-1">{projectData?.sociedadConcesionaria || 'No especificado'}</p>
-  //             </div>
-  //           </div>
-  //           <div className="grid grid-cols-3 gap-4">
-  //             <div>
-  //               <Label className="text-sm font-medium text-muted-foreground">Inicio Plazo Concesión</Label>
-  //               <p className="mt-1">{projectData?.inicioPlazoConcesion || 'No especificado'}</p>
-  //             </div>
-  //             <div>
-  //               <Label className="text-sm font-medium text-muted-foreground">Plazo Total</Label>
-  //               <p className="mt-1">{projectData?.plazoTotalConcesion || 'No especificado'}</p>
-  //             </div>
-  //             <div>
-  //               <Label className="text-sm font-medium text-muted-foreground">Inspector Fiscal</Label>
-  //               <p className="mt-1">{projectData?.inspectorFiscal || 'No asignado'}</p>
-  //             </div>
-  //           </div>
-  //         </div>
-  //       )
-
-  //     case 'Concesiones Finalizadas':
-  //       return (
-  //         <div className="space-y-4">
-  //           <h4 className="font-medium">Campos Específicos - Concesiones Finalizadas</h4>
-  //           <div className="grid grid-cols-2 gap-4">
-  //             <div>
-  //               <Label className="text-sm font-medium text-muted-foreground">Valor de Referencia</Label>
-  //               <p className="mt-1">{projectData?.valorReferencia || 'No especificado'}</p>
-  //             </div>
-  //             <div>
-  //               <Label className="text-sm font-medium text-muted-foreground">Fecha de Finalización</Label>
-  //               <p className="mt-1">{projectData?.fechaFinalizacion || 'No especificado'}</p>
-  //             </div>
-  //           </div>
-  //           <div>
-  //             <Label className="text-sm font-medium text-muted-foreground">Sociedad Concesionaria</Label>
-  //             <p className="mt-1">{projectData?.sociedadConcesionaria || 'No especificado'}</p>
-  //           </div>
-  //         </div>
-  //       )
-
-  //     default:
-  //       return null
-  //   }
-  // }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{project.name}</DialogTitle>
+          <DialogTitle className="text-xl">{proyecto.nombre}</DialogTitle>
           <div className="flex items-center gap-2">
-            <Badge variant="secondary">{project.etapa}</Badge>
+            {proyecto.etapas_registro?.map((etapa) => (
+              <Badge
+                key={etapa.id}
+                variant="secondary"
+                style={{
+                  backgroundColor: '#e5e7eb',
+                  color: '#374151'
+                }}
+              >
+                {etapa.etapa_tipo.nombre}
+              </Badge>
+            ))}
             <span className="text-sm text-muted-foreground">
-              Creado el {project.createdAt.toLocaleDateString()}
+              Creado el {new Date(proyecto.created_at).toLocaleDateString()}
             </span>
           </div>
           <DialogDescription>
-            Detalles del proyecto
+            Detalles completos del proyecto
           </DialogDescription>
         </DialogHeader>
 
-        <div className="mt-6 space-y-6">
-          {/* Información general */}
-          <div>
-            <h3 className="font-medium mb-4">Información General</h3>
-            {renderCommonFields()}
-          </div>
+        <div className="mt-2 space-y-6">
+          {/* Información de la organización */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Información organizacional</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="flex flex-col gap-2">
+                  <Label className="text-xs font-medium text-muted-foreground">División</Label>
+                  <Input
+                    value={proyecto.division?.nombre || 'No especificado'}
+                    readOnly
+                    className="bg-gray-50"
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <Label className="text-xs font-medium text-muted-foreground">Departamento</Label>
+                  <Input
+                    value={proyecto.departamento?.nombre || 'No especificado'}
+                    readOnly
+                    className="bg-gray-50"
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <Label className="text-xs font-medium text-muted-foreground">Unidad</Label>
+                  <Input
+                    value={proyecto.unidad?.nombre || 'No especificado'}
+                    readOnly
+                    className="bg-gray-50"
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           <Separator />
 
-          {/* Agrupación de campos por etapa */}
-          <div className="space-y-6 mt-6">
-            {getFieldsByStage(project.projectData || {}).map(grupo => {
-              if (!grupo) return null
+          {/* Campos por etapa */}
+          <div className="space-y-6">
+            <h3 className="text-lg font-semibold">Información por etapa</h3>
+            {proyecto.etapas_registro?.map((etapa, index) => {
               return (
-                <div key={grupo.etapa}>
-                  <h4 className="font-semibold mb-2">{grupo.etapa}</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    {grupo.fields.map((f, idx) => (
-                      <div key={idx} className="flex flex-col">
-                        <span className="text-xs text-muted-foreground">{f.label}</span>
-                        <span className="font-medium text-sm">{f.value}</span>
+                <div key={etapa.id} className="space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <div className="flex items-center gap-2 bg-primary-500 rounded-md p-2 w-fit">
+                        <h4 className="text-sm font-medium text-white">{etapa.etapa_tipo.nombre}</h4>
+                        {etapa.activa && (
+                          <Badge variant="secondary" className="text-xs bg-white text-primary-500 font-bold">
+                            Activa
+                          </Badge>
+                        )}
                       </div>
-                    ))}
-                  </div>
+                      <CardTitle className="text-sm ml-2 mt-1">Información de la etapa</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 ml-2">
+                        {etapa.tipo_iniciativa && (
+                          <div className="flex flex-col gap-2">
+                            <Label className="text-xs font-medium text-muted-foreground">Tipo de iniciativa</Label>
+                            <Input
+                              value={etapa.tipo_iniciativa.nombre}
+                              readOnly
+                              className="bg-gray-50"
+                            />
+                          </div>
+                        )}
+                        {etapa.tipo_obra && (
+                          <div className="flex flex-col gap-2">
+                            <Label className="text-xs font-medium text-muted-foreground">Tipo de obra</Label>
+                            <Input
+                              value={etapa.tipo_obra.nombre}
+                              readOnly
+                              className="bg-gray-50"
+                            />
+                          </div>
+                        )}
+                        {etapa.region && (
+                          <div className="flex flex-col gap-2">
+                            <Label className="text-xs font-medium text-muted-foreground">Región</Label>
+                            <Input
+                              value={etapa.region.nombre}
+                              readOnly
+                              className="bg-gray-50"
+                            />
+                          </div>
+                        )}
+                        {etapa.provincia && (
+                          <div className="flex flex-col gap-2">
+                            <Label className="text-xs font-medium text-muted-foreground">Provincia</Label>
+                            <Input
+                              value={etapa.provincia.nombre}
+                              readOnly
+                              className="bg-gray-50"
+                            />
+                          </div>
+                        )}
+                        {etapa.comuna && (
+                          <div className="flex flex-col gap-2">
+                            <Label className="text-xs font-medium text-muted-foreground">Comuna</Label>
+                            <Input
+                              value={etapa.comuna.nombre}
+                              readOnly
+                              className="bg-gray-50"
+                            />
+                          </div>
+                        )}
+                        {etapa.volumen && (
+                          <div className="flex flex-col gap-2">
+                            <Label className="text-xs font-medium text-muted-foreground">Volumen</Label>
+                            <Input
+                              value={etapa.volumen}
+                              readOnly
+                              className="bg-gray-50"
+                            />
+                          </div>
+                        )}
+                        {etapa.presupuesto_oficial && (
+                          <div className="flex flex-col gap-2">
+                            <Label className="text-xs font-medium text-muted-foreground">Presupuesto oficial</Label>
+                            <Input
+                              value={etapa.presupuesto_oficial}
+                              readOnly
+                              className="bg-gray-50"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {index < proyecto.etapas_registro.length - 1 && <Separator />}
                 </div>
               )
             })}
           </div>
 
-          {/* Información de alertas si existen */}
-          {project.projectData?.alertaDescripcion && (
-            <>
-              <Separator />
-              <div>
-                <h4 className="font-medium mb-2">Alertas</h4>
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                  <p className="text-sm">{project.projectData.alertaDescripcion}</p>
-                  {project.projectData.alertaFechaLimite && (
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Fecha límite: {project.projectData.alertaFechaLimite}
-                    </p>
-                  )}
+          {/* Información del creador */}
+          <Separator />
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Información del Sistema</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex flex-col gap-2">
+                  <Label className="text-xs font-medium text-muted-foreground">Creado por</Label>
+                  <Input
+                    value={proyecto.creador?.nombre_completo || 'No especificado'}
+                    readOnly
+                    className="bg-gray-50"
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <Label className="text-xs font-medium text-muted-foreground">Fecha de creación</Label>
+                  <Input
+                    value={new Date(proyecto.created_at).toLocaleDateString('es-CL', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                    readOnly
+                    className="bg-gray-50"
+                  />
                 </div>
               </div>
-            </>
-          )}
-
-          {/* Información del proyecto */}
-          <Separator />
-          <div>
-            <h4 className="font-medium mb-2">Información del Sistema</h4>
-            <div className="grid grid-cols-1 gap-4 text-sm">
-              <div>
-                <Label className="text-xs font-medium text-muted-foreground">Fecha de Creación</Label>
-                <p className="mt-1">{project.createdAt.toLocaleDateString()}</p>
-              </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
       </DialogContent>
     </Dialog>

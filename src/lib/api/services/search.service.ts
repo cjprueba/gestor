@@ -79,7 +79,6 @@ export const searchService = {
   async getEtapasTipo(): Promise<EtapaTipo[]> {
     try {
       const response = await apiClient.get("/etapas-tipo");
-      console.log("Etapas API response:", response.data);
 
       // Manejar diferentes estructuras de respuesta
       if (response.data && Array.isArray(response.data)) {
@@ -105,7 +104,6 @@ export const searchService = {
   async getTiposObras(): Promise<TipoObra[]> {
     try {
       const response = await apiClient.get("/tipos_obras");
-      console.log("Tipos obras API response:", response.data);
 
       // Manejar diferentes estructuras de respuesta
       if (response.data && Array.isArray(response.data)) {

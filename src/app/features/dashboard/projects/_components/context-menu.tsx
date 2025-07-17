@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog"
-import { MoreVertical, ArrowRightFromLine, Eye, Edit, Trash2, Download, Share, Copy, Settings2, FileText } from "lucide-react"
+import { MoreVertical, ArrowRightFromLine, Eye, Edit, Trash2, Download, Share, Copy, Settings2, FileText, FolderOpen } from "lucide-react"
 import { ETAPAS } from "@/shared/data/project-data"
 
 interface MenuItem {
@@ -26,6 +26,7 @@ interface ContextMenuProps {
   onConfig?: () => void
   onEdit?: () => void
   onDelete?: () => void
+  onMove?: () => void
   onDownload?: () => void
   onShare?: () => void
   onDuplicate?: () => void
@@ -40,6 +41,7 @@ export default function ContextMenu({
   onConfig,
   onEdit,
   onDelete,
+  onMove,
   onDownload,
   onShare,
   onDuplicate,
@@ -100,6 +102,11 @@ export default function ContextMenu({
           icon: Edit,
           label: "Renombrar",
           action: onEdit,
+        },
+        {
+          icon: FolderOpen,
+          label: "Mover",
+          action: onMove,
         },
         {
           icon: Copy,

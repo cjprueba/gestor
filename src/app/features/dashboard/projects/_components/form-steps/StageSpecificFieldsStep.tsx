@@ -327,7 +327,7 @@ export const StageSpecificFieldsStep: React.FC<StageSpecificFieldsStepProps> = (
         <div className="flex items-center space-x-2 mb-4">
           <Badge variant="outline">Campos específicos para esta etapa</Badge>
         </div>
-        <h3 className="text-lg font-medium mb-4">Información del Proyecto</h3>
+        <h3 className="text-lg font-medium mb-4">Información del proyecto</h3>
         {renderCommonFields()}
       </div>
     </div>

@@ -13,6 +13,8 @@ import type {
   Provincia,
   Comuna,
   InspectorFiscal,
+  AvanzarEtapaRequest,
+  AvanzarEtapaResponse,
 } from "@/shared/types/project-types";
 
 export class ProjectsService {
@@ -115,6 +117,7 @@ export class ProjectsService {
       id: number;
       nombre: string;
       carpeta_inicial: string;
+      carpeta_raiz_id: number;
       created_at: string;
       etapas_registro: Array<{
         id: number;
@@ -231,5 +234,132 @@ export class ProjectsService {
     );
     console.log("Inspectores fiscales response:", response.data);
     return { data: response.data };
+  }
+
+  /**
+   * Obtiene la información de la etapa actual y siguiente etapa para avanzar
+   */
+  static async getEtapaAvanzarInfo(
+    proyectoId: number
+  ): Promise<AvanzarEtapaResponse> {
+    const response = await apiClient.get<AvanzarEtapaResponse>(
+      `/etapas/${proyectoId}/avanzar`
+    );
+    return response.data;
+  }
+
+  /**
+   * Avanza un proyecto a la siguiente etapa
+   */
+  static async avanzarEtapa(
+    proyectoId: number,
+    data: AvanzarEtapaRequest
+  ): Promise<AvanzarEtapaResponse> {
+    const response = await apiClient.post<AvanzarEtapaResponse>(
+      `/etapas/${proyectoId}/avanzar`,
+      data
+    );
+    return response.data;
+  }
+
+  /**
+   * Cambia la etapa de un proyecto
+   */
+  static async cambiarEtapa(
+    proyectoId: number,
+    data: {
+      etapa_tipo_id: number;
+      tipo_iniciativa_id?: number;
+      tipo_obra_id?: number;
+      region_id?: number;
+      provincia_id?: number;
+      comuna_id?: number;
+      volumen?: string;
+      presupuesto_oficial?: string;
+      valor_referencia?: string;
+      bip?: string;
+      fecha_llamado_licitacion?: string;
+      fecha_recepcion_ofertas_tecnicas?: string;
+      fecha_apertura_ofertas_economicas?: string;
+      decreto_adjudicacion?: string;
+      sociedad_concesionaria?: string;
+      fecha_inicio_concesion?: string;
+      plazo_total_concesion?: string;
+      inspector_fiscal_id?: number;
+      usuario_creador: number;
+    }
+  ): Promise<{ success: boolean; message: string; data: any }> {
+    const response = await apiClient.patch<{
+      success: boolean;
+      message: string;
+      data: any;
+    }>(`/proyectos/${proyectoId}/cambiar-etapa`, data);
+    return response.data;
+  }
+
+  /**
+   * Método para obtener el contenido de una carpeta
+   */
+  static async getCarpetaContenido(
+    carpetaId: number
+  ): Promise<import("@/shared/types/project-types").CarpetaContenidoResponse> {
+    const response = await apiClient.get(`/carpetas/${carpetaId}/contenido`);
+    return response.data;
+  }
+
+  /**
+   * Método para crear una nueva carpeta
+   */
+  static async createCarpeta(
+    data: import("@/shared/types/project-types").CreateCarpetaRequest
+  ): Promise<import("@/shared/types/project-types").CreateCarpetaResponse> {
+    const response = await apiClient.post("/carpetas", data);
+    return response.data;
+  }
+
+  /**
+   * Método para obtener las carpetas de un proyecto
+   */
+  static async getCarpetasProyecto(proyectoId: number): Promise<{
+    success: boolean;
+    message: string;
+    data: Array<{
+      id: number;
+      nombre: string;
+      descripcion: string;
+      carpeta_padre_id: number | null;
+      orden_visualizacion: number;
+      fecha_creacion: string;
+      fecha_actualizacion: string;
+      activa: boolean;
+    }>;
+  }> {
+    const response = await apiClient.get(`/proyectos/${proyectoId}/carpetas`);
+    return response.data;
+  }
+
+  /**
+   * Método para renombrar una carpeta
+   */
+  static async renombrarCarpeta(
+    carpetaId: number,
+    data: import("@/shared/types/project-types").RenombrarCarpetaRequest
+  ): Promise<import("@/shared/types/project-types").RenombrarCarpetaResponse> {
+    const response = await apiClient.put(
+      `/carpetas/${carpetaId}/renombrar`,
+      data
+    );
+    return response.data;
+  }
+
+  /**
+   * Método para mover una carpeta
+   */
+  static async moverCarpeta(
+    carpetaId: number,
+    data: import("@/shared/types/project-types").MoverCarpetaRequest
+  ): Promise<import("@/shared/types/project-types").MoverCarpetaResponse> {
+    const response = await apiClient.put(`/carpetas/${carpetaId}/mover`, data);
+    return response.data;
   }
 }
