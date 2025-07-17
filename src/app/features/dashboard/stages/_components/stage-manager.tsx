@@ -1,5 +1,6 @@
 "use client"
 
+import { useStageTypeDetail, useStageTypes } from "@/lib/api/hooks/useStages"
 import { Button } from "@/shared/components/design-system/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import {
@@ -17,16 +18,14 @@ import {
   Copy,
   Edit,
   Eye,
+  Loader2,
   MoreHorizontal,
-  Search,
-  Loader2
+  Search
 } from "lucide-react"
 import { useState } from "react"
 import { CreateStageDialog } from "./create-stage-dialog"
 import StageFormBuilder from "./stage-form-builder"
 import StageFormPreview from "./stage-form-preview"
-import { useStageTypes, useStageTypeDetail } from "@/lib/api/hooks/useStages"
-import { ScrollArea } from "@radix-ui/react-scroll-area"
 
 // Tipo para los datos del endpoint
 
@@ -146,7 +145,7 @@ export default function StageManager({ forms, onFormsChange }: StageManagerProps
   }
 
   return (
-    <div className="space-y-6 px-6 pb-6">
+    <div className="p-6">
       <div>
         <div className="flex items-center justify-between">
           <div>
@@ -295,34 +294,32 @@ export default function StageManager({ forms, onFormsChange }: StageManagerProps
         )
       }
 
-      <ScrollArea className="h-full">
-        {/* Stage Type Form Preview Dialog */}
-        {selectedStageTypeId && stageTypeDetailData && (
-          <Dialog open={!!selectedStageTypeId} onOpenChange={handleClosePreview}>
-            <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
-              <DialogHeader className="flex-shrink-0">
-                <DialogTitle>Vista Previa - {stageTypeDetailData.data.nombre}</DialogTitle>
-                <DialogDescription>
-                  Formulario configurado para esta etapa basado en los campos habilitados.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="flex-1 overflow-hidden">
-                {isLoadingDetail ? (
-                  <div className="flex items-center justify-center py-8">
-                    <Loader2 className="w-6 h-6 animate-spin" />
-                    <span className="ml-2">Cargando formulario...</span>
-                  </div>
-                ) : (
-                  <StageFormPreview
-                    stageTypeDetail={stageTypeDetailData.data}
-                    isStageTypeForm={true}
-                  />
-                )}
-              </div>
-            </DialogContent>
-          </Dialog>
-        )}
-      </ScrollArea>
+      {/* Stage Type Form Preview Dialog */}
+      {selectedStageTypeId && stageTypeDetailData && (
+        <Dialog open={!!selectedStageTypeId} onOpenChange={handleClosePreview}>
+          <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
+            <DialogHeader className="flex-shrink-0">
+              <DialogTitle>Vista Previa - {stageTypeDetailData.data.nombre}</DialogTitle>
+              <DialogDescription>
+                Formulario configurado para esta etapa basado en los campos habilitados.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex-1 overflow-hidden">
+              {isLoadingDetail ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="w-6 h-6 animate-spin" />
+                  <span className="ml-2">Cargando formulario...</span>
+                </div>
+              ) : (
+                <StageFormPreview
+                  stageTypeDetail={stageTypeDetailData.data}
+                  isStageTypeForm={true}
+                />
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div >
   )
 }

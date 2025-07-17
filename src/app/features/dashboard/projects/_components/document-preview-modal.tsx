@@ -7,18 +7,25 @@ import {
   FileText,
   Image,
   RotateCw,
-  X,
+  Trash,
   ZoomIn,
   ZoomOut
 } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { revokeBlobUrl } from "@/shared/lib/file-utils"
+
+// Tipo extendido para documento con URL de preview temporal
+interface DocumentoItemWithPreview extends DocumentoItem {
+  previewUrl?: string;
+}
 
 interface DocumentPreviewModalProps {
-  document: DocumentoItem | null
+  document: DocumentoItemWithPreview | null
   isOpen: boolean
   onClose: () => void
   onDownload: (documentId: string) => void
   onView: (documentId: string) => void
+  onDelete: (documentId: string) => void
 }
 
 export function DocumentPreviewModal({
@@ -26,10 +33,28 @@ export function DocumentPreviewModal({
   isOpen,
   onClose,
   onDownload,
-  onView
+  onView,
+  onDelete
 }: DocumentPreviewModalProps) {
   const [zoom, setZoom] = useState(100)
   const [rotation, setRotation] = useState(0)
+  const [pdfError, setPdfError] = useState(false)
+  const [pdfLoaded, setPdfLoaded] = useState(false)
+
+  // Limpiar URL de blob cuando se cierre el modal
+  useEffect(() => {
+    return () => {
+      if (document?.previewUrl) {
+        revokeBlobUrl(document.previewUrl)
+      }
+    }
+  }, [document?.previewUrl])
+
+  // Reset PDF error cuando cambia el documento
+  useEffect(() => {
+    setPdfError(false)
+    setPdfLoaded(false)
+  }, [document?.id, document?.tipo_mime, document?.previewUrl])
 
   if (!document) return null
 
@@ -62,9 +87,17 @@ export function DocumentPreviewModal({
     setRotation(0)
   }
 
+  const handleClose = () => {
+    // Limpiar URL de blob antes de cerrar
+    if (document?.previewUrl) {
+      revokeBlobUrl(document.previewUrl)
+    }
+    onClose()
+  }
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden">
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className={`min-w-[700px] min-h-[600px] max-h-[90vh] overflow-x-auto items-center justify-center`}>
         <DialogHeader className="flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -78,9 +111,6 @@ export function DocumentPreviewModal({
                 </div>
               </div>
             </div>
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              <X className="w-4 h-4" />
-            </Button>
           </div>
         </DialogHeader>
 
@@ -96,7 +126,7 @@ export function DocumentPreviewModal({
               >
                 <ZoomOut className="w-4 h-4" />
               </Button>
-              <span className="text-sm font-medium min-w-[60px] text-center">{zoom}%</span>
+              <span className="text-sm font-medium  text-center">{zoom}%</span>
               <Button
                 variant="secundario"
                 size="sm"
@@ -138,6 +168,15 @@ export function DocumentPreviewModal({
                 <Download className="w-4 h-4 mr-2" />
                 Descargar
               </Button>
+              <Button
+                variant="secundario"
+                size="sm"
+                onClick={() => onDelete(document.id)}
+                className=" text-red-500 border-red-500"
+              >
+                <Trash className="w-4 h-4 mr-2" />
+                Eliminar
+              </Button>
             </div>
           </div>
 
@@ -145,26 +184,62 @@ export function DocumentPreviewModal({
           <div className="flex-1 overflow-auto p-4">
             <div className="flex gap-6 h-full">
               {/* Document Preview */}
-              <div className="flex-1 bg-white border rounded-lg overflow-hidden">
+              <div className="flex-1 bg-white border rounded-lg overflow-hidden min-h-[500px]">
                 <div
                   className="w-full h-full flex items-center justify-center bg-gray-50"
                   style={{
                     transform: `scale(${zoom / 100}) rotate(${rotation}deg)`,
-                    transition: 'transform 0.2s ease-in-out'
+                    transition: 'transform 0.2s ease-in-out',
+                    minHeight: '500px'
                   }}
                 >
                   {isImage ? (
                     <img
-                      src={`/api/documents/${document.id}/preview`}
+                      src={document.previewUrl}
                       alt={document.nombre_archivo}
                       className="max-w-full max-h-full object-contain"
                     />
                   ) : isPDF ? (
-                    <iframe
-                      src={`/api/documents/${document.id}/preview`}
-                      className="w-full h-full border-0"
-                      title={document.nombre_archivo}
-                    />
+                    pdfError && !pdfLoaded ? (
+                      <div className="text-center p-8">
+                        <FileText className="w-16 h-16 mx-auto text-red-400 mb-4" />
+                        <p className="text-gray-500 mb-4">No se pudo cargar la vista previa del PDF</p>
+                        <div className="flex gap-2 justify-center">
+                          <Button
+                            variant="secundario"
+                            size="sm"
+                            onClick={() => onDownload(document.id)}
+                          >
+                            <Download className="w-4 h-4 mr-2" />
+                            Descargar PDF
+                          </Button>
+                          <Button
+                            variant="secundario"
+                            size="sm"
+                            onClick={() => onView(document.id)}
+                          >
+                            <ExternalLink className="w-4 h-4 mr-2" />
+                            Abrir en nueva pestaña
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <iframe
+                        src={`${document.previewUrl}#toolbar=0&navpanes=0&scrollbar=0&view=FitH&pagemode=none`}
+                        className="w-full h-full border-0"
+                        style={{ minHeight: '600px' }}
+                        title={document.nombre_archivo}
+                        onError={() => {
+                          setPdfError(true)
+                          setPdfLoaded(false)
+                        }}
+                        onLoad={() => {
+                          // Si el iframe se carga correctamente, limpiar el error
+                          setPdfError(false)
+                          setPdfLoaded(true)
+                        }}
+                      />
+                    )
                   ) : (
                     <div className="text-center p-8">
                       <FileText className="w-16 h-16 mx-auto text-gray-400 mb-4" />

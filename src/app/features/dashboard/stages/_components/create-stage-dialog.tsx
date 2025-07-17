@@ -5,7 +5,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import clsx from 'clsx';
 import { Check, Loader2 } from 'lucide-react';
 import { useState } from 'react';
-import { toast } from 'sonner';
 import { CreateStageForm } from './create-stage-form';
 import { StageFormSelector } from './stage-form-selector';
 
@@ -103,12 +102,12 @@ export function CreateStageDialog({ onSuccess, onCancel }: CreateStageDialogProp
 
       await createStageType.mutateAsync(stageData);
 
-      toast.success('Etapa creada exitosamente');
+      // El hook maneja automáticamente los toasts y la invalidación de queries
       handleCloseDialog();
       onSuccess?.();
     } catch (error) {
+      // El hook ya maneja el error y muestra el toast
       console.error('Error al crear etapa:', error);
-      toast.error('Error al crear la etapa. Inténtalo de nuevo.');
     }
   };
 

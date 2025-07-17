@@ -7,6 +7,7 @@ export interface Project {
   etapa: string;
   projectData?: any;
   metadata?: any;
+  targetFolderId?: number; // Para navegación directa a una carpeta específica
 }
 
 export interface FolderStructure {
@@ -86,6 +87,6 @@ export interface ProjectCardProps {
 
 export interface ProjectListProps {
   projects: Project[];
-  onSelectProject: (project: Project) => void;
+  onSelectProject: (project: Project, targetFolderId?: number) => void;
   onCreateProject: () => void;
 }

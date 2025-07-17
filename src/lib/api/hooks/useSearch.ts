@@ -15,12 +15,12 @@ export const useProjectSearch = (query: string) => {
 };
 
 // Hook para búsqueda de archivos
-export const useFileSearch = (query: string) => {
+export const useFileSearch = (query: string, extension?: string) => {
   const debouncedQuery = useDebounce(query, 300);
 
   return useQuery({
-    queryKey: ["file-search", debouncedQuery],
-    queryFn: () => searchService.searchFiles(debouncedQuery),
+    queryKey: ["file-search", debouncedQuery, extension],
+    queryFn: () => searchService.searchFiles(debouncedQuery, extension),
     enabled: debouncedQuery.length > 0,
     staleTime: 5 * 60 * 1000, // 5 minutos
   });

@@ -3,34 +3,34 @@ import { Button } from "@/shared/components/design-system/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { FileText, FolderOpen, Plus } from "lucide-react"
 import { ProjectCard } from "./ProjectCard"
-import type { ProjectListProps, FolderStructure, Document } from "./types"
+import type { ProjectListProps } from "./types"
 import { SearchHeader } from "./search-header"
 import { useProjectSearch, useFileSearch, useFolderSearch } from "@/lib/api"
 
 // Función helper para obtener todos los documentos de un proyecto
-const getAllDocumentsFromProject = (structure: FolderStructure): Array<Document & { folderPath: string }> => {
-  const documents: Array<Document & { folderPath: string }> = []
+// const getAllDocumentsFromProject = (structure: FolderStructure): Array<Document & { folderPath: string }> => {
+//   const documents: Array<Document & { folderPath: string }> = []
 
-  const traverse = (folder: FolderStructure, path: string = "") => {
-    const currentPath = path ? `${path} - ${folder.name}` : folder.name
+//   const traverse = (folder: FolderStructure, path: string = "") => {
+//     const currentPath = path ? `${path} - ${folder.name}` : folder.name
 
-    // Agregar documentos de la carpeta actual
-    folder.documents.forEach(doc => {
-      documents.push({
-        ...doc,
-        folderPath: currentPath
-      })
-    })
+//     // Agregar documentos de la carpeta actual
+//     folder.documents.forEach(doc => {
+//       documents.push({
+//         ...doc,
+//         folderPath: currentPath
+//       })
+//     })
 
-    // Recursivamente obtener documentos de subcarpetas
-    folder.subfolders.forEach(subfolder => {
-      traverse(subfolder, currentPath)
-    })
-  }
+//     // Recursivamente obtener documentos de subcarpetas
+//     folder.subfolders.forEach(subfolder => {
+//       traverse(subfolder, currentPath)
+//     })
+//   }
 
-  traverse(structure)
-  return documents
-}
+//   traverse(structure)
+//   return documents
+// }
 
 // Función helper para buscar texto en proyectos
 const searchInProjects = (projects: any[], searchTerm: string) => {
@@ -45,27 +45,27 @@ const searchInProjects = (projects: any[], searchTerm: string) => {
 }
 
 // Función helper para buscar documentos en todos los proyectos
-const searchDocumentsInProjects = (projects: any[], searchTerm: string) => {
-  if (!searchTerm.trim()) return []
+// const searchDocumentsInProjects = (projects: any[], searchTerm: string) => {
+//   if (!searchTerm.trim()) return []
 
-  const term = searchTerm.toLowerCase()
-  const allDocuments: Array<Document & { folderPath: string; projectName: string; projectId: string }> = []
+//   const term = searchTerm.toLowerCase()
+//   const allDocuments: Array<Document & { folderPath: string; projectName: string; projectId: string }> = []
 
-  projects.forEach(project => {
-    const projectDocs = getAllDocumentsFromProject(project.structure)
-    projectDocs.forEach(doc => {
-      if (doc.name.toLowerCase().includes(term)) {
-        allDocuments.push({
-          ...doc,
-          projectName: project.name,
-          projectId: project.id
-        })
-      }
-    })
-  })
+//   projects.forEach(project => {
+//     const projectDocs = getAllDocumentsFromProject(project.structure)
+//     projectDocs.forEach(doc => {
+//       if (doc.name.toLowerCase().includes(term)) {
+//         allDocuments.push({
+//           ...doc,
+//           projectName: project.name,
+//           projectId: project.id
+//         })
+//       }
+//     })
+//   })
 
-  return allDocuments
-}
+//   return allDocuments
+// }
 
 // Función helper para filtrar por etapas
 const filterByStages = (projects: any[], selectedStages: string[]) => {
@@ -93,7 +93,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({
 
   // Hooks de búsqueda con la API
   const { data: apiSearchResults, isFetching: isSearchingProjects } = useProjectSearch(projectSearchTerm)
-  const { data: apiFileResults, isFetching: isSearchingFiles } = useFileSearch(documentSearchTerm)
+  const { data: apiFileResults, isFetching: isSearchingFiles, error: fileSearchError } = useFileSearch(documentSearchTerm)
   const { data: apiFolderResults } = useFolderSearch(documentSearchTerm)
 
   // Lógica de filtrado usando useMemo para optimizar performance
@@ -136,24 +136,66 @@ export const ProjectList: React.FC<ProjectListProps> = ({
     return filtered
   }, [projects, projectSearchTerm, selectedStages, selectedTiposObra, apiSearchResults])
 
-  // Búsqueda de documentos usando la API
+  // Búsqueda de documentos usando solo la API
   const searchedDocuments = useMemo(() => {
-    if (documentSearchTerm && apiFileResults) {
-      return apiFileResults.map(file => ({
-        id: file.id.toString(),
-        name: file.nombre,
-        uploadedAt: new Date(file.fecha_subida),
-        folderPath: file.carpeta,
-        projectName: file.proyecto_nombre,
-        projectId: file.proyecto_id.toString(),
-        tipo: file.tipo,
-        tamaño: file.tamaño
-      }))
+    if (!documentSearchTerm || !apiFileResults || !apiFileResults.archivos) {
+      return []
     }
 
-    // Fallback a búsqueda local si no hay resultados de la API
-    return searchDocumentsInProjects(projects, documentSearchTerm)
-  }, [projects, documentSearchTerm, apiFileResults])
+    return apiFileResults.archivos.map(file => {
+      // Extraer información del proyecto desde s3_path
+      const pathParts = file.s3_path.split('/')
+      const projectNameFromPath = pathParts.length > 1 ? pathParts[1] : null
+
+      // Determinar el nombre del proyecto
+      let projectName = 'Sin proyecto'
+      let projectId = '0'
+
+      if (file.proyecto_id !== null) {
+        // Buscar el nombre real del proyecto en la lista de proyectos
+        const foundProject = projects.find(p => p.id === file.proyecto_id!.toString())
+        projectName = foundProject ? foundProject.name : 'Proyecto'
+        projectId = file.proyecto_id!.toString()
+      } else if (projectNameFromPath) {
+        // Si no hay proyecto_id pero hay información en el path, buscar el proyecto por nombre
+        const normalizedProjectName = projectNameFromPath.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+
+        console.log('Buscando proyecto por nombre:', {
+          projectNameFromPath,
+          normalizedProjectName,
+          availableProjects: projects.map(p => ({ id: p.id, name: p.name }))
+        })
+
+        const foundProject = projects.find(p =>
+          p.name.toLowerCase().includes(projectNameFromPath.toLowerCase()) ||
+          p.name.toLowerCase().includes(projectNameFromPath.replace(/_/g, ' ').toLowerCase())
+        )
+
+        console.log('Proyecto encontrado por nombre:', foundProject)
+
+        if (foundProject) {
+          projectName = foundProject.name
+          projectId = foundProject.id
+        } else {
+          projectName = normalizedProjectName
+          projectId = '0' // No encontramos el proyecto, pero al menos mostramos el nombre
+        }
+      }
+
+      return {
+        id: file.id,
+        name: file.nombre_archivo,
+        uploadedAt: new Date(file.fecha_creacion),
+        folderPath: file.s3_path.split('/').slice(-2).join(' - '), // Extraer carpeta del s3_path
+        projectName,
+        projectId,
+        tipo: file.tipo_mime,
+        tamaño: file.tamano,
+        extension: file.extension,
+        carpetaId: file.carpeta_id // Agregar el ID de la carpeta para navegación
+      }
+    })
+  }, [documentSearchTerm, apiFileResults])
 
   // Función para limpiar todos los filtros
   const clearAllFilters = () => {
@@ -193,15 +235,27 @@ export const ProjectList: React.FC<ProjectListProps> = ({
         selectedTiposObra={selectedTiposObra}
         onTipoObraFilterChange={setSelectedTiposObra}
         projectResults={isSearchingProjects ? undefined : filteredProjects.length}
-        documentResults={isSearchingFiles ? undefined : searchedDocuments.length}
+        documentResults={isSearchingFiles ? undefined : (apiFileResults?.archivos?.length || 0)}
         context="projects"
         onClearFilters={clearAllFilters}
         isLoadingProjects={isSearchingProjects}
         isLoadingDocuments={isSearchingFiles}
       />
 
+      {/* Mostrar error en búsqueda de documentos */}
+      {documentSearchTerm && fileSearchError && (
+        <Card className="border-red-200 bg-red-50">
+          <CardHeader>
+            <CardTitle className="text-lg text-red-800">Error en la búsqueda</CardTitle>
+            <CardDescription className="text-red-600">
+              No se pudo completar la búsqueda de documentos. Inténtalo de nuevo más tarde.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      )}
+
       {/* Mostrar resultados de búsqueda de documentos */}
-      {documentSearchTerm && searchedDocuments.length > 0 && (
+      {documentSearchTerm && !fileSearchError && searchedDocuments.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Documentos encontrados</CardTitle>
@@ -216,10 +270,20 @@ export const ProjectList: React.FC<ProjectListProps> = ({
                   key={`${doc.projectId}-${doc.id}`}
                   className="flex items-center justify-between p-2 hover:bg-muted rounded cursor-pointer"
                   onClick={() => {
+                    console.log('Documento clickeado:', doc)
+                    console.log('Carpeta ID:', doc.carpetaId)
+                    console.log('Project ID:', doc.projectId)
+
                     // Buscar y seleccionar el proyecto que contiene este documento
                     const project = projects.find(p => p.id === doc.projectId)
+                    console.log('Proyecto encontrado:', project)
+
                     if (project) {
-                      onSelectProject(project)
+                      // Navegar al proyecto y específicamente a la carpeta donde está el documento
+                      console.log('Navegando a proyecto con carpeta:', doc.carpetaId)
+                      onSelectProject(project, doc.carpetaId)
+                    } else {
+                      console.log('No se encontró el proyecto con ID:', doc.projectId)
                     }
                   }}
                 >
@@ -238,6 +302,22 @@ export const ProjectList: React.FC<ProjectListProps> = ({
                 </div>
               ))}
             </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Mostrar mensaje cuando no hay resultados de documentos */}
+      {documentSearchTerm && !fileSearchError && !isSearchingFiles && searchedDocuments.length === 0 && (
+        <Card className="text-center py-8">
+          <CardContent>
+            <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
+            <h3 className="text-lg font-semibold mb-2">No se encontraron documentos</h3>
+            <p className="text-muted-foreground mb-4">
+              No hay documentos que coincidan con "{documentSearchTerm}"
+            </p>
+            <Button variant="secundario" onClick={() => setDocumentSearchTerm("")}>
+              Limpiar búsqueda
+            </Button>
           </CardContent>
         </Card>
       )}
@@ -261,7 +341,8 @@ export const ProjectList: React.FC<ProjectListProps> = ({
                     // Buscar y seleccionar el proyecto que contiene esta carpeta
                     const project = projects.find(p => p.id === folder.proyecto_id.toString())
                     if (project) {
-                      onSelectProject(project)
+                      // Navegar al proyecto y específicamente a la carpeta seleccionada
+                      onSelectProject(project, folder.id)
                     }
                   }}
                 >
@@ -304,7 +385,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({
             <ProjectCard
               key={project.id}
               project={project}
-              onSelect={onSelectProject}
+              onSelect={(project) => onSelectProject(project)}
               totalAlerts={0} // This will be calculated in ProjectCard
             />
           ))}

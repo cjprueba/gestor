@@ -144,3 +144,64 @@ export function getFileIcon(type: FileType): React.ReactElement {
       )
   }
 }
+
+/**
+ * Convierte una cadena base64 a un Blob
+ */
+export function base64ToBlob(base64: string, mimeType: string): Blob {
+  // Eliminar el prefijo data: si existe
+  const cleanBase64 = base64.replace(/^data:[^;]+;base64,/, '');
+
+  // Decodificar base64
+  const byteCharacters = atob(cleanBase64);
+  const byteNumbers = new Array(byteCharacters.length);
+
+  for (let i = 0; i < byteCharacters.length; i++) {
+    byteNumbers[i] = byteCharacters.charCodeAt(i);
+  }
+
+  const byteArray = new Uint8Array(byteNumbers);
+  return new Blob([byteArray], { type: mimeType });
+}
+
+/**
+ * Descarga un archivo desde base64
+ */
+export function downloadFileFromBase64(
+  base64: string,
+  filename: string,
+  mimeType: string
+): void {
+  const blob = base64ToBlob(base64, mimeType);
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.style.display = 'none';
+
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  // Limpiar el URL temporal
+  setTimeout(() => URL.revokeObjectURL(url), 100);
+}
+
+/**
+ * Crea una URL temporal para visualizar un archivo desde base64
+ */
+export function createBlobUrlFromBase64(
+  base64: string,
+  mimeType: string
+): string {
+  const blob = base64ToBlob(base64, mimeType);
+  return URL.createObjectURL(blob);
+}
+
+/**
+ * Revoca una URL de blob temporal
+ */
+export function revokeBlobUrl(url: string): void {
+  URL.revokeObjectURL(url);
+}

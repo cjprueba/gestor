@@ -26,17 +26,28 @@ export default function HomePage() {
     return transformApiProjectToComponent(proyectoLista, proyectoDetalle);
   });
 
-  const handleCreateProject = (newProject: Project) => {
-    // Por ahora solo actualizamos el estado local
-    // En el futuro, esto debería invalidar las queries para refrescar los datos
-    console.log("Proyecto creado:", newProject);
-  }
+
 
   const handleUpdateProject = (updatedProject: Project) => {
     // Por ahora solo actualizamos el estado local
     // En el futuro, esto debería invalidar las queries para refrescar los datos
     console.log("Proyecto actualizado:", updatedProject);
     setSelectedProject(updatedProject)
+  }
+
+  const handleSelectProject = (project: Project, targetFolderId?: number) => {
+    console.log('handleSelectProject llamado con:', { project, targetFolderId })
+
+    // Si hay un targetFolderId, lo almacenamos en el proyecto para que ProjectView lo use
+    if (targetFolderId) {
+      const projectWithTargetFolder = {
+        ...project,
+        targetFolderId // Agregar el ID de la carpeta objetivo
+      }
+      setSelectedProject(projectWithTargetFolder)
+    } else {
+      setSelectedProject(project)
+    }
   }
 
   // Mostrar loading mientras se cargan los datos
@@ -126,14 +137,13 @@ export default function HomePage() {
 
       <ProjectList
         projects={projects}
-        onSelectProject={setSelectedProject}
+        onSelectProject={handleSelectProject}
         onCreateProject={() => setIsCreateDialogOpen(true)}
       />
 
       <CreateProjectDialog
         isOpen={isCreateDialogOpen}
         onClose={() => setIsCreateDialogOpen(false)}
-        onCreateProject={handleCreateProject}
       />
     </div>
   )

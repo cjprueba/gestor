@@ -5,6 +5,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { ProjectsService } from "../services/projects.service";
+import { toast } from "sonner";
 
 // Hook para obtener la lista de proyectos
 export const useProyectos = () => {
@@ -81,13 +82,23 @@ export const useProyectoCompleto = (id: number | undefined) => {
 
 // Hooks existentes para compatibilidad
 export const useCreateProject = () => {
-  // Implementar cuando sea necesario
-  return {
-    mutateAsync: async (data: any) => {
-      return ProjectsService.createProject(data);
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: any) => ProjectsService.createProject(data),
+    onSuccess: () => {
+      // Invalidar las queries de proyectos para refrescar los datos
+      queryClient.invalidateQueries({ queryKey: ["proyectos"] });
+      queryClient.invalidateQueries({ queryKey: ["proyecto"] });
+      toast.success("Proyecto creado exitosamente");
     },
-    isPending: false,
-  };
+    onError: (error: any) => {
+      console.error("Error al crear proyecto:", error);
+      toast.error(
+        error.response?.data?.message || "Error al crear el proyecto"
+      );
+    },
+  });
 };
 
 export const useAvanzarEtapa = () => {

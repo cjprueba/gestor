@@ -45,9 +45,41 @@ export interface DownloadDocumentoResponse {
   url: string;
 }
 
+export interface DownloadDocumentoBase64Response {
+  success: boolean;
+  message: string;
+  data: {
+    filename: string;
+    extension: string;
+    size: number;
+    type: string;
+    base64: string;
+    path: string;
+  };
+}
+
+export interface TipoDocumento {
+  id: number;
+  nombre: string;
+  descripcion: string;
+  requiere_nro_pro_exp: boolean;
+  requiere_saf_exp: boolean;
+  requiere_numerar: boolean;
+  requiere_tramitar: boolean;
+  activo: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface GetTiposDocumentoResponse {
+  success: boolean;
+  tipos_documentos: TipoDocumento[];
+}
+
 export interface UploadDocumentoRequest {
   carpeta_id: number;
   archivos: File[];
+  tipo_documento_id: number;
   configuracion_alertas?: {
     hasAlert: boolean;
     alertType?: "due_date" | "days_after";

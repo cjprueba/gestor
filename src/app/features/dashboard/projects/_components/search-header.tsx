@@ -114,12 +114,16 @@ export function SearchHeader({
                 )}
               </div>
               {/* Resultados de búsqueda de proyectos */}
-              {projectResults !== undefined && projectSearchTerm && (
-                <div className="mt-1 flex items-center text-xs text-muted-foreground">
-                  <FolderOpen className="w-3 h-3 mr-1" />
-                  {projectResults} {context === "projects" ? "proyectos" : "carpetas"} encontradas
-                </div>
-              )}
+              <div className="mt-1 flex items-center text-xs text-muted-foreground min-h-[16px]">
+                {projectResults !== undefined && projectSearchTerm ? (
+                  <>
+                    <FolderOpen className="w-3 h-3 mr-1" />
+                    {projectResults} {context === "projects" ? "proyectos" : "carpetas"} encontrados
+                  </>
+                ) : (
+                  <span className="invisible">Espacio reservado</span>
+                )}
+              </div>
             </div>
 
             {/* Buscador de documentos */}
@@ -148,12 +152,16 @@ export function SearchHeader({
                 )}
               </div>
               {/* Resultados de búsqueda de documentos */}
-              {documentResults !== undefined && documentSearchTerm && (
-                <div className="mt-1 flex items-center text-xs text-muted-foreground">
-                  <FileText className="w-3 h-3 mr-1" />
-                  {documentResults} documentos encontrados
-                </div>
-              )}
+              <div className="mt-1 flex items-center text-xs text-muted-foreground min-h-[16px]">
+                {documentResults !== undefined && documentSearchTerm ? (
+                  <>
+                    <FileText className="w-3 h-3 mr-1" />
+                    {documentResults} documentos encontrados
+                  </>
+                ) : (
+                  <span className="invisible">Espacio reservado</span>
+                )}
+              </div>
             </div>
           </div>
           {/* Filtro por etapas */}

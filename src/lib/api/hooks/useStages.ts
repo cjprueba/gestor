@@ -9,6 +9,7 @@ import type {
   StagesQueryParams,
   CreateStageRequest,
 } from "@/shared/types/stage-types";
+import { toast } from "sonner";
 
 // Query keys para react-query
 export const stagesKeys = {
@@ -72,9 +73,11 @@ export const useCreateStage = () => {
     onSuccess: () => {
       // Invalidar todas las queries de etapas para refrescar los datos
       queryClient.invalidateQueries({ queryKey: stagesKeys.all });
+      toast.success("Etapa creada exitosamente");
     },
     onError: (error) => {
       console.error("Error al crear etapa:", error);
+      toast.error("Error al crear la etapa");
     },
   });
 };
@@ -93,9 +96,11 @@ export const useUpdateStage = () => {
       queryClient.invalidateQueries({ queryKey: stagesKeys.detail(id) });
       queryClient.invalidateQueries({ queryKey: stagesKeys.lists() });
       queryClient.invalidateQueries({ queryKey: stagesKeys.activas() });
+      toast.success("Etapa actualizada exitosamente");
     },
     onError: (error) => {
       console.error("Error al actualizar etapa:", error);
+      toast.error("Error al actualizar la etapa");
     },
   });
 };
@@ -130,9 +135,11 @@ export const useReorderStages = () => {
     onSuccess: () => {
       // Invalidar todas las queries de etapas
       queryClient.invalidateQueries({ queryKey: stagesKeys.all });
+      toast.success("Orden de etapas actualizado exitosamente");
     },
     onError: (error) => {
       console.error("Error al reordenar etapas:", error);
+      toast.error("Error al reordenar las etapas");
     },
   });
 };
@@ -180,9 +187,11 @@ export const useCreateStageType = () => {
     onSuccess: () => {
       // Invalidar la query de tipos de etapa para refrescar los datos
       queryClient.invalidateQueries({ queryKey: stagesKeys.types() });
+      toast.success("Tipo de etapa creado con éxito");
     },
     onError: (error) => {
       console.error("Error al crear tipo de etapa:", error);
+      toast.error("Error al crear tipo de etapa");
     },
   });
 };

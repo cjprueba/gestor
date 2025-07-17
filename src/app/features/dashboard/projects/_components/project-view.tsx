@@ -9,12 +9,14 @@ import { Label } from "@/shared/components/ui/label"
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
 import { cn } from "@/shared/lib/utils"
+import { downloadFileFromBase64, createBlobUrlFromBase64, revokeBlobUrl } from "@/shared/lib/file-utils"
 import type { CarpetaItem, CreateCarpetaRequest } from "@/shared/types/project-types"
 import { getStageColor } from "@/shared/utils/stage-colors"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import { ArrowLeft, CalendarIcon, FileText, FolderOpen, Plus, Search, Upload } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
+import { useQueryClient } from "@tanstack/react-query"
 import AlertsPanel from "./alerts-panel"
 import DetailsSheet from "./details-sheet"
 import { FolderCard } from "./folder-card"
@@ -25,7 +27,13 @@ import { SearchHeader } from "./search-header"
 import type { Project } from "./types"
 import { DocumentContextMenu } from "./document-context-menu"
 import { DocumentPreviewModal } from "./document-preview-modal"
+import { DeleteConfirmationDialog } from "./delete-confirmation-dialog"
 import type { DocumentoItem } from "@/shared/types/project-types"
+
+// Tipo extendido para documento con URL de preview temporal
+interface DocumentoItemWithPreview extends DocumentoItem {
+  previewUrl?: string;
+}
 
 interface ProjectViewProps {
   project: Project
@@ -106,10 +114,13 @@ const AnimatedText = ({ text, className = "" }: AnimatedTextProps) => {
 }
 
 export default function ProjectView({ project, onBack }: ProjectViewProps) {
+  const queryClient = useQueryClient()
+
   // Estado para navegación de carpetas
   const [currentCarpetaId, setCurrentCarpetaId] = useState<number | undefined>(
-    project.carpeta_raiz_id
+    project.targetFolderId || project.carpeta_raiz_id
   )
+
   const [navigationPath, setNavigationPath] = useState<Array<{ id: number, nombre: string }>>([])
 
   // Estados para búsqueda avanzada
@@ -130,6 +141,7 @@ export default function ProjectView({ project, onBack }: ProjectViewProps) {
 
   // Estados para subir documentos
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
+  const [selectedTipoDocumentoId, setSelectedTipoDocumentoId] = useState<number | null>(null)
   // const [selectedFolderId, setSelectedFolderId] = useState<string>("")
   // const [showDestinationSelector, setShowDestinationSelector] = useState(false)
   const [documentConfig, setDocumentConfig] = useState({
@@ -147,12 +159,28 @@ export default function ProjectView({ project, onBack }: ProjectViewProps) {
   const [selectedParentFolderId, setSelectedParentFolderId] = useState<number | null>(null)
 
   // Estado para preview de documento
-  const [previewedDocument, setPreviewedDocument] = useState<DocumentoItem | null>(null)
+  const [previewedDocument, setPreviewedDocument] = useState<DocumentoItemWithPreview | null>(null)
   const [isPreviewOpen, setIsPreviewOpen] = useState(false)
 
+  // Estado para diálogo de confirmación de eliminación
+  const [documentToDelete, setDocumentToDelete] = useState<DocumentoItem | null>(null)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+
   // Hook para descargar documento
-  const { useDownloadDocumento } = useDocumentos()
-  const downloadDocumentoMutation = useDownloadDocumento()
+  const { useDownloadDocumentoBase64, useDeleteDocumento, useGetTiposDocumento } = useDocumentos()
+  const downloadDocumentoBase64Mutation = useDownloadDocumentoBase64()
+  const deleteDocumentoMutation = useDeleteDocumento()
+  const { data: tiposDocumento } = useGetTiposDocumento()
+
+  // Limpiar targetFolderId después de usarlo para evitar interferencias en la navegación
+  useEffect(() => {
+    if (project.targetFolderId) {
+      // Limpiar el targetFolderId del proyecto después de usarlo
+      const projectWithoutTarget = { ...project }
+      delete projectWithoutTarget.targetFolderId
+      // Nota: En una implementación real, esto debería actualizar el estado del proyecto padre
+    }
+  }, [project.targetFolderId])
 
   // Obtener contenido de la carpeta actual
   const { data: carpetaData, isLoading, error } = useCarpetaContenido(currentCarpetaId)
@@ -208,7 +236,7 @@ export default function ProjectView({ project, onBack }: ProjectViewProps) {
       filteredDocuments = []
     } else if (documentSearchTerm && !folderSearchTerm) {
       filteredDocuments = documents.filter((doc: any) =>
-        doc.nombre.toLowerCase().includes(documentSearchTerm.toLowerCase())
+        (doc.nombre_archivo || doc.nombre || '').toLowerCase().includes(documentSearchTerm.toLowerCase())
       )
       filteredFolders = []
     } else if (folderSearchTerm && documentSearchTerm) {
@@ -216,7 +244,7 @@ export default function ProjectView({ project, onBack }: ProjectViewProps) {
         folder.nombre.toLowerCase().includes(folderSearchTerm.toLowerCase())
       )
       filteredDocuments = documents.filter((doc: any) =>
-        doc.nombre.toLowerCase().includes(documentSearchTerm.toLowerCase())
+        (doc.nombre_archivo || doc.nombre || '').toLowerCase().includes(documentSearchTerm.toLowerCase())
       )
     }
 
@@ -387,6 +415,11 @@ export default function ProjectView({ project, onBack }: ProjectViewProps) {
   const uploadDocuments = async () => {
     if (selectedFiles.length === 0) return
 
+    if (!selectedTipoDocumentoId) {
+      console.error("Debe seleccionar un tipo de documento")
+      return
+    }
+
     const currentCarpeta = carpetaData?.carpeta
     const carpetaDestinoId = selectedParentFolderId || currentCarpeta?.id || project.carpeta_raiz_id
 
@@ -399,6 +432,7 @@ export default function ProjectView({ project, onBack }: ProjectViewProps) {
       await uploadDocumentosMutation.mutateAsync({
         carpeta_id: carpetaDestinoId,
         archivos: selectedFiles,
+        tipo_documento_id: selectedTipoDocumentoId,
         configuracion_alertas: documentConfig.hasAlert ? {
           hasAlert: documentConfig.hasAlert,
           alertType: documentConfig.alertType,
@@ -407,8 +441,13 @@ export default function ProjectView({ project, onBack }: ProjectViewProps) {
         } : undefined
       })
 
+      // Invalidar queries para refrescar la lista
+      queryClient.invalidateQueries({ queryKey: ["carpeta-contenido", currentCarpetaId] })
+      queryClient.invalidateQueries({ queryKey: ["carpetas-proyecto", parseInt(project.id)] })
+
       // Reset estados
       setSelectedFiles([])
+      setSelectedTipoDocumentoId(null)
       setSelectedParentFolderId(null)
       setIsUploadDialogOpen(false)
       setDocumentConfig({
@@ -451,6 +490,10 @@ export default function ProjectView({ project, onBack }: ProjectViewProps) {
 
     try {
       await createCarpetaMutation.mutateAsync(newCarpetaData)
+
+      // Invalidar queries para refrescar la lista
+      queryClient.invalidateQueries({ queryKey: ["carpeta-contenido", currentCarpetaId] })
+      queryClient.invalidateQueries({ queryKey: ["carpetas-proyecto", parseInt(project.id)] })
 
       // Reset estados
       setNewFolderName("")
@@ -541,6 +584,10 @@ export default function ProjectView({ project, onBack }: ProjectViewProps) {
       carpetaId: selectedFolderForAction.id,
       data: renameData
     })
+
+    // Invalidar queries para refrescar la lista
+    queryClient.invalidateQueries({ queryKey: ["carpeta-contenido", currentCarpetaId] })
+    queryClient.invalidateQueries({ queryKey: ["carpetas-proyecto", parseInt(project.id)] })
   }
 
   // Función para mover carpeta
@@ -562,17 +609,104 @@ export default function ProjectView({ project, onBack }: ProjectViewProps) {
       carpetaId: selectedFolderForAction.id,
       data: moveData
     })
+
+    // Invalidar queries para refrescar la lista
+    queryClient.invalidateQueries({ queryKey: ["carpeta-contenido", currentCarpetaId] })
+    queryClient.invalidateQueries({ queryKey: ["carpetas-proyecto", parseInt(project.id)] })
   }
 
   // Handler para ver documento
   const handleViewDocument = (doc: DocumentoItem) => {
-    setPreviewedDocument(doc)
-    setIsPreviewOpen(true)
+    // Usar el nuevo endpoint base64 para obtener el documento
+    downloadDocumentoBase64Mutation.mutate(
+      { documentoId: doc.id },
+      {
+        onSuccess: (response) => {
+          if (response.success && response.data.base64) {
+            // Asegurar que el tipo MIME sea correcto para PDFs
+            let mimeType = response.data.type;
+            if (doc.tipo_mime === 'application/pdf' && mimeType !== 'application/pdf') {
+              mimeType = 'application/pdf';
+            }
+
+            // Crear URL temporal para visualización
+            const blobUrl = createBlobUrlFromBase64(response.data.base64, mimeType);
+
+            // Crear un documento temporal con la URL para el preview
+            const docWithUrl: DocumentoItemWithPreview = {
+              ...doc,
+              previewUrl: blobUrl
+            };
+
+            setPreviewedDocument(docWithUrl);
+            setIsPreviewOpen(true);
+          }
+        },
+        onError: (error) => {
+          console.error("Error al cargar documento para vista previa:", error);
+        }
+      }
+    );
   }
 
   // Handler para descargar documento
   const handleDownloadDocument = (doc: DocumentoItem) => {
-    downloadDocumentoMutation.mutate(doc.id)
+    // Usar el nuevo endpoint base64 para descargar
+    downloadDocumentoBase64Mutation.mutate(
+      { documentoId: doc.id },
+      {
+        onSuccess: (response) => {
+          if (response.success && response.data.base64) {
+            // Descargar usando la función utilitaria
+            downloadFileFromBase64(
+              response.data.base64,
+              response.data.filename,
+              response.data.type
+            );
+          }
+        },
+        onError: (error) => {
+          console.error("Error al descargar documento:", error);
+        }
+      }
+    );
+  }
+
+  // Handler para abrir diálogo de confirmación de eliminación
+  const handleDeleteDocument = (doc: DocumentoItem) => {
+    setDocumentToDelete(doc)
+    setIsDeleteDialogOpen(true)
+  }
+
+  // Handler para confirmar eliminación
+  const handleConfirmDelete = () => {
+    if (!documentToDelete) return
+
+    deleteDocumentoMutation.mutate(
+      documentToDelete.id,
+      {
+        onSuccess: () => {
+          // Invalidar queries para refrescar la lista
+          queryClient.invalidateQueries({ queryKey: ["carpeta-contenido", currentCarpetaId] })
+          queryClient.invalidateQueries({ queryKey: ["carpetas-proyecto", parseInt(project.id)] })
+
+          // Cerrar el modal de preview si está abierto
+          if (isPreviewOpen) {
+            setIsPreviewOpen(false)
+            setPreviewedDocument(null)
+          }
+          // Cerrar el diálogo de confirmación
+          setIsDeleteDialogOpen(false)
+          setDocumentToDelete(null)
+        },
+        onError: (error) => {
+          console.error("Error al eliminar documento:", error);
+          // Cerrar el diálogo de confirmación en caso de error
+          setIsDeleteDialogOpen(false)
+          setDocumentToDelete(null)
+        }
+      }
+    );
   }
 
   // Obtener contenido filtrado
@@ -659,6 +793,7 @@ export default function ProjectView({ project, onBack }: ProjectViewProps) {
               <div className="space-y-4">
                 {/* Selector de carpeta destino */}
                 <div className="mt-3">
+                  <Label className="text-sm font-medium">Carpeta destino</Label>
                   <Select
                     value={selectedParentFolderId?.toString() || "current"}
                     onValueChange={(value) => {
@@ -709,6 +844,29 @@ export default function ProjectView({ project, onBack }: ProjectViewProps) {
                             </SelectItem>
                           ))}
                         </div>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Selector de tipo de documento */}
+                <div>
+                  <Label className="text-sm font-medium">Tipo de documento *</Label>
+                  <Select
+                    value={selectedTipoDocumentoId?.toString() || ""}
+                    onValueChange={(value) => setSelectedTipoDocumentoId(value ? parseInt(value) : null)}
+                  >
+                    <SelectTrigger className="w-full mt-1">
+                      <SelectValue placeholder="Seleccionar tipo de documento..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {tiposDocumento?.tipos_documentos?.map((tipo) => (
+                        <SelectItem key={tipo.id} value={tipo.id.toString()}>
+                          <div className="flex flex-col gap-1">
+                            <span className="font-medium">{tipo.nombre}</span>
+                            <span className="text-xs text-muted-foreground">{tipo.descripcion}</span>
+                          </div>
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -874,7 +1032,7 @@ export default function ProjectView({ project, onBack }: ProjectViewProps) {
                   <Button
                     onClick={uploadDocuments}
                     className="flex-1"
-                    disabled={selectedFiles.length === 0 || !selectedParentFolderId || uploadDocumentosMutation.isPending}
+                    disabled={selectedFiles.length === 0 || !selectedTipoDocumentoId || uploadDocumentosMutation.isPending}
                   >
                     {uploadDocumentosMutation.isPending ? (
                       <>
@@ -1137,6 +1295,7 @@ export default function ProjectView({ project, onBack }: ProjectViewProps) {
                     document={doc}
                     onView={handleViewDocument}
                     onDownload={handleDownloadDocument}
+                    onDelete={handleDeleteDocument}
                   />
                 </div>
               </div>
@@ -1253,9 +1412,31 @@ export default function ProjectView({ project, onBack }: ProjectViewProps) {
       <DocumentPreviewModal
         document={previewedDocument}
         isOpen={isPreviewOpen}
-        onClose={() => setIsPreviewOpen(false)}
+        onClose={() => {
+          // Limpiar URL temporal si existe
+          if (previewedDocument?.previewUrl) {
+            revokeBlobUrl(previewedDocument.previewUrl);
+          }
+          setPreviewedDocument(null);
+          setIsPreviewOpen(false);
+        }}
         onDownload={() => handleDownloadDocument(previewedDocument!)}
         onView={(id) => window.open(`/api/documents/${id}/preview`, "_blank")}
+        onDelete={() => handleDeleteDocument(previewedDocument!)}
+      />
+
+      {/* Diálogo de confirmación de eliminación */}
+      <DeleteConfirmationDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={() => {
+          setIsDeleteDialogOpen(false)
+          setDocumentToDelete(null)
+        }}
+        onConfirm={handleConfirmDelete}
+        title="Eliminar documento"
+        description="¿Estás seguro de que quieres eliminar este documento? Esta acción no se puede deshacer."
+        itemName={documentToDelete?.nombre_archivo || ""}
+        isLoading={deleteDocumentoMutation.isPending}
       />
     </div>
   )

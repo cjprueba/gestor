@@ -18,14 +18,36 @@ export interface SearchResult {
 }
 
 export interface FileSearchResult {
-  id: number;
-  nombre: string;
-  tipo: string;
-  tamaño: number;
-  fecha_subida: string;
-  proyecto_id: number;
-  proyecto_nombre: string;
-  carpeta: string;
+  id: string;
+  nombre_archivo: string;
+  extension: string;
+  tamano: number;
+  tipo_mime: string;
+  descripcion: string | null;
+  categoria: string | null;
+  estado: string;
+  version: string;
+  carpeta_id: number;
+  s3_path: string;
+  etiquetas: string[];
+  proyecto_id: number | null;
+  subido_por: number;
+  fecha_creacion: string;
+  fecha_ultima_actualizacion: string;
+}
+
+export interface FileSearchResponse {
+  archivos: FileSearchResult[];
+  paginacion: {
+    page: number;
+    limit: number;
+    total: number;
+    total_pages: number;
+  };
+  estadisticas: {
+    tiempo_busqueda_ms: number;
+    consulta_original: string;
+  };
 }
 
 export interface FolderSearchResult {
@@ -60,9 +82,17 @@ export const searchService = {
   },
 
   // Búsqueda de archivos
-  async searchFiles(query: string): Promise<FileSearchResult[]> {
+  async searchFiles(
+    query: string,
+    extension?: string
+  ): Promise<FileSearchResponse> {
+    const params: any = { query };
+    if (extension) {
+      params.extension = extension;
+    }
+
     const response = await apiClient.get("/busqueda/archivos", {
-      params: { q: query },
+      params,
     });
     return response.data;
   },
@@ -70,7 +100,7 @@ export const searchService = {
   // Búsqueda de carpetas
   async searchFolders(query: string): Promise<FolderSearchResult[]> {
     const response = await apiClient.get("/busqueda/carpetas", {
-      params: { q: query },
+      params: { query },
     });
     return response.data;
   },

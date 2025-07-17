@@ -10,18 +10,15 @@ import { StageSpecificFieldsStep } from "./form-steps/StageSpecificFieldsStep";
 import { FolderTemplatesStep } from "./form-steps/FolderTemplatesStep";
 import { ProjectAlertsStep } from "./form-steps/ProjectAlertsStep";
 import { useCreateProjectForm } from "./hooks/useCreateProjectForm";
-import type { Project } from "./types";
 
 interface CreateProjectDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onCreateProject: (project: Project) => void;
 }
 
 export const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
   isOpen,
   onClose,
-  onCreateProject,
 }) => {
   const {
     // Estado del formulario
@@ -88,32 +85,8 @@ export const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
 
     const success = await handleCreateProject();
     if (success) {
-      // Crear un proyecto mock para mantener compatibilidad
-      const formData = methods.getValues();
-      const newProject: Project = {
-        id: Date.now().toString(),
-        name: formData.createProjectStepOne.nombre,
-        createdAt: new Date(),
-        etapa: formData.createProjectStepOne.etapa,
-        projectData: {
-          nombre: formData.createProjectStepOne.nombre,
-          etapa: formData.createProjectStepOne.etapa,
-        },
-        structure: {
-          id: "root",
-          name: formData.createProjectStepOne.nombre,
-          minDocuments: 0,
-          documents: [],
-          subfolders: formData.createProjectStepThree.carpetas.map(carpeta => ({
-            id: `folder-${carpeta.nombre.toLowerCase().replace(/\s+/g, '-')}`,
-            name: carpeta.nombre,
-            minDocuments: 3,
-            documents: [],
-            subfolders: [],
-          })),
-        },
-      };
-      onCreateProject(newProject);
+      // La invalidación de queries en useCreateProject refrescará automáticamente la lista
+      // No necesitamos crear un proyecto mock ni llamar a onCreateProject
       handleCloseDialog();
     }
   };

@@ -6,6 +6,15 @@ import { toast } from "sonner";
 export const useDocumentos = () => {
   const queryClient = useQueryClient();
 
+  // Hook para obtener tipos de documento
+  const useGetTiposDocumento = () => {
+    return useQuery({
+      queryKey: ["tipos-documento"],
+      queryFn: () => documentosService.getTiposDocumento(),
+      staleTime: 5 * 60 * 1000, // 5 minutos
+    });
+  };
+
   // Hook para obtener documentos de una carpeta
   const useGetDocumentosByCarpeta = (carpetaId: number) => {
     return useQuery({
@@ -22,10 +31,9 @@ export const useDocumentos = () => {
         documentosService.uploadDocumentos(request),
       onSuccess: () => {
         toast.success("Documentos subidos exitosamente");
-        // Invalidar la query de documentos de la carpeta
-        queryClient.invalidateQueries({ queryKey: ["documentos", "carpeta"] });
-        // Invalidar la query de carpetas para actualizar el contador
-        queryClient.invalidateQueries({ queryKey: ["carpetas"] });
+        // Invalidar las queries relacionadas para refrescar los datos
+        queryClient.invalidateQueries({ queryKey: ["carpeta-contenido"] });
+        queryClient.invalidateQueries({ queryKey: ["carpetas-proyecto"] });
       },
       onError: (error: any) => {
         toast.error(
@@ -42,10 +50,9 @@ export const useDocumentos = () => {
         documentosService.deleteDocumento(documentoId),
       onSuccess: () => {
         toast.success("Documento eliminado exitosamente");
-        // Invalidar la query de documentos de la carpeta
-        queryClient.invalidateQueries({ queryKey: ["documentos", "carpeta"] });
-        // Invalidar la query de carpetas para actualizar el contador
-        queryClient.invalidateQueries({ queryKey: ["carpetas"] });
+        // Invalidar las queries relacionadas para refrescar los datos
+        queryClient.invalidateQueries({ queryKey: ["carpeta-contenido"] });
+        queryClient.invalidateQueries({ queryKey: ["carpetas-proyecto"] });
       },
       onError: (error: any) => {
         toast.error(
@@ -90,10 +97,28 @@ export const useDocumentos = () => {
     });
   };
 
+  // Hook para descargar documento como base64
+  const useDownloadDocumentoBase64 = () => {
+    return useMutation({
+      mutationFn: ({ documentoId }: { documentoId: string }) =>
+        documentosService.downloadDocumentoBase64(documentoId),
+      onError: (error: any) => {
+        console.error("Error de descarga base64:", error);
+        const errorMessage =
+          error.response?.data?.message ||
+          error.message ||
+          "Error al descargar documento";
+        toast.error(errorMessage);
+      },
+    });
+  };
+
   return {
+    useGetTiposDocumento,
     useGetDocumentosByCarpeta,
     useUploadDocumentos,
     useDeleteDocumento,
     useDownloadDocumento,
+    useDownloadDocumentoBase64,
   };
 };

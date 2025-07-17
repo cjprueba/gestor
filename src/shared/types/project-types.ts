@@ -403,6 +403,7 @@ export interface DocumentoItem {
   subido_por: number;
   fecha_creacion: string;
   fecha_ultima_actualizacion: string;
+  tipo_documento_id?: number;
   creador?: {
     id: number;
     nombre_completo: string;
