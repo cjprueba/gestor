@@ -12,6 +12,7 @@ import {
   useRegiones,
   useProvincias,
   useComunas,
+  useInspectoresFiscales,
 } from "@/lib/api/hooks/useProjects";
 import { useStageTypes, useStageTypeDetail } from "@/lib/api/hooks/useStages";
 import dayjs from "dayjs";
@@ -75,7 +76,9 @@ export const useCreateProjectForm = () => {
 
   // Queries para obtener datos
   const { data: stageTypesData } = useStageTypes();
-  const { data: stageTypeDetailData } = useStageTypeDetail(selectedEtapaId);
+  const { data: stageTypeDetailData } = useStageTypeDetail(
+    selectedEtapaId || null
+  );
 
   // Auto-seleccionar "Cartera de proyecto" al cargar los datos
   useEffect(() => {
@@ -97,6 +100,7 @@ export const useCreateProjectForm = () => {
     selectedRegionId,
     selectedProvinciaId
   );
+  const { data: inspectoresFiscalesData } = useInspectoresFiscales();
 
   // Mutation para crear proyecto
   const createProjectMutation = useCreateProject();
@@ -379,6 +383,7 @@ export const useCreateProjectForm = () => {
     regiones: regionesData?.data || [],
     provincias: provinciasData?.data || [],
     comunas: comunasData?.data || [],
+    inspectoresFiscales: inspectoresFiscalesData?.data || [],
 
     // Funciones
     canProceedToNextStep,

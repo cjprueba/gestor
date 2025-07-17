@@ -1,4 +1,5 @@
 import { useCarpetaContenido, useCreateCarpeta, useCarpetasProyecto, useRenombrarCarpeta, useMoverCarpeta } from "@/lib/api/hooks/useProjects"
+import { useDocumentos } from "@/lib/api/hooks/useDocumentos"
 import { Button } from "@/shared/components/design-system/button"
 import { Calendar as CalendarComponent } from "@/shared/components/ui/calendar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
@@ -22,6 +23,9 @@ import { ProjectDetailsModal } from "./project-details-modal"
 import RenameFolderDialog from "./rename-folder-dialog"
 import { SearchHeader } from "./search-header"
 import type { Project } from "./types"
+import { DocumentContextMenu } from "./document-context-menu"
+import { DocumentPreviewModal } from "./document-preview-modal"
+import type { DocumentoItem } from "@/shared/types/project-types"
 
 interface ProjectViewProps {
   project: Project
@@ -101,7 +105,7 @@ const AnimatedText = ({ text, className = "" }: AnimatedTextProps) => {
   )
 }
 
-export default function ProjectView({ project, onBack, onUpdateProject }: ProjectViewProps) {
+export default function ProjectView({ project, onBack }: ProjectViewProps) {
   // Estado para navegación de carpetas
   const [currentCarpetaId, setCurrentCarpetaId] = useState<number | undefined>(
     project.carpeta_raiz_id
@@ -126,8 +130,8 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
 
   // Estados para subir documentos
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
-  const [selectedFolderId, setSelectedFolderId] = useState<string>("")
-  const [showDestinationSelector, setShowDestinationSelector] = useState(false)
+  // const [selectedFolderId, setSelectedFolderId] = useState<string>("")
+  // const [showDestinationSelector, setShowDestinationSelector] = useState(false)
   const [documentConfig, setDocumentConfig] = useState({
     hasAlert: false,
     alertType: "due_date" as "due_date" | "days_after",
@@ -142,6 +146,14 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
   const [showFolderSelector, setShowFolderSelector] = useState(false)
   const [selectedParentFolderId, setSelectedParentFolderId] = useState<number | null>(null)
 
+  // Estado para preview de documento
+  const [previewedDocument, setPreviewedDocument] = useState<DocumentoItem | null>(null)
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false)
+
+  // Hook para descargar documento
+  const { useDownloadDocumento } = useDocumentos()
+  const downloadDocumentoMutation = useDownloadDocumento()
+
   // Obtener contenido de la carpeta actual
   const { data: carpetaData, isLoading, error } = useCarpetaContenido(currentCarpetaId)
 
@@ -155,8 +167,12 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
   const renameCarpetaMutation = useRenombrarCarpeta()
   const moveCarpetaMutation = useMoverCarpeta()
 
+  // Hooks para documentos
+  const { useUploadDocumentos } = useDocumentos()
+  const uploadDocumentosMutation = useUploadDocumentos()
+
   // Funciones de navegación
-  const navigateToFolder = useCallback((carpetaId: number, carpetaNombre: string) => {
+  const navigateToFolder = useCallback((carpetaId: number) => {
     if (currentCarpetaId) {
       const currentCarpeta = carpetaData?.carpeta
       if (currentCarpeta) {
@@ -368,20 +384,43 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
     setSelectedFiles((prev) => prev.filter((_, i) => i !== index))
   }
 
-  const uploadDocuments = () => {
+  const uploadDocuments = async () => {
     if (selectedFiles.length === 0) return
 
-    // Reset estados
-    setSelectedFiles([])
-    setSelectedFolderId("")
-    setIsUploadDialogOpen(false)
-    setDocumentConfig({
-      hasAlert: false,
-      alertType: "due_date",
-      alertDate: "",
-      alertDays: 7,
-    })
-    setShowDestinationSelector(false)
+    const currentCarpeta = carpetaData?.carpeta
+    const carpetaDestinoId = selectedParentFolderId || currentCarpeta?.id || project.carpeta_raiz_id
+
+    if (!carpetaDestinoId) {
+      console.error("No se pudo determinar la carpeta destino")
+      return
+    }
+
+    try {
+      await uploadDocumentosMutation.mutateAsync({
+        carpeta_id: carpetaDestinoId,
+        archivos: selectedFiles,
+        configuracion_alertas: documentConfig.hasAlert ? {
+          hasAlert: documentConfig.hasAlert,
+          alertType: documentConfig.alertType,
+          alertDate: documentConfig.alertDate,
+          alertDays: documentConfig.alertDays,
+        } : undefined
+      })
+
+      // Reset estados
+      setSelectedFiles([])
+      setSelectedParentFolderId(null)
+      setIsUploadDialogOpen(false)
+      setDocumentConfig({
+        hasAlert: false,
+        alertType: "due_date",
+        alertDate: "",
+        alertDays: 7,
+      })
+      // setShowDestinationSelector(false)
+    } catch (error) {
+      console.error("Error al subir documentos:", error)
+    }
   }
 
   // Función para crear carpeta
@@ -525,12 +564,30 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
     })
   }
 
+  // Handler para ver documento
+  const handleViewDocument = (doc: DocumentoItem) => {
+    setPreviewedDocument(doc)
+    setIsPreviewOpen(true)
+  }
+
+  // Handler para descargar documento
+  const handleDownloadDocument = (doc: DocumentoItem) => {
+    downloadDocumentoMutation.mutate(doc.id)
+  }
+
   // Obtener contenido filtrado
   const { folders: filteredFolders, documents: filteredDocuments, folderResults, documentResults } = getFilteredContent()
   const currentCarpeta = carpetaData?.carpeta
   const allAlerts = generateMockAlerts()
   const availableFolders = getAvailableFolders()
   const organizedFolders = getOrganizedFolders()
+
+  // Inicializar carpeta destino cuando se abre el modal
+  useEffect(() => {
+    if (isUploadDialogOpen) {
+      setSelectedParentFolderId(currentCarpeta?.id || project.carpeta_raiz_id || null)
+    }
+  }, [isUploadDialogOpen, currentCarpeta, project.carpeta_raiz_id])
 
   if (isLoading) {
     return (
@@ -594,16 +651,68 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
             </DialogTrigger>
             <DialogContent className="max-w-lg">
               <DialogHeader>
-                <DialogTitle>
-                  {navigationPath.length > 0 || currentCarpeta ? `Subir a: ${currentCarpeta?.nombre}` : "Subir documento"}
-                </DialogTitle>
+                <DialogTitle>Subir documento</DialogTitle>
                 <DialogDescription>
-                  {navigationPath.length > 0 || currentCarpeta
-                    ? `Los documentos se agregarán a la carpeta "${currentCarpeta?.nombre}"`
-                    : "Selecciona la carpeta destino para tus documentos"}
+                  Selecciona la carpeta destino y los archivos que deseas subir
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
+                {/* Selector de carpeta destino */}
+                <div className="mt-3">
+                  <Select
+                    value={selectedParentFolderId?.toString() || "current"}
+                    onValueChange={(value) => {
+                      if (value === "current") {
+                        setSelectedParentFolderId(null)
+                      } else {
+                        setSelectedParentFolderId(value ? parseInt(value) : null)
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Seleccionar carpeta destino...">
+                        {getSelectedFolderName()}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent className="max-h-80">
+                      <SelectItem value="current">
+                        {currentCarpeta?.nombre || "Raíz del proyecto"}
+                      </SelectItem>
+
+                      {organizedFolders.sections.map((section, sectionIndex) => (
+                        <div key={sectionIndex}>
+                          {/* Separador de sección */}
+                          <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground bg-muted/50 border-b">
+                            {section.title}
+                          </div>
+
+                          {/* Carpetas de la sección */}
+                          {section.folders.map((carpeta) => (
+                            <SelectItem
+                              key={carpeta.id}
+                              value={carpeta.id.toString()}
+                              className="pl-6"
+                            >
+                              <div className="flex flex-col gap-1 w-full">
+                                <div className="flex items-center gap-2">
+                                  <FolderOpen className="w-3 h-3 text-blue-500 flex-shrink-0" />
+                                  <span className="truncate font-medium">{carpeta.nombre}</span>
+                                </div>
+                                {section.type === "others" && (
+                                  <div className="flex items-center gap-1 ml-5">
+                                    <span className="text-xs text-muted-foreground truncate">
+                                      {getFolderPath(carpeta.id)}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </div>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 {/* Zona de arrastrar y soltar */}
                 <div
                   className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center hover:border-muted-foreground/50 transition-colors cursor-pointer"
@@ -765,15 +874,28 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
                   <Button
                     onClick={uploadDocuments}
                     className="flex-1"
-                    disabled={selectedFiles.length === 0}
+                    disabled={selectedFiles.length === 0 || !selectedParentFolderId || uploadDocumentosMutation.isPending}
                   >
-                    <Upload className="w-4 h-4 mr-2" />
-                    Subir{" "}
-                    {selectedFiles.length > 0
-                      ? `${selectedFiles.length} archivo${selectedFiles.length > 1 ? "s" : ""}`
-                      : "Documentos"}
+                    {uploadDocumentosMutation.isPending ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                        Subiendo...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-4 h-4 mr-2" />
+                        Subir{" "}
+                        {selectedFiles.length > 0
+                          ? `${selectedFiles.length} archivo${selectedFiles.length > 1 ? "s" : ""}`
+                          : "Documentos"}
+                      </>
+                    )}
                   </Button>
-                  <Button variant="secundario" onClick={() => setIsUploadDialogOpen(false)}>
+                  <Button
+                    variant="secundario"
+                    onClick={() => setIsUploadDialogOpen(false)}
+                    disabled={uploadDocumentosMutation.isPending}
+                  >
                     Cancelar
                   </Button>
                 </div>
@@ -975,8 +1097,8 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
           onNavigateToFolder={(folderId) => {
             console.log("Navegar a carpeta:", folderId)
           }}
-          onUploadDocument={(folderId) => {
-            setSelectedFolderId(folderId)
+          onUploadDocument={() => {
+            // setSelectedFolderId(folderId)
             setIsUploadDialogOpen(true)
           }}
         />
@@ -990,7 +1112,7 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
             key={folder.id}
             folder={folder}
             projectStage={project.etapa}
-            onNavigate={(folderId) => navigateToFolder(folderId, folder.nombre)}
+            onNavigate={(folderId) => navigateToFolder(folderId)}
             onViewDetails={handleViewDetails}
             onConfig={handleConfig}
             onEdit={handleEdit}
@@ -1008,7 +1130,14 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <FileText className="w-5 h-5 text-green-500" />
-                  <CardTitle className="text-lg break-words">{doc.nombre}</CardTitle>
+                  <CardTitle className="text-lg break-words">{doc.nombre_archivo}</CardTitle>
+                </div>
+                <div className="flex-shrink-0">
+                  <DocumentContextMenu
+                    document={doc}
+                    onView={handleViewDocument}
+                    onDownload={handleDownloadDocument}
+                  />
                 </div>
               </div>
             </CardHeader>
@@ -1016,15 +1145,24 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
               <div className="space-y-2">
                 <div className="flex justify-between text-sm text-muted-foreground">
                   <span>Tamaño:</span>
-                  <span>{Math.round(doc.tamaño / 1024)} KB</span>
+                  <span>{doc.tamano ? `${(doc.tamano / 1024).toFixed(1)} KB` : "N/A"}</span>
                 </div>
                 <div className="flex justify-between text-sm text-muted-foreground">
                   <span>Tipo:</span>
-                  <span>{doc.tipo}</span>
+                  <span>{doc.extension?.toUpperCase() || "N/A"}</span>
                 </div>
                 <div className="flex justify-between text-sm text-muted-foreground">
                   <span>Subido:</span>
-                  <span>{new Date(doc.fecha_subida).toLocaleDateString()}</span>
+                  <span>
+                    {doc.fecha_creacion ?
+                      new Date(doc.fecha_creacion).toLocaleDateString('es-ES', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
+                      }) :
+                      "N/A"
+                    }
+                  </span>
                 </div>
               </div>
             </CardContent>
@@ -1109,6 +1247,15 @@ export default function ProjectView({ project, onBack, onUpdateProject }: Projec
         availableFolders={availableFolders}
         getFolderPath={getFolderPath}
         carpetaRaizId={project.carpeta_raiz_id || 0}
+      />
+
+      {/* Modal de preview de documento */}
+      <DocumentPreviewModal
+        document={previewedDocument}
+        isOpen={isPreviewOpen}
+        onClose={() => setIsPreviewOpen(false)}
+        onDownload={() => handleDownloadDocument(previewedDocument!)}
+        onView={(id) => window.open(`/api/documents/${id}/preview`, "_blank")}
       />
     </div>
   )

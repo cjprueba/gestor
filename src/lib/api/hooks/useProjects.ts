@@ -163,12 +163,12 @@ export const useComunas = (region_id?: number, provincia_id?: number) => {
   });
 };
 
-// export const useInspectoresFiscales = () => {
-//   return useQuery({
-//     queryKey: ["inspectores_fiscales"],
-//     queryFn: () => ProjectsService.getInspectoresFiscales(),
-//   });
-// };
+export const useInspectoresFiscales = () => {
+  return useQuery({
+    queryKey: ["inspectores_fiscales"],
+    queryFn: () => ProjectsService.getInspectoresFiscales(),
+  });
+};
 
 // Hook para obtener la información de la etapa actual y la siguiente etapa para avanzar
 export const useEtapaAvanzarInfo = (proyectoId: number | undefined) => {
@@ -198,7 +198,7 @@ export const useCreateCarpeta = () => {
     mutationFn: (
       data: import("@/shared/types/project-types").CreateCarpetaRequest
     ) => ProjectsService.createCarpeta(data),
-    onSuccess: (data, variables) => {
+    onSuccess: () => {
       // Invalidar las queries de carpetas para refrescar los datos
       queryClient.invalidateQueries({ queryKey: ["carpeta-contenido"] });
       queryClient.invalidateQueries({ queryKey: ["proyectos"] });
@@ -232,7 +232,7 @@ export const useRenombrarCarpeta = () => {
       carpetaId: number;
       data: import("@/shared/types/project-types").RenombrarCarpetaRequest;
     }) => ProjectsService.renombrarCarpeta(carpetaId, data),
-    onSuccess: (data, variables) => {
+    onSuccess: () => {
       // Invalidar las queries relacionadas para refrescar los datos
       queryClient.invalidateQueries({ queryKey: ["carpeta-contenido"] });
       queryClient.invalidateQueries({ queryKey: ["carpetas-proyecto"] });
@@ -255,7 +255,7 @@ export const useMoverCarpeta = () => {
       carpetaId: number;
       data: import("@/shared/types/project-types").MoverCarpetaRequest;
     }) => ProjectsService.moverCarpeta(carpetaId, data),
-    onSuccess: (data, variables) => {
+    onSuccess: () => {
       // Invalidar las queries relacionadas para refrescar los datos
       queryClient.invalidateQueries({ queryKey: ["carpeta-contenido"] });
       queryClient.invalidateQueries({ queryKey: ["carpetas-proyecto"] });

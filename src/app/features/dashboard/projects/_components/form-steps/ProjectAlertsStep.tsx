@@ -10,7 +10,7 @@ interface ProjectAlertsStepProps {
 }
 
 export const ProjectAlertsStep: React.FC<ProjectAlertsStepProps> = () => {
-  const { register, formState: { errors } } = useFormContext<CreateProjectFormData>();
+  const { register, formState: { } } = useFormContext<CreateProjectFormData>();
 
   return (
     <div className="space-y-4">

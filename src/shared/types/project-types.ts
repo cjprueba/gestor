@@ -384,12 +384,30 @@ export interface CarpetaItem {
 }
 
 export interface DocumentoItem {
-  id: number;
-  nombre: string;
-  tipo: string;
-  tamaño: number;
-  fecha_subida: string;
-  // Agregar más campos según la respuesta real de la API
+  id: string;
+  nombre_archivo: string;
+  extension: string;
+  tamano: number;
+  tipo_mime: string;
+  descripcion: string;
+  categoria: string;
+  estado: string;
+  version: string;
+  carpeta_id: number;
+  s3_path: string;
+  s3_bucket_name: string;
+  s3_created: boolean;
+  hash_integridad: string;
+  etiquetas: string[];
+  proyecto_id: number;
+  subido_por: number;
+  fecha_creacion: string;
+  fecha_ultima_actualizacion: string;
+  creador?: {
+    id: number;
+    nombre_completo: string;
+    correo_electronico: string;
+  };
 }
 
 export interface CarpetaContenidoResponse {

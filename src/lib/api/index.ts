@@ -11,11 +11,13 @@ export * from "./schemas/stages.schema";
 export { StagesService } from "./services/stages.service";
 export { ProjectsService } from "./services/projects.service";
 export { searchService } from "./services/search.service";
+export { documentosService } from "./services/documentos.service";
 
 // Hooks
 export * from "./hooks/useStages";
 export * from "./hooks/useProjects";
 export * from "./hooks/useSearch";
+export * from "./hooks/useDocumentos";
 
 // Utilidades
 export * from "./utils/errorHandler";

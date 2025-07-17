@@ -416,18 +416,18 @@ export const FolderTemplatesStep: React.FC<FolderTemplatesStepProps> = ({ carpet
 
   // Función para eliminar subcarpeta
   const deleteSubfolder = (subfolderId: string) => {
-    const findSubfolderRecursively = (folders: CarpetaPersonalizada[]): Subcarpeta | null => {
-      for (const folder of folders) {
-        // Buscar en las subcarpetas directas de la carpeta
-        const found = (folder.subcarpetas || []).find(sub => sub.id === subfolderId);
-        if (found) return found;
+    // const findSubfolderRecursively = (folders: CarpetaPersonalizada[]): Subcarpeta | null => {
+    //   for (const folder of folders) {
+    //     // Buscar en las subcarpetas directas de la carpeta
+    //     const found = (folder.subcarpetas || []).find(sub => sub.id === subfolderId);
+    //     if (found) return found;
 
-        // Buscar recursivamente en las subcarpetas anidadas
-        const foundNested = findInSubfolders(folder.subcarpetas || []);
-        if (foundNested) return foundNested;
-      }
-      return null;
-    };
+    //     // Buscar recursivamente en las subcarpetas anidadas
+    //     const foundNested = findInSubfolders(folder.subcarpetas || []);
+    //     if (foundNested) return foundNested;
+    //   }
+    //   return null;
+    // };
 
     const findInSubfolders = (subfolders: Subcarpeta[]): Subcarpeta | null => {
       for (const subfolder of subfolders) {
@@ -456,7 +456,7 @@ export const FolderTemplatesStep: React.FC<FolderTemplatesStepProps> = ({ carpet
     };
 
     // Buscar la subcarpeta a eliminar antes de eliminarla
-    const subfolderToDelete = findSubfolderRecursively(customFolders);
+    // const subfolderToDelete = findSubfolderRecursively(customFolders);
 
     const updatedFolders = updateFoldersRecursively(customFolders);
     setCustomFolders(updatedFolders);
@@ -537,16 +537,16 @@ export const FolderTemplatesStep: React.FC<FolderTemplatesStepProps> = ({ carpet
 
   // Función para editar subcarpeta
   const editSubfolder = (subfolderId: string, newName: string) => {
-    const findSubfolderRecursively = (folders: CarpetaPersonalizada[]): Subcarpeta | null => {
-      for (const folder of folders) {
-        const found = (folder.subcarpetas || []).find(sub => sub.id === subfolderId);
-        if (found) return found;
+    // const findSubfolderRecursively = (folders: CarpetaPersonalizada[]): Subcarpeta | null => {
+    //   for (const folder of folders) {
+    //     const found = (folder.subcarpetas || []).find(sub => sub.id === subfolderId);
+    //     if (found) return found;
 
-        const foundNested = findInSubfolders(folder.subcarpetas || []);
-        if (foundNested) return foundNested;
-      }
-      return null;
-    };
+    //     const foundNested = findInSubfolders(folder.subcarpetas || []);
+    //     if (foundNested) return foundNested;
+    //   }
+    //   return null;
+    // };
 
     const findInSubfolders = (subfolders: Subcarpeta[]): Subcarpeta | null => {
       for (const subfolder of subfolders) {
@@ -574,7 +574,7 @@ export const FolderTemplatesStep: React.FC<FolderTemplatesStepProps> = ({ carpet
     };
 
     // Buscar la subcarpeta antes de actualizarla
-    const subfolderToUpdate = findSubfolderRecursively(customFolders);
+    // const subfolderToUpdate = findSubfolderRecursively(customFolders);
 
     const updatedFolders = updateFoldersRecursively(customFolders);
     setCustomFolders(updatedFolders);

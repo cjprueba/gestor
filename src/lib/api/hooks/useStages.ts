@@ -190,7 +190,7 @@ export const useCreateStageType = () => {
 /**
  * Hook para obtener la información detallada de un tipo de etapa
  */
-export function useStageTypeDetail(etapaId: number | undefined) {
+export function useStageTypeDetail(etapaId: number | null) {
   return useQuery({
     queryKey: stagesKeys.typeDetail(etapaId || 0),
     queryFn: () => StagesService.getStageTypeById(etapaId!),

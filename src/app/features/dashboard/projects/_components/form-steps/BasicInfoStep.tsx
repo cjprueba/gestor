@@ -1,19 +1,17 @@
-import React from "react"
-import { useFormContext } from 'react-hook-form';
-import { Input } from "@/shared/components/ui/input"
-import { Label } from "@/shared/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
-import type { CreateProjectFormData } from "@/shared/types/project-types"
 import { Badge } from "@/shared/components/ui/badge";
+import { Input } from "@/shared/components/ui/input";
+import { Label } from "@/shared/components/ui/label";
+import type { CreateProjectFormData } from "@/shared/types/project-types";
+import React from "react";
+import { useFormContext } from 'react-hook-form';
 
 interface BasicInfoStepProps {
   stageTypes: Array<{ id: number; nombre: string; descripcion: string; color: string | null }>;
 }
 
-export const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ stageTypes }) => {
-  const { register, formState: { errors }, watch, setValue } = useFormContext<CreateProjectFormData>();
-
-  const watchedEtapa = watch('createProjectStepOne.etapa');
+export const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ }) => {
+  const { register, formState: { errors }, watch } = useFormContext<CreateProjectFormData>();
+  watch('createProjectStepOne.etapa');
 
   return (
     <div className="space-y-4 flex flex-col gap-4">
