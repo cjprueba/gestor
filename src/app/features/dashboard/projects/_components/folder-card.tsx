@@ -1,5 +1,4 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
-import { getStageBorderClassFromBadge } from "@/shared/utils/stage-colors"
 import { Folder } from "lucide-react"
 import ContextMenu from "./context-menu"
 
@@ -12,6 +11,9 @@ interface FolderCardProps {
     total_carpetas_hijas: number
     fecha_creacion: string
     activa: boolean
+    etapa_tipo?: {
+      color: string;
+    };
   }
   projectStage: string
   onNavigate: (folderId: number) => void
@@ -26,7 +28,6 @@ interface FolderCardProps {
 
 export const FolderCard: React.FC<FolderCardProps> = ({
   folder,
-  projectStage,
   onNavigate,
   onViewDetails,
   onConfig,
@@ -42,7 +43,8 @@ export const FolderCard: React.FC<FolderCardProps> = ({
   return (
     <Card
       key={folder.id}
-      className={`cursor-pointer hover:shadow-lg transition-all border-1 ${getStageBorderClassFromBadge(projectStage)}`}
+      className={"cursor-pointer hover:shadow-lg transition-all border-1"}
+      style={{ borderColor: folder.etapa_tipo?.color || undefined, borderWidth: folder.etapa_tipo?.color ? 2 : undefined }}
     >
       <CardHeader>
         <div className="flex justify-between items-start">

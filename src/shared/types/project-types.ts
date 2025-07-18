@@ -381,6 +381,11 @@ export interface CarpetaItem {
   activa: boolean;
   total_documentos: number;
   total_carpetas_hijas: number;
+  etapa_tipo?: {
+    id: number;
+    nombre: string;
+    color: string;
+  };
 }
 
 export interface DocumentoItem {

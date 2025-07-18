@@ -138,24 +138,24 @@ export const AdvanceStageModal: React.FC<AdvanceStageModalProps> = ({
   }
 
   // Función legacy para compatibilidad con FolderTemplatesStep
-  const getCarpetasIniciales = () => {
-    const estructura = getCarpetasEstructura()
-    const carpetasArray: Array<{ nombre: string; tipo: string }> = []
+  // const getCarpetasIniciales = () => {
+  //   const estructura = getCarpetasEstructura()
+  //   const carpetasArray: Array<{ nombre: string; tipo: string }> = []
 
-    const flattenCarpetas = (carpetas: CarpetaEstructura[], parentPath = "") => {
-      carpetas.forEach(carpeta => {
-        const fullPath = parentPath ? `${parentPath} > ${carpeta.nombre}` : carpeta.nombre
-        carpetasArray.push({ nombre: fullPath, tipo: "inicial" })
+  //   const flattenCarpetas = (carpetas: CarpetaEstructura[], parentPath = "") => {
+  //     carpetas.forEach(carpeta => {
+  //       const fullPath = parentPath ? `${parentPath} > ${carpeta.nombre}` : carpeta.nombre
+  //       carpetasArray.push({ nombre: fullPath, tipo: "inicial" })
 
-        if (carpeta.subcarpetas.length > 0) {
-          flattenCarpetas(carpeta.subcarpetas, fullPath)
-        }
-      })
-    }
+  //       if (carpeta.subcarpetas.length > 0) {
+  //         flattenCarpetas(carpeta.subcarpetas, fullPath)
+  //       }
+  //     })
+  //   }
 
-    flattenCarpetas(estructura)
-    return carpetasArray
-  }
+  //   flattenCarpetas(estructura)
+  //   return carpetasArray
+  // }
 
   const getStepTitle = () => {
     switch (currentStep) {
@@ -723,7 +723,7 @@ export const AdvanceStageModal: React.FC<AdvanceStageModalProps> = ({
 
   // Componente para renderizar carpetas anidadas de manera visual
   const CarpetasAnidadasDisplay: React.FC<{ carpetas: CarpetaEstructura[] }> = ({ carpetas }) => {
-    const renderCarpeta = (carpeta: CarpetaEstructura, isLast = false) => (
+    const renderCarpeta = (carpeta: CarpetaEstructura) => (
       <div key={carpeta.id} className="relative">
         {/* Carpeta principal */}
         <div className={`flex items-center space-x-3 p-3 border rounded-lg bg-gray-50 ${carpeta.nivel > 0 ? 'ml-6' : ''}`}>
@@ -746,11 +746,11 @@ export const AdvanceStageModal: React.FC<AdvanceStageModalProps> = ({
 
             {/* Subcarpetas */}
             <div className="mt-2 space-y-2">
-              {carpeta.subcarpetas.map((subcarpeta, index) => (
+              {carpeta.subcarpetas.map((subcarpeta) => (
                 <div key={subcarpeta.id} className="relative">
                   {/* Línea horizontal */}
                   <div className={`absolute left-3 top-5 w-4 h-px bg-gray-300 ${carpeta.nivel > 0 ? 'ml-6' : ''}`} />
-                  {renderCarpeta(subcarpeta, index === carpeta.subcarpetas.length - 1)}
+                  {renderCarpeta(subcarpeta)}
                 </div>
               ))}
             </div>
