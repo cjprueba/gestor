@@ -15,24 +15,37 @@ export const useProjectSearch = (query: string) => {
 };
 
 // Hook para búsqueda de archivos
-export const useFileSearch = (query: string, extension?: string) => {
+export const useFileSearch = (
+  query: string,
+  options?: {
+    extension?: string;
+    proyecto_id?: string;
+    carpeta_id?: string;
+  }
+) => {
   const debouncedQuery = useDebounce(query, 300);
 
   return useQuery({
-    queryKey: ["file-search", debouncedQuery, extension],
-    queryFn: () => searchService.searchFiles(debouncedQuery, extension),
+    queryKey: ["file-search", debouncedQuery, options],
+    queryFn: () => searchService.searchFiles(debouncedQuery, options),
     enabled: debouncedQuery.length > 0,
     staleTime: 5 * 60 * 1000, // 5 minutos
   });
 };
 
 // Hook para búsqueda de carpetas
-export const useFolderSearch = (query: string) => {
+export const useFolderSearch = (
+  query: string,
+  options?: {
+    proyecto_id?: string;
+    carpeta_padre_id?: string;
+  }
+) => {
   const debouncedQuery = useDebounce(query, 300);
 
   return useQuery({
-    queryKey: ["folder-search", debouncedQuery],
-    queryFn: () => searchService.searchFolders(debouncedQuery),
+    queryKey: ["folder-search", debouncedQuery, options],
+    queryFn: () => searchService.searchFolders(debouncedQuery, options),
     enabled: debouncedQuery.length > 0,
     staleTime: 5 * 60 * 1000, // 5 minutos
   });

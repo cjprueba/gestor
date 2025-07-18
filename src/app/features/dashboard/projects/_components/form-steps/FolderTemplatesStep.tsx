@@ -1,5 +1,3 @@
-"use client"
-
 import React, { useState, useEffect } from "react"
 import { Button } from "@/shared/components/design-system/button"
 import { Badge } from "@/shared/components/ui/badge"
@@ -25,7 +23,7 @@ interface CarpetaPersonalizada {
 }
 
 interface FolderTemplatesStepProps {
-  carpetasIniciales: Array<{ nombre: string }>;
+  carpetasIniciales: Array<{ nombre: string; tipo: string }>;
 }
 
 interface FolderConfigCardProps {
@@ -708,13 +706,6 @@ export const FolderTemplatesStep: React.FC<FolderTemplatesStepProps> = ({ carpet
           </div>
         )}
       </div>
-
-      {carpetasIniciales.length === 0 && customFolders.length === 0 && (
-        <div className="text-center py-8 text-muted-foreground">
-          <Folder className="w-12 h-12 mx-auto mb-4 opacity-50" />
-          <p>No hay carpetas disponibles para esta etapa</p>
-        </div>
-      )}
     </div>
   )
 } 

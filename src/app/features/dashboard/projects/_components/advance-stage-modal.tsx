@@ -10,10 +10,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/shared/components/ui/separator"
 import { mapStageTypeToFormFields } from "@/shared/utils/stage-form-mapper"
 import dayjs from "dayjs"
-import { ChevronRight } from "lucide-react"
-import { useForm } from "react-hook-form"
+import { ChevronRight, Check, Loader2, Folder } from "lucide-react"
+import { useForm, FormProvider } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
+import clsx from "clsx"
 import type { Project } from "./types"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
+import { FolderTemplatesStep } from "./form-steps/FolderTemplatesStep"
 
 interface AdvanceStageModalProps {
   project: Project | null
@@ -22,25 +26,33 @@ interface AdvanceStageModalProps {
   onSuccess?: () => void
 }
 
-interface FormData {
-  tipo_iniciativa_id?: number;
-  tipo_obra_id?: number;
-  region_id?: number;
-  provincia_id?: number;
-  comuna_id?: number;
-  volumen?: string;
-  presupuesto_oficial?: string;
-  valor_referencia?: string;
-  bip?: string;
-  fecha_llamado_licitacion?: string;
-  fecha_recepcion_ofertas_tecnicas?: string;
-  fecha_apertura_ofertas_economicas?: string;
-  decreto_adjudicacion?: string;
-  sociedad_concesionaria?: string;
-  fecha_inicio_concesion?: string;
-  plazo_total_concesion?: string;
-  inspector_fiscal_id?: number;
-}
+// Schema para validación del formulario
+const advanceStageSchema = z.object({
+  stepOne: z.object({
+    tipo_iniciativa_id: z.number().optional(),
+    tipo_obra_id: z.number().optional(),
+    region_id: z.number().optional(),
+    provincia_id: z.number().optional(),
+    comuna_id: z.number().optional(),
+    volumen: z.string().optional(),
+    presupuesto_oficial: z.string().optional(),
+    valor_referencia: z.string().optional(),
+    bip: z.string().optional(),
+    fecha_llamado_licitacion: z.string().optional(),
+    fecha_recepcion_ofertas_tecnicas: z.string().optional(),
+    fecha_apertura_ofertas_economicas: z.string().optional(),
+    decreto_adjudicacion: z.string().optional(),
+    sociedad_concesionaria: z.string().optional(),
+    fecha_inicio_concesion: z.string().optional(),
+    plazo_total_concesion: z.string().optional(),
+    inspector_fiscal_id: z.number().optional(),
+  }),
+  stepTwo: z.object({
+    carpetas: z.array(z.any()).optional(),
+  }),
+})
+
+type AdvanceStageFormData = z.infer<typeof advanceStageSchema>
 
 export const AdvanceStageModal: React.FC<AdvanceStageModalProps> = ({
   project,
@@ -48,13 +60,28 @@ export const AdvanceStageModal: React.FC<AdvanceStageModalProps> = ({
   onClose,
   onSuccess,
 }) => {
+  const [currentStep, setCurrentStep] = useState(1)
+
   // React Hook Form
-  const { register, handleSubmit, watch, setValue, reset } = useForm<FormData>()
-  const watchedValues = watch()
+  const methods = useForm<AdvanceStageFormData>({
+    resolver: zodResolver(advanceStageSchema),
+    defaultValues: {
+      stepOne: {},
+      stepTwo: {
+        carpetas: [],
+      },
+    },
+    mode: "onChange",
+  })
+
+  const { watch, setValue, reset } = methods
 
   // Resetear el formulario cuando se abre el modal
   useEffect(() => {
-    reset()
+    if (isOpen) {
+      reset()
+      setCurrentStep(1)
+    }
   }, [isOpen, reset])
 
   // Obtener detalles de la siguiente etapa y etapa actual desde el endpoint correcto
@@ -68,15 +95,137 @@ export const AdvanceStageModal: React.FC<AdvanceStageModalProps> = ({
   const { data: tiposIniciativa } = useTiposIniciativa()
   const { data: tiposObra } = useTiposObra(siguienteEtapa?.id)
   const { data: regionesData } = useRegiones()
-  const { data: provinciasData } = useProvincias(watchedValues.region_id)
-  const { data: comunasData } = useComunas(watchedValues.region_id, watchedValues.provincia_id)
-  // const { data: inspectoresFiscales } = useInspectoresFiscales() // Comentado temporalmente
 
+  const watchedStepOne = watch("stepOne")
+  const { data: provinciasData } = useProvincias(watchedStepOne.region_id)
+  const { data: comunasData } = useComunas(watchedStepOne.region_id, watchedStepOne.provincia_id)
 
-  // Obtener detalles de la siguiente etapa y etapa actual desde el endpoint correcto
+  // Mutation para cambiar etapa
   const cambiarEtapaMutation = useCambiarEtapa()
 
-  const onSubmit = async (data: FormData) => {
+  // Interfaz para carpetas anidadas mejorada
+  interface CarpetaEstructura {
+    id: string
+    nombre: string
+    tipo: "inicial"
+    subcarpetas: CarpetaEstructura[]
+    nivel: number
+  }
+
+  // Función para convertir carpetas_iniciales a estructura jerárquica
+  const getCarpetasEstructura = (): CarpetaEstructura[] => {
+    if (!siguienteEtapa?.carpetas_iniciales) {
+      return []
+    }
+
+    const buildHierarchy = (obj: any, nivel = 0, parentId = ""): CarpetaEstructura[] => {
+      return Object.entries(obj).map(([nombre, subcarpetas], index) => {
+        const id = parentId ? `${parentId}-${index}` : `${index}`
+
+        return {
+          id,
+          nombre,
+          tipo: "inicial" as const,
+          subcarpetas: subcarpetas && typeof subcarpetas === "object" && Object.keys(subcarpetas).length > 0
+            ? buildHierarchy(subcarpetas, nivel + 1, id)
+            : [],
+          nivel
+        }
+      })
+    }
+
+    return buildHierarchy(siguienteEtapa.carpetas_iniciales)
+  }
+
+  // Función legacy para compatibilidad con FolderTemplatesStep
+  const getCarpetasIniciales = () => {
+    const estructura = getCarpetasEstructura()
+    const carpetasArray: Array<{ nombre: string; tipo: string }> = []
+
+    const flattenCarpetas = (carpetas: CarpetaEstructura[], parentPath = "") => {
+      carpetas.forEach(carpeta => {
+        const fullPath = parentPath ? `${parentPath} > ${carpeta.nombre}` : carpeta.nombre
+        carpetasArray.push({ nombre: fullPath, tipo: "inicial" })
+
+        if (carpeta.subcarpetas.length > 0) {
+          flattenCarpetas(carpeta.subcarpetas, fullPath)
+        }
+      })
+    }
+
+    flattenCarpetas(estructura)
+    return carpetasArray
+  }
+
+  const getStepTitle = () => {
+    switch (currentStep) {
+      case 1:
+        return "Detalles de la nueva etapa"
+      case 2:
+        return "Carpetas de la etapa"
+      default:
+        return "Avanzar etapa"
+    }
+  }
+
+  const getDialogWidth = () => {
+    switch (currentStep) {
+      case 1:
+        return "max-w-2xl sm:max-w-2xl"
+      case 2:
+        return "max-w-3xl sm:max-w-3xl"
+      default:
+        return "max-w-2xl"
+    }
+  }
+
+  // Función para validar si los campos requeridos están completos
+  const validateRequiredFields = (): boolean => {
+    const stepOneData = watch("stepOne")
+
+    if (!siguienteEtapa) return false
+
+    // Validar campos obligatorios específicos de la siguiente etapa
+    if (siguienteEtapa.tipo_iniciativa && !stepOneData.tipo_iniciativa_id) {
+      return false
+    }
+
+    if (siguienteEtapa.tipo_obra && !stepOneData.tipo_obra_id) {
+      return false
+    }
+
+    if (siguienteEtapa.region && !stepOneData.region_id) {
+      return false
+    }
+
+    if (siguienteEtapa.provincia && !stepOneData.provincia_id) {
+      return false
+    }
+
+    if (siguienteEtapa.comuna && !stepOneData.comuna_id) {
+      return false
+    }
+
+    return true
+  }
+
+  const canProceedToNextStep = () => {
+    switch (currentStep) {
+      case 1:
+        // Validar campos requeridos según la siguiente etapa
+        return validateRequiredFields()
+
+      case 2:
+        // Validación para carpetas - siempre permitir continuar
+        // ya que las carpetas iniciales se crean automáticamente
+        return true
+
+      default:
+        return false
+    }
+  }
+
+  const onSubmit = async (data: AdvanceStageFormData) => {
     if (!project || !siguienteEtapa) return
 
     // Construir objeto con solo los campos habilitados para esta etapa
@@ -87,69 +236,71 @@ export const AdvanceStageModal: React.FC<AdvanceStageModalProps> = ({
     }
 
     // Solo incluir campos que están habilitados en la siguiente etapa
-    if (siguienteEtapa.tipo_iniciativa && data.tipo_iniciativa_id) {
-      submitData.tipo_iniciativa_id = data.tipo_iniciativa_id
+    const stepOneData = data.stepOne
+
+    if (siguienteEtapa.tipo_iniciativa && stepOneData.tipo_iniciativa_id) {
+      submitData.tipo_iniciativa_id = stepOneData.tipo_iniciativa_id
     }
 
-    if (siguienteEtapa.tipo_obra && data.tipo_obra_id) {
-      submitData.tipo_obra_id = data.tipo_obra_id
+    if (siguienteEtapa.tipo_obra && stepOneData.tipo_obra_id) {
+      submitData.tipo_obra_id = stepOneData.tipo_obra_id
     }
 
-    if (siguienteEtapa.region && data.region_id) {
-      submitData.region_id = data.region_id
+    if (siguienteEtapa.region && stepOneData.region_id) {
+      submitData.region_id = stepOneData.region_id
     }
 
-    if (siguienteEtapa.provincia && data.provincia_id) {
-      submitData.provincia_id = data.provincia_id
+    if (siguienteEtapa.provincia && stepOneData.provincia_id) {
+      submitData.provincia_id = stepOneData.provincia_id
     }
 
-    if (siguienteEtapa.comuna && data.comuna_id) {
-      submitData.comuna_id = data.comuna_id
+    if (siguienteEtapa.comuna && stepOneData.comuna_id) {
+      submitData.comuna_id = stepOneData.comuna_id
     }
 
-    if (siguienteEtapa.volumen && data.volumen) {
-      submitData.volumen = data.volumen
+    if (siguienteEtapa.volumen && stepOneData.volumen) {
+      submitData.volumen = stepOneData.volumen
     }
 
-    if (siguienteEtapa.presupuesto_oficial && data.presupuesto_oficial) {
-      submitData.presupuesto_oficial = data.presupuesto_oficial
+    if (siguienteEtapa.presupuesto_oficial && stepOneData.presupuesto_oficial) {
+      submitData.presupuesto_oficial = stepOneData.presupuesto_oficial
     }
 
-    if (siguienteEtapa.valor_referencia && data.valor_referencia) {
-      submitData.valor_referencia = data.valor_referencia
+    if (siguienteEtapa.valor_referencia && stepOneData.valor_referencia) {
+      submitData.valor_referencia = stepOneData.valor_referencia
     }
 
-    if (siguienteEtapa.bip && data.bip) {
-      submitData.bip = data.bip
+    if (siguienteEtapa.bip && stepOneData.bip) {
+      submitData.bip = stepOneData.bip
     }
 
     // Convertir fechas a formato ISO solo si están habilitadas y tienen valor
-    if (siguienteEtapa.fecha_llamado_licitacion && data.fecha_llamado_licitacion) {
-      submitData.fecha_llamado_licitacion = dayjs(data.fecha_llamado_licitacion).toISOString()
+    if (siguienteEtapa.fecha_llamado_licitacion && stepOneData.fecha_llamado_licitacion) {
+      submitData.fecha_llamado_licitacion = dayjs(stepOneData.fecha_llamado_licitacion).toISOString()
     }
 
-    if (siguienteEtapa.fecha_recepcion_ofertas_tecnicas && data.fecha_recepcion_ofertas_tecnicas) {
-      submitData.fecha_recepcion_ofertas_tecnicas = dayjs(data.fecha_recepcion_ofertas_tecnicas).toISOString()
+    if (siguienteEtapa.fecha_recepcion_ofertas_tecnicas && stepOneData.fecha_recepcion_ofertas_tecnicas) {
+      submitData.fecha_recepcion_ofertas_tecnicas = dayjs(stepOneData.fecha_recepcion_ofertas_tecnicas).toISOString()
     }
 
-    if (siguienteEtapa.fecha_apertura_ofertas_economicas && data.fecha_apertura_ofertas_economicas) {
-      submitData.fecha_apertura_ofertas_economicas = dayjs(data.fecha_apertura_ofertas_economicas).toISOString()
+    if (siguienteEtapa.fecha_apertura_ofertas_economicas && stepOneData.fecha_apertura_ofertas_economicas) {
+      submitData.fecha_apertura_ofertas_economicas = dayjs(stepOneData.fecha_apertura_ofertas_economicas).toISOString()
     }
 
-    if (siguienteEtapa.decreto_adjudicacion && data.decreto_adjudicacion) {
-      submitData.decreto_adjudicacion = data.decreto_adjudicacion
+    if (siguienteEtapa.decreto_adjudicacion && stepOneData.decreto_adjudicacion) {
+      submitData.decreto_adjudicacion = stepOneData.decreto_adjudicacion
     }
 
-    if (siguienteEtapa.sociedad_concesionaria && data.sociedad_concesionaria) {
-      submitData.sociedad_concesionaria = data.sociedad_concesionaria
+    if (siguienteEtapa.sociedad_concesionaria && stepOneData.sociedad_concesionaria) {
+      submitData.sociedad_concesionaria = stepOneData.sociedad_concesionaria
     }
 
-    if (siguienteEtapa.fecha_inicio_concesion && data.fecha_inicio_concesion) {
-      submitData.fecha_inicio_concesion = dayjs(data.fecha_inicio_concesion).toISOString()
+    if (siguienteEtapa.fecha_inicio_concesion && stepOneData.fecha_inicio_concesion) {
+      submitData.fecha_inicio_concesion = dayjs(stepOneData.fecha_inicio_concesion).toISOString()
     }
 
-    if (siguienteEtapa.plazo_total_concesion && data.plazo_total_concesion) {
-      submitData.plazo_total_concesion = data.plazo_total_concesion
+    if (siguienteEtapa.plazo_total_concesion && stepOneData.plazo_total_concesion) {
+      submitData.plazo_total_concesion = stepOneData.plazo_total_concesion
     }
 
     console.log("Datos a enviar:", submitData)
@@ -167,19 +318,36 @@ export const AdvanceStageModal: React.FC<AdvanceStageModalProps> = ({
     }
   }
 
+  const handleCloseDialog = () => {
+    reset()
+    setCurrentStep(1)
+    onClose()
+  }
+
+  const handleAdvanceStage = async () => {
+    // Validar campos requeridos antes de enviar
+    if (!validateRequiredFields()) {
+      console.error("Campos requeridos faltantes")
+      return
+    }
+
+    const formData = methods.getValues()
+    await onSubmit(formData)
+  }
+
   // Renderizar campos de la siguiente etapa con react-hook-form
   const renderSiguienteEtapaFields = () => {
     if (!mappedFields.hasFields) return null
     return (
-      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
+      <form onSubmit={methods.handleSubmit(onSubmit)} className="flex flex-col gap-6">
         {/* Fila de selects principales */}
         <div className="flex flex-row gap-4 mt-2">
           {siguienteEtapa?.tipo_iniciativa && (
             <div className="flex flex-col gap-2">
               <Label htmlFor="tipo_iniciativa_id">Tipo de iniciativa</Label>
               <Select
-                value={watchedValues.tipo_iniciativa_id?.toString() || ""}
-                onValueChange={(value) => setValue('tipo_iniciativa_id', parseInt(value))}
+                value={watchedStepOne.tipo_iniciativa_id?.toString() || ""}
+                onValueChange={(value) => setValue('stepOne.tipo_iniciativa_id', parseInt(value))}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccionar..." />
@@ -198,8 +366,8 @@ export const AdvanceStageModal: React.FC<AdvanceStageModalProps> = ({
             <div className="flex flex-col gap-2">
               <Label htmlFor="tipo_obra_id">Tipo de obra</Label>
               <Select
-                value={watchedValues.tipo_obra_id?.toString() || ""}
-                onValueChange={(value) => setValue('tipo_obra_id', parseInt(value))}
+                value={watchedStepOne.tipo_obra_id?.toString() || ""}
+                onValueChange={(value) => setValue('stepOne.tipo_obra_id', parseInt(value))}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccionar..." />
@@ -221,11 +389,11 @@ export const AdvanceStageModal: React.FC<AdvanceStageModalProps> = ({
             <div className="flex flex-col gap-2">
               <Label htmlFor="region_id">Región</Label>
               <Select
-                value={watchedValues.region_id?.toString() || ""}
+                value={watchedStepOne.region_id?.toString() || ""}
                 onValueChange={(value) => {
-                  setValue('region_id', parseInt(value))
-                  setValue('provincia_id', undefined)
-                  setValue('comuna_id', undefined)
+                  setValue('stepOne.region_id', parseInt(value))
+                  setValue('stepOne.provincia_id', undefined)
+                  setValue('stepOne.comuna_id', undefined)
                 }}
               >
                 <SelectTrigger>
@@ -245,12 +413,12 @@ export const AdvanceStageModal: React.FC<AdvanceStageModalProps> = ({
             <div className="flex flex-col gap-2">
               <Label htmlFor="provincia_id">Provincia</Label>
               <Select
-                value={watchedValues.provincia_id?.toString() || ""}
+                value={watchedStepOne.provincia_id?.toString() || ""}
                 onValueChange={(value) => {
-                  setValue('provincia_id', parseInt(value))
-                  setValue('comuna_id', undefined)
+                  setValue('stepOne.provincia_id', parseInt(value))
+                  setValue('stepOne.comuna_id', undefined)
                 }}
-                disabled={!watchedValues.region_id}
+                disabled={!watchedStepOne.region_id}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccionar provincia..." />
@@ -269,9 +437,9 @@ export const AdvanceStageModal: React.FC<AdvanceStageModalProps> = ({
             <div className="flex flex-col gap-2">
               <Label htmlFor="comuna_id">Comuna</Label>
               <Select
-                value={watchedValues.comuna_id?.toString() || ""}
-                onValueChange={(value) => setValue('comuna_id', parseInt(value))}
-                disabled={!watchedValues.provincia_id}
+                value={watchedStepOne.comuna_id?.toString() || ""}
+                onValueChange={(value) => setValue('stepOne.comuna_id', parseInt(value))}
+                disabled={!watchedStepOne.provincia_id}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccionar comuna..." />
@@ -294,7 +462,7 @@ export const AdvanceStageModal: React.FC<AdvanceStageModalProps> = ({
               <Label htmlFor="volumen">Volumen</Label>
               <Input
                 id="volumen"
-                {...register('volumen')}
+                {...methods.register('stepOne.volumen')}
                 placeholder="Ej: 50 km, 1000 m³"
                 className="max-w-3xs"
               />
@@ -305,7 +473,7 @@ export const AdvanceStageModal: React.FC<AdvanceStageModalProps> = ({
               <Label htmlFor="presupuesto_oficial">Presupuesto oficial</Label>
               <Input
                 id="presupuesto_oficial"
-                {...register('presupuesto_oficial')}
+                {...methods.register('stepOne.presupuesto_oficial')}
                 placeholder="Ej: $50.000.000.000"
                 className="max-w-3xs"
               />
@@ -317,7 +485,7 @@ export const AdvanceStageModal: React.FC<AdvanceStageModalProps> = ({
             <Label htmlFor="bip">BIP</Label>
             <Input
               id="bip"
-              {...register('bip')}
+              {...methods.register('stepOne.bip')}
               placeholder="Código BIP"
               className="max-w-3xs"
             />
@@ -329,7 +497,7 @@ export const AdvanceStageModal: React.FC<AdvanceStageModalProps> = ({
             <Input
               id="fecha_llamado_licitacion"
               type="date"
-              {...register('fecha_llamado_licitacion')}
+              {...methods.register('stepOne.fecha_llamado_licitacion')}
               className="max-w-3xs"
             />
           </div>
@@ -340,7 +508,7 @@ export const AdvanceStageModal: React.FC<AdvanceStageModalProps> = ({
             <Input
               id="fecha_recepcion_ofertas_tecnicas"
               type="date"
-              {...register('fecha_recepcion_ofertas_tecnicas')}
+              {...methods.register('stepOne.fecha_recepcion_ofertas_tecnicas')}
               className="max-w-3xs"
             />
           </div>
@@ -351,7 +519,7 @@ export const AdvanceStageModal: React.FC<AdvanceStageModalProps> = ({
             <Input
               id="fecha_apertura_ofertas_economicas"
               type="date"
-              {...register('fecha_apertura_ofertas_economicas')}
+              {...methods.register('stepOne.fecha_apertura_ofertas_economicas')}
               className="max-w-3xs"
             />
           </div>
@@ -362,7 +530,7 @@ export const AdvanceStageModal: React.FC<AdvanceStageModalProps> = ({
             <Input
               id="fecha_inicio_concesion"
               type="date"
-              {...register('fecha_inicio_concesion')}
+              {...methods.register('stepOne.fecha_inicio_concesion')}
               className="max-w-3xs"
             />
           </div>
@@ -372,7 +540,7 @@ export const AdvanceStageModal: React.FC<AdvanceStageModalProps> = ({
             <Label htmlFor="plazo_total_concesion">Plazo Total Concesión</Label>
             <Input
               id="plazo_total_concesion"
-              {...register('plazo_total_concesion')}
+              {...methods.register('stepOne.plazo_total_concesion')}
               placeholder="Ej: 50 años"
               className="max-w-3xs"
             />
@@ -383,7 +551,7 @@ export const AdvanceStageModal: React.FC<AdvanceStageModalProps> = ({
             <Label htmlFor="decreto_adjudicacion">Decreto Adjudicación</Label>
             <Input
               id="decreto_adjudicacion"
-              {...register('decreto_adjudicacion')}
+              {...methods.register('stepOne.decreto_adjudicacion')}
               placeholder="Ej: Decreto N° 123/224"
               className="max-w-3xs"
             />
@@ -394,7 +562,7 @@ export const AdvanceStageModal: React.FC<AdvanceStageModalProps> = ({
             <Label htmlFor="sociedad_concesionaria">Sociedad Concesionaria</Label>
             <Input
               id="sociedad_concesionaria"
-              {...register('sociedad_concesionaria')}
+              {...methods.register('stepOne.sociedad_concesionaria')}
               placeholder="Ej: Sociedad Concesionaria XYZ SPA"
               className="max-w-3xs"
             />
@@ -405,7 +573,7 @@ export const AdvanceStageModal: React.FC<AdvanceStageModalProps> = ({
             <Label htmlFor="inspector_fiscal_id">Inspector Fiscal</Label>
             <Input
               id="inspector_fiscal_id"
-              {...register('inspector_fiscal_id', { valueAsNumber: true })}
+              {...methods.register('stepOne.inspector_fiscal_id', { valueAsNumber: true })}
               placeholder="ID del inspector fiscal"
               className="max-w-3xs"
             />
@@ -553,23 +721,57 @@ export const AdvanceStageModal: React.FC<AdvanceStageModalProps> = ({
     )
   }
 
-  if (!project) return null
+  // Componente para renderizar carpetas anidadas de manera visual
+  const CarpetasAnidadasDisplay: React.FC<{ carpetas: CarpetaEstructura[] }> = ({ carpetas }) => {
+    const renderCarpeta = (carpeta: CarpetaEstructura, isLast = false) => (
+      <div key={carpeta.id} className="relative">
+        {/* Carpeta principal */}
+        <div className={`flex items-center space-x-3 p-3 border rounded-lg bg-gray-50 ${carpeta.nivel > 0 ? 'ml-6' : ''}`}>
+          <div className="flex items-center space-x-2 flex-1">
+            <div className="w-4 h-4 bg-blue-100 rounded flex items-center justify-center">
+              <Folder className="w-3 h-3 text-blue-600" />
+            </div>
+            <span className="text-sm font-medium">{carpeta.nombre}</span>
+          </div>
+          <Badge variant="outline" className="text-xs">
+            {carpeta.nivel === 0 ? 'Principal' : 'Subcarpeta'}
+          </Badge>
+        </div>
 
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Avanzar a siguiente etapa</DialogTitle>
-          <DialogDescription className="flex flex-col gap-2">
-            {project?.name && (
-              <span className="font-medium">Proyecto: {project.name}</span>
-            )}
-            Completa los campos requeridos para avanzar el proyecto a la siguiente etapa
-          </DialogDescription>
-        </DialogHeader>
+        {/* Líneas de conexión para subcarpetas */}
+        {carpeta.subcarpetas.length > 0 && (
+          <div className="relative">
+            {/* Línea vertical */}
+            <div className={`absolute left-3 top-0 bottom-0 w-px bg-gray-300 ${carpeta.nivel > 0 ? 'ml-6' : ''}`} />
 
-        <div className="mt-2 space-y-6">
-          {/* Campos de la siguiente etapa */}
+            {/* Subcarpetas */}
+            <div className="mt-2 space-y-2">
+              {carpeta.subcarpetas.map((subcarpeta, index) => (
+                <div key={subcarpeta.id} className="relative">
+                  {/* Línea horizontal */}
+                  <div className={`absolute left-3 top-5 w-4 h-px bg-gray-300 ${carpeta.nivel > 0 ? 'ml-6' : ''}`} />
+                  {renderCarpeta(subcarpeta, index === carpeta.subcarpetas.length - 1)}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    )
+
+    return (
+      <div className="space-y-3">
+        {carpetas.map((carpeta) => renderCarpeta(carpeta))}
+      </div>
+    )
+  }
+
+  // Usar directamente FolderTemplatesStep para mantener consistencia visual
+
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 1:
+        return (
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium">Campos de la siguiente etapa</span>
@@ -583,24 +785,146 @@ export const AdvanceStageModal: React.FC<AdvanceStageModalProps> = ({
             {error && <div className="text-red-500">Error al cargar información de la etapa</div>}
             {renderSiguienteEtapaFields()}
           </div>
+        )
+      case 2:
+        return (
+          <div className="space-y-6">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium">Carpetas de la nueva etapa</span>
+              {etapaAvanzarInfo?.data?.siguiente_etapa?.nombre && (
+                <Badge variant="secondary" className="ml-2">
+                  {etapaAvanzarInfo.data.siguiente_etapa.nombre}
+                </Badge>
+              )}
+            </div>
 
-          <Separator />
+            <div className="text-sm text-muted-foreground">
+              Las siguientes carpetas se crearán automáticamente según la configuración de la nueva etapa.
+            </div>
 
-          {/* Información de etapas anteriores */}
-          {renderEtapasAnteriores()}
+            {/* Mostrar carpetas iniciales con estructura jerárquica */}
+            <div className="space-y-4">
+              <h4 className="text-sm font-semibold text-gray-900">Carpetas incluidas automáticamente:</h4>
+              <CarpetasAnidadasDisplay carpetas={getCarpetasEstructura()} />
+            </div>
 
-          {/* Botones de acción */}
-          <div className="flex justify-end gap-2">
-            <Button variant="secundario" onClick={onClose}>
-              Cancelar
-            </Button>
-            <Button
-              variant="primario"
-              onClick={handleSubmit(onSubmit)}
-              disabled={cambiarEtapaMutation.isPending}
-            >
-              {cambiarEtapaMutation.isPending ? "Avanzando..." : "Avanzar etapa"}
-            </Button>
+            {/* Separador */}
+            <div className="border-t"></div>
+
+            {/* Sección para carpetas personalizadas */}
+            <div className="space-y-4">
+
+              <FolderTemplatesStep carpetasIniciales={[]} />
+            </div>
+          </div>
+        )
+      default:
+        return null
+    }
+  }
+
+  if (!project) return null
+
+  return (
+    <Dialog open={isOpen} onOpenChange={handleCloseDialog}>
+      <DialogContent className={`${getDialogWidth()} max-h-[90vh] overflow-y-auto`}>
+        <DialogHeader className="flex flex-col justify-between">
+          <DialogTitle className="flex items-center space-x-2">
+            <span>{getStepTitle()}</span>
+            <Badge variant="outline">Paso {currentStep} de 2</Badge>
+          </DialogTitle>
+          <DialogDescription>
+            <div className="text-sm text-muted-foreground">
+              {project?.name && (
+                <span className="font-medium block mb-2">Proyecto: {project.name}</span>
+              )}
+              {currentStep === 1 && "Completa los campos requeridos para la nueva etapa"}
+              {currentStep === 2 && "Revisa y configura las carpetas de la nueva etapa"}
+            </div>
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="flex justify-center items-center w-full my-6">
+          {[1, 2].map((step) => (
+            <div key={step} className="flex items-center">
+              <div
+                className={clsx(
+                  "w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium border-2",
+                  step < currentStep && "bg-primary-500 border-primary-500 text-white",
+                  step === currentStep && "bg-primary-500 border-primary-500 text-white",
+                  step > currentStep && "bg-primary-100 border-primary-100 text-white"
+                )}
+              >
+                {step < currentStep ? (
+                  <Check className="h-5 w-5" />
+                ) : (
+                  step
+                )}
+              </div>
+              {step !== 2 && (
+                <div
+                  className={clsx(
+                    "w-20 h-0.5 mx-2",
+                    step < currentStep && "bg-blue-600",
+                    step === currentStep && "bg-blue-600",
+                    step > currentStep && "bg-gray-200"
+                  )}
+                />
+              )}
+            </div>
+          ))}
+        </div>
+
+        <FormProvider {...methods}>
+          <div className="space-y-6">{renderStepContent()}</div>
+        </FormProvider>
+
+        {/* Información de etapas anteriores - solo mostrar en el paso 1 */}
+        {currentStep === 1 && (
+          <>
+            <Separator />
+            {renderEtapasAnteriores()}
+          </>
+        )}
+
+        <div className="flex justify-between pt-6 border-t">
+          <Button
+            variant="secundario"
+            onClick={() => {
+              if (currentStep > 1) {
+                setCurrentStep(currentStep - 1);
+              } else {
+                handleCloseDialog();
+              }
+            }}
+          >
+            {currentStep > 1 ? "Anterior" : "Cancelar"}
+          </Button>
+
+          <div className="flex space-x-2">
+            {currentStep < 2 ? (
+              <Button
+                onClick={() => setCurrentStep(currentStep + 1)}
+                disabled={!canProceedToNextStep()}
+              >
+                Siguiente
+              </Button>
+            ) : (
+              <Button
+                onClick={handleAdvanceStage}
+                className="w-full"
+                disabled={cambiarEtapaMutation.isPending || !canProceedToNextStep()}
+              >
+                {cambiarEtapaMutation.isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Avanzando etapa...
+                  </>
+                ) : (
+                  "Avanzar etapa"
+                )}
+              </Button>
+            )}
           </div>
         </div>
       </DialogContent>

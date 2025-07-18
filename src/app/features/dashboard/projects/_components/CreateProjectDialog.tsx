@@ -26,7 +26,6 @@ export const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
     setCurrentStep,
     methods,
     isLoading,
-    selectedEtapaId,
 
     // Datos de las queries
     stageTypes,
@@ -76,12 +75,6 @@ export const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
   };
 
   const handleCreateProjectSubmit = async () => {
-    // Mostrar contexto del formulario antes de enviar
-    console.log("=== ENVIANDO PROYECTO A LA API ===");
-    console.log("Form Values:", methods.getValues());
-    console.log("Stage Type Detail:", stageTypeDetail);
-    console.log("Selected Etapa ID:", selectedEtapaId);
-    console.log("===================================");
 
     const success = await handleCreateProject();
     if (success) {

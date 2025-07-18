@@ -84,11 +84,22 @@ export const searchService = {
   // Búsqueda de archivos
   async searchFiles(
     query: string,
-    extension?: string
+    options?: {
+      extension?: string;
+      proyecto_id?: string;
+      carpeta_id?: string;
+    }
   ): Promise<FileSearchResponse> {
     const params: any = { query };
-    if (extension) {
-      params.extension = extension;
+
+    if (options?.extension) {
+      params.extension = options.extension;
+    }
+    if (options?.proyecto_id) {
+      params.proyecto_id = options.proyecto_id;
+    }
+    if (options?.carpeta_id) {
+      params.carpeta_id = options.carpeta_id;
     }
 
     const response = await apiClient.get("/busqueda/archivos", {
@@ -98,9 +109,24 @@ export const searchService = {
   },
 
   // Búsqueda de carpetas
-  async searchFolders(query: string): Promise<FolderSearchResult[]> {
+  async searchFolders(
+    query: string,
+    options?: {
+      proyecto_id?: string;
+      carpeta_padre_id?: string;
+    }
+  ): Promise<FolderSearchResult[]> {
+    const params: any = { query };
+
+    if (options?.proyecto_id) {
+      params.proyecto_id = options.proyecto_id;
+    }
+    if (options?.carpeta_padre_id) {
+      params.carpeta_padre_id = options.carpeta_padre_id;
+    }
+
     const response = await apiClient.get("/busqueda/carpetas", {
-      params: { query },
+      params,
     });
     return response.data;
   },

@@ -36,8 +36,6 @@ export default function HomePage() {
   }
 
   const handleSelectProject = (project: Project, targetFolderId?: number) => {
-    console.log('handleSelectProject llamado con:', { project, targetFolderId })
-
     // Si hay un targetFolderId, lo almacenamos en el proyecto para que ProjectView lo use
     if (targetFolderId) {
       const projectWithTargetFolder = {

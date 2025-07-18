@@ -1,11 +1,11 @@
-import React, { useState, useMemo } from "react"
+import { useFileSearch, useFolderSearch } from "@/lib/api"
 import { Button } from "@/shared/components/design-system/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { FileText, FolderOpen, Plus } from "lucide-react"
+import React, { useMemo, useState } from "react"
 import { ProjectCard } from "./ProjectCard"
-import type { ProjectListProps } from "./types"
 import { SearchHeader } from "./search-header"
-import { useProjectSearch, useFileSearch, useFolderSearch } from "@/lib/api"
+import type { ProjectListProps } from "./types"
 
 // Función helper para obtener todos los documentos de un proyecto
 // const getAllDocumentsFromProject = (structure: FolderStructure): Array<Document & { folderPath: string }> => {
@@ -92,37 +92,13 @@ export const ProjectList: React.FC<ProjectListProps> = ({
   const [selectedTiposObra, setSelectedTiposObra] = useState<string[]>([])
 
   // Hooks de búsqueda con la API
-  const { data: apiSearchResults, isFetching: isSearchingProjects } = useProjectSearch(projectSearchTerm)
+  // const { data: apiSearchResults, isFetching: isSearchingProjects } = useProjectSearch(projectSearchTerm) // Deshabilitado: búsqueda local
   const { data: apiFileResults, isFetching: isSearchingFiles, error: fileSearchError } = useFileSearch(documentSearchTerm)
   const { data: apiFolderResults } = useFolderSearch(documentSearchTerm)
 
-  // Lógica de filtrado usando useMemo para optimizar performance
+  // Lógica de filtrado usando useMemo para optimizar performance (solo búsqueda local)
   const filteredProjects = useMemo(() => {
     let filtered = projects
-
-    // Si hay búsqueda activa en la API, usar esos resultados
-    if (projectSearchTerm && apiSearchResults) {
-      // Mapear los resultados de la API al formato esperado
-      const apiProjects = apiSearchResults.map(proyecto => ({
-        id: proyecto.id.toString(),
-        name: proyecto.nombre,
-        createdAt: new Date(proyecto.created_at),
-        etapa: proyecto.etapas_registro?.[0]?.etapa_tipo?.nombre || "Sin etapa",
-        projectData: {
-          nombre: proyecto.nombre,
-          etapa: proyecto.etapas_registro?.[0]?.etapa_tipo?.nombre || "Sin etapa",
-          creador: proyecto.creador?.nombre_completo
-        },
-        structure: {
-          id: `root-${proyecto.id}`,
-          name: proyecto.nombre,
-          minDocuments: 0,
-          documents: [],
-          subfolders: []
-        }
-      }))
-      return apiProjects
-    }
 
     // Filtrar por término de búsqueda de proyectos (búsqueda local)
     filtered = searchInProjects(filtered, projectSearchTerm)
@@ -134,7 +110,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({
     filtered = filterByTiposObra(filtered, selectedTiposObra)
 
     return filtered
-  }, [projects, projectSearchTerm, selectedStages, selectedTiposObra, apiSearchResults])
+  }, [projects, projectSearchTerm, selectedStages, selectedTiposObra])
 
   // Búsqueda de documentos usando solo la API
   const searchedDocuments = useMemo(() => {
@@ -160,18 +136,10 @@ export const ProjectList: React.FC<ProjectListProps> = ({
         // Si no hay proyecto_id pero hay información en el path, buscar el proyecto por nombre
         const normalizedProjectName = projectNameFromPath.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
 
-        console.log('Buscando proyecto por nombre:', {
-          projectNameFromPath,
-          normalizedProjectName,
-          availableProjects: projects.map(p => ({ id: p.id, name: p.name }))
-        })
-
         const foundProject = projects.find(p =>
           p.name.toLowerCase().includes(projectNameFromPath.toLowerCase()) ||
           p.name.toLowerCase().includes(projectNameFromPath.replace(/_/g, ' ').toLowerCase())
         )
-
-        console.log('Proyecto encontrado por nombre:', foundProject)
 
         if (foundProject) {
           projectName = foundProject.name
@@ -234,11 +202,11 @@ export const ProjectList: React.FC<ProjectListProps> = ({
         onStageFilterChange={setSelectedStages}
         selectedTiposObra={selectedTiposObra}
         onTipoObraFilterChange={setSelectedTiposObra}
-        projectResults={isSearchingProjects ? undefined : filteredProjects.length}
+        projectResults={filteredProjects.length}
         documentResults={isSearchingFiles ? undefined : (apiFileResults?.archivos?.length || 0)}
         context="projects"
         onClearFilters={clearAllFilters}
-        isLoadingProjects={isSearchingProjects}
+        isLoadingProjects={false} // Búsqueda local, no hay loading
         isLoadingDocuments={isSearchingFiles}
       />
 

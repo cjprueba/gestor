@@ -1,8 +1,9 @@
 import { useCarpetaContenido, useCreateCarpeta, useCarpetasProyecto, useRenombrarCarpeta, useMoverCarpeta } from "@/lib/api/hooks/useProjects"
 import { useDocumentos } from "@/lib/api/hooks/useDocumentos"
+import { useFileSearch, useFolderSearch } from "@/lib/api"
 import { Button } from "@/shared/components/design-system/button"
 import { Calendar as CalendarComponent } from "@/shared/components/ui/calendar"
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/shared/components/ui/dialog"
 import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
@@ -15,7 +16,7 @@ import { getStageColor } from "@/shared/utils/stage-colors"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import { ArrowLeft, CalendarIcon, FileText, FolderOpen, Plus, Search, Upload } from "lucide-react"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState, useMemo } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 import AlertsPanel from "./alerts-panel"
 import DetailsSheet from "./details-sheet"
@@ -172,6 +173,16 @@ export default function ProjectView({ project, onBack }: ProjectViewProps) {
   const deleteDocumentoMutation = useDeleteDocumento()
   const { data: tiposDocumento } = useGetTiposDocumento()
 
+  // Hooks de búsqueda con la API (filtrando por proyecto)
+  const { data: apiFileResults, isFetching: isSearchingFiles, error: fileSearchError } = useFileSearch(
+    documentSearchTerm,
+    { proyecto_id: project.id }
+  )
+  const { data: apiFolderResults, isFetching: isSearchingFolders } = useFolderSearch(
+    folderSearchTerm, // Solo buscar carpetas cuando hay término específico de carpetas
+    { proyecto_id: project.id }
+  )
+
   // Limpiar targetFolderId después de usarlo para evitar interferencias en la navegación
   useEffect(() => {
     if (project.targetFolderId) {
@@ -201,6 +212,13 @@ export default function ProjectView({ project, onBack }: ProjectViewProps) {
 
   // Funciones de navegación
   const navigateToFolder = useCallback((carpetaId: number) => {
+    console.log("📁 [DEBUG] Navegando a carpeta:", {
+      carpetaId,
+      currentCarpetaId,
+      isFromSearch: folderSearchTerm ? true : false,
+      currentCarpeta: carpetaData?.carpeta?.nombre
+    })
+
     if (currentCarpetaId) {
       const currentCarpeta = carpetaData?.carpeta
       if (currentCarpeta) {
@@ -208,7 +226,14 @@ export default function ProjectView({ project, onBack }: ProjectViewProps) {
       }
     }
     setCurrentCarpetaId(carpetaId)
-  }, [currentCarpetaId, carpetaData])
+
+    // Limpiar búsquedas después de navegar
+    if (folderSearchTerm || documentSearchTerm) {
+      console.log("📁 [DEBUG] Limpiando búsquedas después de navegar")
+      setFolderSearchTerm("")
+      setDocumentSearchTerm("")
+    }
+  }, [currentCarpetaId, carpetaData, folderSearchTerm, documentSearchTerm])
 
   const navigateBack = useCallback(() => {
     if (navigationPath.length > 0) {
@@ -220,39 +245,34 @@ export default function ProjectView({ project, onBack }: ProjectViewProps) {
     }
   }, [navigationPath, onBack])
 
-  // Función para obtener carpetas y documentos filtrados
-  const getFilteredContent = () => {
+  // Determinar qué contenido mostrar basado en el estado de búsqueda
+  const getContentToDisplay = () => {
+    // Si hay búsqueda de documentos, no mostrar contenido local
+    if (documentSearchTerm) {
+      return {
+        folders: [], // No mostrar carpetas locales durante búsqueda de documentos
+        documents: [], // No mostrar documentos locales durante búsqueda de documentos
+        showLocalContent: false
+      }
+    }
+
+    // Si hay búsqueda de carpetas, mostrar resultados de búsqueda en lugar de contenido local
+    if (folderSearchTerm) {
+      return {
+        folders: searchedFolders, // Mostrar resultados de búsqueda de carpetas
+        documents: [], // No mostrar documentos durante búsqueda de carpetas
+        showLocalContent: true // Mantener la estructura de grid
+      }
+    }
+
+    // Si no hay búsqueda, mostrar contenido local de la carpeta actual
     const folders = carpetaData?.contenido?.carpetas || []
     const documents = carpetaData?.contenido?.documentos || []
 
-    let filteredFolders = [...folders]
-    let filteredDocuments = [...documents]
-
-    // Filtrado inteligente: mostrar solo el tipo que se está buscando
-    if (folderSearchTerm && !documentSearchTerm) {
-      filteredFolders = folders.filter((folder: CarpetaItem) =>
-        folder.nombre.toLowerCase().includes(folderSearchTerm.toLowerCase())
-      )
-      filteredDocuments = []
-    } else if (documentSearchTerm && !folderSearchTerm) {
-      filteredDocuments = documents.filter((doc: any) =>
-        (doc.nombre_archivo || doc.nombre || '').toLowerCase().includes(documentSearchTerm.toLowerCase())
-      )
-      filteredFolders = []
-    } else if (folderSearchTerm && documentSearchTerm) {
-      filteredFolders = folders.filter((folder: CarpetaItem) =>
-        folder.nombre.toLowerCase().includes(folderSearchTerm.toLowerCase())
-      )
-      filteredDocuments = documents.filter((doc: any) =>
-        (doc.nombre_archivo || doc.nombre || '').toLowerCase().includes(documentSearchTerm.toLowerCase())
-      )
-    }
-
     return {
-      folders: filteredFolders,
-      documents: filteredDocuments,
-      folderResults: filteredFolders.length,
-      documentResults: filteredDocuments.length
+      folders,
+      documents,
+      showLocalContent: true
     }
   }
 
@@ -709,8 +729,53 @@ export default function ProjectView({ project, onBack }: ProjectViewProps) {
     );
   }
 
-  // Obtener contenido filtrado
-  const { folders: filteredFolders, documents: filteredDocuments, folderResults, documentResults } = getFilteredContent()
+  // Búsqueda de documentos usando la API
+  const searchedDocuments = useMemo(() => {
+    if (!documentSearchTerm || !apiFileResults || !apiFileResults.archivos) {
+      return []
+    }
+
+    // Los resultados ya vienen filtrados por proyecto_id desde la API
+    return apiFileResults.archivos.map(file => {
+      // Extraer información de carpeta desde s3_path
+      const pathParts = file.s3_path.split('/')
+      const folderPath = pathParts.length > 2 ? pathParts.slice(-2).join(' - ') : 'Raíz'
+
+      return {
+        ...file, // Incluir todos los campos originales primero
+        name: file.nombre_archivo,
+        uploadedAt: new Date(file.fecha_creacion),
+        folderPath,
+        carpetaId: file.carpeta_id
+      }
+    })
+  }, [documentSearchTerm, apiFileResults])
+
+  // Búsqueda de carpetas usando la API
+  const searchedFolders = useMemo(() => {
+
+    // Manejar diferentes formatos de respuesta de la API
+    let foldersArray: any[] = []
+    if (Array.isArray(apiFolderResults)) {
+      foldersArray = apiFolderResults
+    } else if (apiFolderResults && typeof apiFolderResults === 'object') {
+      // Si es un objeto, intentar extraer un array de alguna propiedad
+      const results = apiFolderResults as any
+      if (results.data && Array.isArray(results.data)) {
+        foldersArray = results.data
+      } else if (results.carpetas && Array.isArray(results.carpetas)) {
+        foldersArray = results.carpetas
+      } else {
+        console.log("📁 [DEBUG] apiFolderResults es objeto pero no contiene array:", apiFolderResults)
+        return []
+      }
+    }
+
+    return foldersArray
+  }, [folderSearchTerm, apiFolderResults])
+
+  // Obtener contenido a mostrar
+  const { folders: displayedFolders, documents: displayedDocuments, showLocalContent } = getContentToDisplay()
   const currentCarpeta = carpetaData?.carpeta
   const allAlerts = generateMockAlerts()
   const availableFolders = getAvailableFolders()
@@ -1242,11 +1307,101 @@ export default function ProjectView({ project, onBack }: ProjectViewProps) {
         onStageFilterChange={setSelectedStages}
         selectedTiposObra={selectedTiposObra}
         onTipoObraFilterChange={setSelectedTiposObra}
-        projectResults={folderResults}
-        documentResults={documentResults}
+        projectResults={searchedFolders.length}
+        documentResults={isSearchingFiles ? undefined : searchedDocuments.length}
         context="project-detail"
         onClearFilters={clearAllFilters}
+        isLoadingProjects={isSearchingFolders}
+        isLoadingDocuments={isSearchingFiles}
       />
+
+      {/* Mostrar error en búsqueda de documentos */}
+      {documentSearchTerm && fileSearchError && (
+        <Card className="border-red-200 bg-red-50 mt-6">
+          <CardHeader>
+            <CardTitle className="text-lg text-red-800">Error en la búsqueda</CardTitle>
+            <CardDescription className="text-red-600">
+              No se pudo completar la búsqueda de documentos. Inténtalo de nuevo más tarde.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      )}
+
+      {/* Mostrar resultados de búsqueda de documentos */}
+      {documentSearchTerm && !fileSearchError && searchedDocuments.length > 0 && (
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle className="text-lg">Documentos encontrados en el proyecto</CardTitle>
+            <CardDescription>
+              {searchedDocuments.length} documentos coinciden con "{documentSearchTerm}"
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              {searchedDocuments.map((doc) => (
+                <div
+                  key={`search-${doc.id}`}
+                  className="flex items-center justify-between p-2 hover:bg-muted rounded cursor-pointer"
+                  onClick={() => {
+                    console.log("📄 [DEBUG] Click en documento de búsqueda:", {
+                      docName: doc.name,
+                      carpetaId: doc.carpetaId,
+                      currentCarpetaId,
+                      willNavigate: doc.carpetaId && doc.carpetaId !== currentCarpetaId
+                    })
+
+                    // Navegar a la carpeta que contiene el documento
+                    if (doc.carpetaId && doc.carpetaId !== currentCarpetaId) {
+                      console.log("📄 [DEBUG] Navegando a carpeta:", doc.carpetaId)
+                      setCurrentCarpetaId(doc.carpetaId)
+                      // Resetear el path de navegación ya que estamos saltando directamente
+                      setNavigationPath([])
+                      // Limpiar búsquedas después de navegar
+                      setFolderSearchTerm("")
+                      setDocumentSearchTerm("")
+                    } else {
+                      console.log("📄 [DEBUG] No navegando - ya estamos en la carpeta correcta o no hay carpetaId")
+                    }
+                  }}
+                >
+                  <div className="flex items-center space-x-3">
+                    <FileText className="w-4 h-4 text-blue-500" />
+                    <div>
+                      <div className="font-medium">{doc.name}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {doc.folderPath}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {doc.uploadedAt.toLocaleDateString()}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Mostrar mensaje cuando no hay resultados de documentos */}
+      {documentSearchTerm && !fileSearchError && !isSearchingFiles && searchedDocuments.length === 0 && (
+        <Card className="text-center py-8 mt-6">
+          <CardContent>
+            <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
+            <h3 className="text-lg font-semibold mb-2">No se encontraron documentos</h3>
+            <p className="text-muted-foreground mb-4">
+              No hay documentos en este proyecto que coincidan con "{documentSearchTerm}"
+            </p>
+            <Button variant="secundario" onClick={() => setDocumentSearchTerm("")}>
+              Limpiar búsqueda
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+
+
+
 
       {/* Panel de Alertas */}
       <div className="mt-6">
@@ -1263,85 +1418,111 @@ export default function ProjectView({ project, onBack }: ProjectViewProps) {
       </div>
 
       {/* Contenido de carpetas y documentos */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* Carpetas */}
-        {filteredFolders.map((folder) => (
-          <FolderCard
-            key={folder.id}
-            folder={folder}
-            projectStage={project.etapa}
-            onNavigate={(folderId) => navigateToFolder(folderId)}
-            onViewDetails={handleViewDetails}
-            onConfig={handleConfig}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            onMove={handleMove}
-            onDuplicate={handleDuplicate}
-            onViewProjectDetails={openProjectDetails}
-          />
-        ))}
-
-        {/* Documentos */}
-        {filteredDocuments.map((doc) => (
-          <Card key={doc.id}>
-            <CardHeader>
+      {showLocalContent && (
+        <>
+          {/* Indicador de búsqueda activa */}
+          {folderSearchTerm && (
+            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <FileText className="w-5 h-5 text-green-500" />
-                  <CardTitle className="text-lg break-words">{doc.nombre_archivo}</CardTitle>
-                </div>
-                <div className="flex-shrink-0">
-                  <DocumentContextMenu
-                    document={doc}
-                    onView={handleViewDocument}
-                    onDownload={handleDownloadDocument}
-                    onDelete={handleDeleteDocument}
-                  />
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm text-muted-foreground">
-                  <span>Tamaño:</span>
-                  <span>{doc.tamano ? `${(doc.tamano / 1024).toFixed(1)} KB` : "N/A"}</span>
-                </div>
-                <div className="flex justify-between text-sm text-muted-foreground">
-                  <span>Tipo:</span>
-                  <span>{doc.extension?.toUpperCase() || "N/A"}</span>
-                </div>
-                <div className="flex justify-between text-sm text-muted-foreground">
-                  <span>Subido:</span>
-                  <span>
-                    {doc.fecha_creacion ?
-                      new Date(doc.fecha_creacion).toLocaleDateString('es-ES', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric'
-                      }) :
-                      "N/A"
-                    }
+                  <Search className="w-4 h-4 text-blue-600" />
+                  <span className="text-sm font-medium text-blue-800">
+                    Mostrando resultados de búsqueda para "{folderSearchTerm}"
                   </span>
                 </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setFolderSearchTerm("")}
+                  className="text-blue-600 hover:text-blue-800"
+                >
+                  Limpiar búsqueda
+                </Button>
               </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+            </div>
+          )}
 
-      {/* Estado vacío */}
-      {filteredFolders.length === 0 && filteredDocuments.length === 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Carpetas */}
+            {displayedFolders.map((folder: CarpetaItem) => (
+              <FolderCard
+                key={folder.id}
+                folder={folder}
+                projectStage={project.etapa}
+                onNavigate={(folderId) => navigateToFolder(folderId)}
+                onViewDetails={handleViewDetails}
+                onConfig={handleConfig}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onMove={handleMove}
+                onDuplicate={handleDuplicate}
+                onViewProjectDetails={openProjectDetails}
+              />
+            ))}
+
+            {/* Documentos */}
+            {displayedDocuments.map((doc: any) => (
+              <Card key={doc.id}>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <FileText className="w-5 h-5 text-green-500" />
+                      <CardTitle className="text-lg break-words">{doc.nombre_archivo}</CardTitle>
+                    </div>
+                    <div className="flex-shrink-0">
+                      <DocumentContextMenu
+                        document={doc}
+                        onView={handleViewDocument}
+                        onDownload={handleDownloadDocument}
+                        onDelete={handleDeleteDocument}
+                      />
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm text-muted-foreground">
+                      <span>Tamaño:</span>
+                      <span>{doc.tamano ? `${(doc.tamano / 1024).toFixed(1)} KB` : "N/A"}</span>
+                    </div>
+                    <div className="flex justify-between text-sm text-muted-foreground">
+                      <span>Tipo:</span>
+                      <span>{doc.extension?.toUpperCase() || "N/A"}</span>
+                    </div>
+                    <div className="flex justify-between text-sm text-muted-foreground">
+                      <span>Subido:</span>
+                      <span>
+                        {doc.fecha_creacion ?
+                          new Date(doc.fecha_creacion).toLocaleDateString('es-ES', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                          }) :
+                          "N/A"
+                        }
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* Estado vacío para contenido local */}
+      {showLocalContent && displayedFolders.length === 0 && displayedDocuments.length === 0 && (
         <Card className="text-center py-12">
           <CardContent>
-            {folderSearchTerm || documentSearchTerm ? (
+            {folderSearchTerm ? (
               <>
-                <Search className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-xl font-semibold mb-2">No se encontraron resultados</h3>
+                <FolderOpen className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-xl font-semibold mb-2">No se encontraron carpetas</h3>
                 <p className="text-muted-foreground mb-4">
-                  No hay carpetas o documentos que coincidan con tu búsqueda
+                  No hay carpetas en este proyecto que coincidan con "{folderSearchTerm}"
                 </p>
-                <Button onClick={clearAllFilters} variant="secundario">
-                  Limpiar filtros
+                <Button variant="secundario" onClick={() => setFolderSearchTerm("")}>
+                  Limpiar búsqueda
                 </Button>
               </>
             ) : (

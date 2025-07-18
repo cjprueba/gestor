@@ -72,7 +72,6 @@ export const useCreateProjectForm = () => {
   // Observar cambios en los campos del formulario
   const watchedStepOne = watch("createProjectStepOne");
   const watchedStepTwo = watch("createProjectStepTwo");
-  const watchedStepThree = watch("createProjectStepThree");
 
   // Queries para obtener datos
   const { data: stageTypesData } = useStageTypes();
@@ -145,12 +144,12 @@ export const useCreateProjectForm = () => {
     }
 
     const carpetas = stageTypeDetailData.data.carpetas_iniciales;
-    const carpetasArray: Array<{ nombre: string }> = [];
+    const carpetasArray: Array<{ nombre: string; tipo: string }> = [];
 
     const extractCarpetas = (obj: any, parentName = "") => {
       Object.entries(obj).forEach(([key, value]) => {
         const nombre = parentName ? `${parentName} > ${key}` : key;
-        carpetasArray.push({ nombre });
+        carpetasArray.push({ nombre, tipo: "inicial" });
 
         if (
           typeof value === "object" &&
@@ -182,9 +181,9 @@ export const useCreateProjectForm = () => {
           watchedStepTwo.comuna_id > 0
         );
       case 3:
-        return (
-          watchedStepThree.carpetas && watchedStepThree.carpetas.length > 0
-        );
+        // Permitir continuar si hay carpetas (iniciales o personalizadas)
+        // Las carpetas iniciales siempre estarán presentes
+        return true;
       case 4:
         return true; // El paso 4 es opcional
       default:
@@ -192,29 +191,34 @@ export const useCreateProjectForm = () => {
     }
   };
 
-  // Función para convertir array de carpetas a formato de objeto anidado
+  // Función para convertir array de carpetas personalizadas a formato de objeto anidado
+  // Solo procesa carpetas que NO son iniciales (tipo !== "inicial")
   const convertCarpetasToNestedObject = (carpetas: any[]) => {
     const result: Record<string, any> = {};
 
     const processSubcarpetas = (subcarpetas: any[]): Record<string, any> => {
       const subResult: Record<string, any> = {};
       subcarpetas.forEach((subcarpeta) => {
-        subResult[subcarpeta.nombre] =
-          subcarpeta.subcarpetas && subcarpeta.subcarpetas.length > 0
-            ? processSubcarpetas(subcarpeta.subcarpetas)
-            : {};
+        // Solo procesar subcarpetas que no son iniciales
+        if (subcarpeta.tipo !== "inicial") {
+          subResult[subcarpeta.nombre] =
+            subcarpeta.subcarpetas && subcarpeta.subcarpetas.length > 0
+              ? processSubcarpetas(subcarpeta.subcarpetas)
+              : {};
+        }
       });
       return subResult;
     };
 
     carpetas.forEach((item) => {
-      if (item.tipo === "carpeta" || item.tipo === "inicial") {
+      // Solo procesar carpetas que NO son iniciales
+      if (item.tipo === "carpeta" && item.tipo !== "inicial") {
         result[item.nombre] =
           item.subcarpetas && item.subcarpetas.length > 0
             ? processSubcarpetas(item.subcarpetas)
             : {};
-      } else if (item.nombre) {
-        // Para carpetas simples (compatibilidad con formato anterior)
+      } else if (item.nombre && item.tipo !== "inicial") {
+        // Para carpetas simples que no son iniciales
         result[item.nombre] = {};
       }
     });
@@ -239,24 +243,10 @@ export const useCreateProjectForm = () => {
 
     const formData = methods.getValues();
 
-    // Mostrar en consola el contexto completo del formulario
-    console.log("=== CONTEXTO COMPLETO DEL FORMULARIO ===");
-    console.log("Form Data:", formData);
-    console.log("Stage Type Detail:", stageTypeDetailData?.data);
-    console.log("Selected Etapa ID:", selectedEtapaId);
-    console.log("Tipos Iniciativa:", tiposIniciativaData?.data);
-    console.log("Tipos Obra:", tiposObraData?.data);
-    console.log("Regiones:", regionesData?.data);
-    console.log("Provincias:", provinciasData?.data);
-    console.log("Comunas:", comunasData?.data);
-    console.log("Carpetas Iniciales:", getCarpetasIniciales());
-
     // Convertir carpetas al formato esperado por la API (sin la clave 'carpetas')
     const carpetasAnidadas = convertCarpetasToNestedObject(
       formData.createProjectStepThree.carpetas || []
     );
-    console.log("Carpetas Anidadas:", carpetasAnidadas);
-    console.log("==========================================");
 
     // Determinar los campos permitidos para la etapa actual
     let allowedFields: string[] = [];

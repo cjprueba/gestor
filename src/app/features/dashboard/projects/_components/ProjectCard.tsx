@@ -52,14 +52,8 @@ export const ProjectCard: React.FC<ProjectCardProps & { onUpdateProject?: (proje
   // Usar datos de la API si están disponibles, sino usar carpeta_inicial
   const totalFolders = carpetaData?.contenido?.carpetas?.length || totalFoldersFromCarpetaInicial;
 
-  // Contar documentos totales
-  const totalDocuments = project.structure.subfolders.reduce(
-    (acc, folder) =>
-      acc +
-      folder.documents.length +
-      folder.subfolders.reduce((subAcc, subfolder) => subAcc + subfolder.documents.length, 0),
-    0,
-  )
+  // Obtener total de documentos desde la API
+  const totalDocuments = carpetaData?.estadisticas?.total_documentos || 0;
 
   const getNextStage = (): typeof ETAPAS[number] | null => {
     const idx = ETAPAS.indexOf(project.etapa as typeof ETAPAS[number])
