@@ -17,6 +17,8 @@ import { AdvanceStageModal } from "./advance-stage-modal"
 import type { FolderStructure, ProjectCardProps } from "./types"
 import { getTotalCarpetasPrincipales } from "@/shared/utils/project-utils"
 import { useCarpetaContenido } from "@/lib/api/hooks/useProjects"
+import { useQueryClient } from "@tanstack/react-query"
+import { toast } from "sonner"
 
 const getTotalAlerts = (folder: FolderStructure): number => {
   let alerts = 0
@@ -41,6 +43,7 @@ const getTotalAlerts = (folder: FolderStructure): number => {
 export const ProjectCard: React.FC<ProjectCardProps & { onUpdateProject?: (project: any) => void }> = ({ project, onSelect }) => {
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false)
   const [isAdvanceStageModalOpen, setIsAdvanceStageModalOpen] = useState(false)
+  const queryClient = useQueryClient()
 
   // Obtener datos de la carpeta raíz si está disponible
   const { data: carpetaData } = useCarpetaContenido(project.carpeta_raiz_id)
@@ -167,6 +170,16 @@ export const ProjectCard: React.FC<ProjectCardProps & { onUpdateProject?: (proje
         onSuccess={() => {
           // Refrescar datos del proyecto después de avanzar etapa
           console.log("Etapa avanzada exitosamente")
+
+          // Invalidar todas las queries relacionadas con el proyecto
+          queryClient.invalidateQueries({ queryKey: ["proyectos"] })
+          queryClient.invalidateQueries({ queryKey: ["proyecto", parseInt(project.id)] })
+          queryClient.invalidateQueries({ queryKey: ["carpeta-contenido"] })
+          queryClient.invalidateQueries({ queryKey: ["carpetas-proyecto", parseInt(project.id)] })
+          queryClient.invalidateQueries({ queryKey: ["etapa-avanzar-info", parseInt(project.id)] })
+
+          // Mostrar mensaje de éxito
+          toast.success("Se avanzó a la siguiente etapa exitosamente")
         }}
       />
     </>
