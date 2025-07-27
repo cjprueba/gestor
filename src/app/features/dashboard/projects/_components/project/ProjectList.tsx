@@ -38,9 +38,9 @@ const searchInProjects = (projects: any[], searchTerm: string) => {
 
   const term = searchTerm.toLowerCase()
   return projects.filter(project =>
-    project.name.toLowerCase().includes(term) ||
-    project.etapa.toLowerCase().includes(term) ||
-    (project.projectData?.descripcion && project.projectData.descripcion.toLowerCase().includes(term))
+    project.nombre.toLowerCase().includes(term) ||
+    project.etapas_registro[0]?.etapa_tipo?.nombre.toLowerCase().includes(term) ||
+    project.creador.nombre_completo.toLowerCase().includes(term)
   )
 }
 
@@ -70,14 +70,17 @@ const searchInProjects = (projects: any[], searchTerm: string) => {
 // Función helper para filtrar por etapas
 const filterByStages = (projects: any[], selectedStages: string[]) => {
   if (selectedStages.length === 0) return projects
-  return projects.filter(project => selectedStages.includes(project.etapa))
+  return projects.filter(project =>
+    selectedStages.includes(project.etapas_registro[0]?.etapa_tipo?.nombre || "")
+  )
 }
 
 // Función helper para filtrar por tipos de obra
 const filterByTiposObra = (projects: any[], selectedTiposObra: string[]) => {
   if (selectedTiposObra.length === 0) return projects
   return projects.filter(project =>
-    project.projectData?.tipoObra && selectedTiposObra.includes(project.projectData.tipoObra)
+    project.etapas_registro[0]?.tipo_obra?.nombre &&
+    selectedTiposObra.includes(project.etapas_registro[0].tipo_obra.nombre)
   )
 }
 
@@ -119,20 +122,20 @@ export const ProjectList: React.FC<ProjectListProps> = ({
       let projectId = '0'
 
       if (file.proyecto_id !== null) {
-        const foundProject = projects.find(p => p.id === file.proyecto_id!.toString())
-        projectName = foundProject ? foundProject.name : 'Proyecto'
+        const foundProject = projects.find(p => p.id === file.proyecto_id!)
+        projectName = foundProject ? foundProject.nombre : 'Proyecto'
         projectId = file.proyecto_id!.toString()
       } else if (projectNameFromPath) {
         const normalizedProjectName = projectNameFromPath.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
 
         const foundProject = projects.find(p =>
-          p.name.toLowerCase().includes(projectNameFromPath.toLowerCase()) ||
-          p.name.toLowerCase().includes(projectNameFromPath.replace(/_/g, ' ').toLowerCase())
+          p.nombre.toLowerCase().includes(projectNameFromPath.toLowerCase()) ||
+          p.nombre.toLowerCase().includes(projectNameFromPath.replace(/_/g, ' ').toLowerCase())
         )
 
         if (foundProject) {
-          projectName = foundProject.name
-          projectId = foundProject.id
+          projectName = foundProject.nombre
+          projectId = foundProject.id.toString()
         } else {
           projectName = normalizedProjectName
           projectId = '0' // No encontramos el proyecto, pero al menos mostramos el nombre
@@ -231,7 +234,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({
                     console.log('Project ID:', doc.projectId)
 
                     // Buscar y seleccionar el proyecto que contiene este documento
-                    const project = projects.find(p => p.id === doc.projectId)
+                    const project = projects.find(p => p.id.toString() === doc.projectId)
                     console.log('Proyecto encontrado:', project)
 
                     if (project) {
@@ -295,7 +298,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({
                   className="flex items-center justify-between p-2 hover:bg-muted rounded cursor-pointer"
                   onClick={() => {
                     // Buscar y seleccionar el proyecto que contiene esta carpeta
-                    const project = projects.find(p => p.id === folder.proyecto_id.toString())
+                    const project = projects.find(p => p.id === folder.proyecto_id)
                     if (project) {
                       // Navegar al proyecto y específicamente a la carpeta seleccionada
                       onSelectProject(project, folder.id)

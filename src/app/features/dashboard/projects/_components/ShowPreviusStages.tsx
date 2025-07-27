@@ -59,7 +59,7 @@ const ShowPreviusStages = ({ etapasAnteriores }: ShowPreviusStagesProps) => {
                 >
                   <span className="text-sm font-medium flex items-center gap-2 text-white transition-all duration-300 ease-out">
                     <span>{etapa.etapa_tipo?.nombre}</span>
-                    <div className="w-4 h-4 rounded transition-all duration-300 ease-out" style={{ backgroundColor: etapa.etapa_tipo.color }} />
+                    <div className="w-4 h-4 rounded transition-all duration-300 ease-out" style={{ backgroundColor: etapa.etapa_tipo?.color }} />
                   </span>
                   <ChevronDown className="w-4 h-4 text-white transition-transform duration-400 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] group-data-[state=open]:rotate-180 ml-2" />
                 </div>

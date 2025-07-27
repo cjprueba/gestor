@@ -196,32 +196,7 @@ export function SearchHeader({
                       {etapa.nombre}
                     </DropdownMenuCheckboxItem>
                   ))
-                ) : (
-                  // Fallback con datos mock si la API no está disponible
-                  <>
-                    <DropdownMenuCheckboxItem
-                      key="cartera"
-                      checked={selectedStages.includes("Cartera de proyectos")}
-                      onCheckedChange={() => handleStageToggle("Cartera de proyectos")}
-                    >
-                      Cartera de proyectos
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem
-                      key="licitacion"
-                      checked={selectedStages.includes("Proyectos en Licitación")}
-                      onCheckedChange={() => handleStageToggle("Proyectos en Licitación")}
-                    >
-                      Proyectos en Licitación
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem
-                      key="operacion"
-                      checked={selectedStages.includes("Concesiones en Operación")}
-                      onCheckedChange={() => handleStageToggle("Concesiones en Operación")}
-                    >
-                      Concesiones en Operación
-                    </DropdownMenuCheckboxItem>
-                  </>
-                )}
+                ) : null}
                 {selectedStages.length > 0 && (
                   <>
                     <DropdownMenuSeparator />
@@ -270,35 +245,7 @@ export function SearchHeader({
                       {tipo.nombre}
                     </DropdownMenuCheckboxItem>
                   ))
-                ) : (
-                  // Fallback con datos mock si la API no está disponible
-                  <>
-                    <DropdownMenuCheckboxItem
-                      key="carretera"
-                      checked={selectedTiposObra.includes("Carretera")}
-                      onCheckedChange={() => handleTipoObraToggle("Carretera")}
-                      className="text-sm"
-                    >
-                      Carretera
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem
-                      key="puente"
-                      checked={selectedTiposObra.includes("Puente")}
-                      onCheckedChange={() => handleTipoObraToggle("Puente")}
-                      className="text-sm"
-                    >
-                      Puente
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem
-                      key="tunel"
-                      checked={selectedTiposObra.includes("Túnel")}
-                      onCheckedChange={() => handleTipoObraToggle("Túnel")}
-                      className="text-sm"
-                    >
-                      Túnel
-                    </DropdownMenuCheckboxItem>
-                  </>
-                )}
+                ) : null}
                 {selectedTiposObra.length > 0 && (
                   <>
                     <DropdownMenuSeparator />
@@ -340,23 +287,23 @@ export function SearchHeader({
                   variant="ghost"
                   size="sm"
                   onClick={() => onProjectSearchChange("")}
-                  className="ml-1 h-4 w-4 p-0 hover:bg-blue-200"
+                  className="ml-1 p-0 hover:bg-blue-200"
                 >
-                  <X className="w-2 h-2" />
+                  <X className="w-4 h-4 text-blue-800" />
                 </Button>
               </Badge>
             )}
 
             {documentSearchTerm && (
-              <Badge variant="secondary" className="bg-green-100 text-green-800">
+              <Badge variant="secondary" className="bg-green-100 text-green-800 p-0 px-2">
                 Documento: "{documentSearchTerm}"
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => onDocumentSearchChange("")}
-                  className="ml-1 h-4 w-4 p-0 hover:bg-green-200"
+                  className="p-0 hover:bg-green-200"
                 >
-                  <X className="w-2 h-2" />
+                  <X className="w-4 h-4 text-green-800" />
                 </Button>
               </Badge>
             )}
@@ -368,9 +315,9 @@ export function SearchHeader({
                   variant="ghost"
                   size="sm"
                   onClick={() => handleStageToggle(stage)}
-                  className="ml-1 h-4 w-4 p-0 hover:bg-purple-200"
+                  className="ml-1 p-0 hover:bg-purple-200"
                 >
-                  <X className="w-2 h-2" />
+                  <X className="w-4 h-4 text-purple-800" />
                 </Button>
               </Badge>
             ))}
@@ -382,9 +329,9 @@ export function SearchHeader({
                   variant="ghost"
                   size="sm"
                   onClick={() => handleTipoObraToggle(tipo)}
-                  className="ml-1 h-4 w-4 p-0 hover:bg-orange-200"
+                  className="ml-1 p-0 hover:bg-orange-200"
                 >
-                  <X className="w-2 h-2" />
+                  <X className="w-4 h-4 text-orange-800" />
                 </Button>
               </Badge>
             ))}

@@ -1,10 +1,7 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  createProjectSchema,
-  type CreateProjectFormData,
-} from "../project/project.types";
+
 import {
   useCreateProject,
   useTiposIniciativa,
@@ -16,6 +13,10 @@ import {
 import { useStageTypes, useStageTypeDetail } from "@/lib/api/hooks/useStages";
 import { useTiposObras } from "@/lib/api/hooks/useTipoObra";
 import dayjs from "dayjs";
+import {
+  createProjectSchema,
+  type CreateProjectFormData,
+} from "../project/project.validations";
 
 export const useCreateProjectForm = () => {
   const [currentStep, setCurrentStep] = useState(1);

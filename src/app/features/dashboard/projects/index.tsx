@@ -3,39 +3,26 @@ import { Button } from "@/shared/components/design-system/button"
 import { Plus } from "lucide-react"
 import { CreateProjectDialog } from "./_components/project/CreateProjectDialog"
 import { ProjectList } from "./_components/project/ProjectList"
-import type { Project } from "./_components/project/project.types"
-import { useProyectosCompletos } from "@/lib/api/hooks/useProjects"
-import { transformApiProjectToComponent } from "@/shared/utils/project-utils"
+import type { ProyectoListItem } from "./_components/project/project.types"
+import { useProyectos } from "@/lib/api/hooks/useProjects"
 import FolderList from "./_components/folder/FolderList"
 
 export default function HomePage() {
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null)
+  const [selectedProject, setSelectedProject] = useState<ProyectoListItem | null>(null)
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
 
-  // Obtener datos de la API
-  const {
-    proyectosLista,
-    proyectosDetalles,
-    isLoading,
-    error
-  } = useProyectosCompletos()
+  // Obtener datos de la API directamente
+  const { data: projectsResponse, isLoading, error } = useProyectos()
+  const projects = projectsResponse?.data || []
 
-  // Transformar los datos de la API al formato esperado por los componentes
-  const projects: Project[] = proyectosLista.map(proyectoLista => {
-    const proyectoDetalle = proyectosDetalles.find(p => p.id === proyectoLista.id)?.data?.data;
-    return transformApiProjectToComponent(proyectoLista, proyectoDetalle);
-  });
-
-
-
-  const handleUpdateProject = (updatedProject: Project) => {
+  const handleUpdateProject = (updatedProject: ProyectoListItem) => {
     // Por ahora solo actualizamos el estado local
     // En el futuro, esto debería invalidar las queries para refrescar los datos
     console.log("Proyecto actualizado:", updatedProject);
     setSelectedProject(updatedProject)
   }
 
-  const handleSelectProject = (project: Project, targetFolderId?: number) => {
+  const handleSelectProject = (project: ProyectoListItem, targetFolderId?: number) => {
     // Si hay un targetFolderId, lo almacenamos en el proyecto para que ProjectView lo use
     if (targetFolderId) {
       const projectWithTargetFolder = {

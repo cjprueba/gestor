@@ -1,39 +1,20 @@
-import { useCarpetaContenido, useUpdateProject } from "@/lib/api/hooks/useProjects"
+import { useCarpetaContenido, useProyectoDetalle, useUpdateProject } from "@/lib/api/hooks/useProjects"
 import TagStage from "@/shared/components/TagStage"
 import { Card, CardContent, CardHeader } from "@/shared/components/ui/card"
-import { getTotalCarpetasPrincipales } from "@/shared/utils/project-utils"
 import { useQueryClient } from "@tanstack/react-query"
-import { Calendar, FileText, FolderOpen } from "lucide-react"
+import { Calendar, FileText, FolderOpen, Loader2 } from "lucide-react"
 import React, { useState } from "react"
 import { toast } from "sonner"
 import CardActions from "../CardActions"
-import type { FolderStructure } from "../folder/folder.types"
 import { ShowStageDetailsDialog } from "../ShowStageDetailsDialog"
 import { AdvanceStageModal } from "./AdvanceStageModal"
-import type { Project, ProjectCardProps } from "./project.types"
+import type { ProjectCardProps, ProyectoListItem } from "./project.types"
 import RenameProjectDialog from "./RenameProjectDialog"
 
-const getTotalAlerts = (folder: FolderStructure): number => {
-  let alerts = 0
-
-  // Alertas por documentos faltantes
-  if (folder.documents.length < folder.minDocuments) {
-    alerts++
-  }
-
-  // Alertas por fechas vencidas
-  const overdueDocs = folder.documents.filter((doc) => doc.dueDate && doc.dueDate < new Date())
-  alerts += overdueDocs.length
-
-  // Alertas de subcarpetas
-  folder.subfolders.forEach((subfolder) => {
-    alerts += getTotalAlerts(subfolder)
-  })
-
-  return alerts
-}
-
-export const ProjectCard: React.FC<ProjectCardProps & { onUpdateProject?: (project: Project) => void }> = ({ project, onSelect }) => {
+export const ProjectCard: React.FC<ProjectCardProps & { onUpdateProject?: (project: ProyectoListItem) => void }> = ({
+  project,
+  onSelect
+}) => {
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false)
   const [isAdvanceStageModalOpen, setIsAdvanceStageModalOpen] = useState(false)
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false)
@@ -43,14 +24,25 @@ export const ProjectCard: React.FC<ProjectCardProps & { onUpdateProject?: (proje
   // Hook para actualizar proyecto
   const updateProjectMutation = useUpdateProject()
 
+  // Obtener datos de la carpeta raíz
   const { data: carpetaData } = useCarpetaContenido(project.carpeta_raiz_id)
 
-  const carpetaInicial = project.projectData?.carpetaInicial || {};
-  const totalFoldersFromCarpetaInicial = getTotalCarpetasPrincipales(carpetaInicial);
+  // Obtener detalle del proyecto para tipo de obra
+  const { data: proyectoDetalle, isLoading: isLoadingTipoObra } = useProyectoDetalle(project.id)
 
-  const totalFolders = carpetaData?.contenido?.carpetas?.length || totalFoldersFromCarpetaInicial;
+  // Calcular totales desde los datos de la API
+  const totalFolders = carpetaData?.contenido?.carpetas?.length || 0
+  const totalDocuments = carpetaData?.estadisticas?.total_documentos || 0
 
-  const totalDocuments = carpetaData?.estadisticas?.total_documentos || 0;
+  // Obtener información de la etapa
+  const etapaActual = project.etapas_registro[0]?.etapa_tipo
+  const etapaNombre = etapaActual?.nombre
+  const etapaColor = etapaActual?.color
+
+  // Obtener tipo de obra desde el detalle del proyecto
+  const tipoObra = isLoadingTipoObra
+    ? "Cargando..."
+    : proyectoDetalle?.data?.etapas_registro[0]?.tipo_obra?.nombre || "No especificado"
 
   const handleOpenAdvanceStage = () => {
     console.log("handleOpenAdvanceStage llamado")
@@ -76,11 +68,11 @@ export const ProjectCard: React.FC<ProjectCardProps & { onUpdateProject?: (proje
   const handleRenameProject = async (newName: string) => {
     if (!selectedProjectForAction) return
 
-    console.log("Iniciando renombrado de proyecto:", selectedProjectForAction.name, "a:", newName)
+    console.log("Iniciando renombrado de proyecto:", selectedProjectForAction.nombre, "a:", newName)
 
     try {
       await updateProjectMutation.mutateAsync({
-        projectId: parseInt(selectedProjectForAction.id),
+        projectId: selectedProjectForAction.id,
         data: {
           nombre: newName
         }
@@ -91,20 +83,32 @@ export const ProjectCard: React.FC<ProjectCardProps & { onUpdateProject?: (proje
   }
 
   console.log(project, "-------Project")
+
   return (
     <>
       <Card
-        className={`cursor-pointer hover:shadow-lg transition-all relative border-1`}
+        className="cursor-pointer hover:shadow-lg transition-all relative border-1"
+        style={{ borderColor: etapaColor }}
         onClick={handleCardClick}
       >
         <CardHeader>
           <div className="flex justify-between items-start">
             <div className="flex-1 pr-2">
-              <h3 className="text-lg font-semibold">{project.name}</h3>
-              {project.etapa && (
-                <TagStage etapa={project.etapa} size="xs" />
-              )}
-              <p className="text-xs text-muted-foreground mt-2">Tipo de obra: <span className="font-light">{project.projectData?.tipoObra}</span></p>
+              <h3 className="text-lg font-semibold">{project.nombre}</h3>
+              <TagStage etapa={etapaNombre} size="xs" />
+              <p className="text-xs text-muted-foreground mt-2">
+                Tipo de obra:
+                <span className="font-light ml-1">
+                  {isLoadingTipoObra ? (
+                    <span className="flex items-center gap-1">
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                      Cargando...
+                    </span>
+                  ) : (
+                    tipoObra
+                  )}
+                </span>
+              </p>
             </div>
             <div className="flex items-center space-x-2">
               <CardActions
@@ -129,7 +133,7 @@ export const ProjectCard: React.FC<ProjectCardProps & { onUpdateProject?: (proje
             </div>
             <div className="flex items-center text-sm text-muted-foreground">
               <Calendar className="w-4 h-4 mr-2" />
-              Creado {project.createdAt.toLocaleDateString()}
+              Creado {new Date(project.created_at).toLocaleDateString()}
             </div>
           </div>
         </CardContent>
@@ -148,12 +152,11 @@ export const ProjectCard: React.FC<ProjectCardProps & { onUpdateProject?: (proje
         isOpen={isAdvanceStageModalOpen}
         onClose={() => setIsAdvanceStageModalOpen(false)}
         onSuccess={() => {
-
           queryClient.invalidateQueries({ queryKey: ["proyectos"] })
-          queryClient.invalidateQueries({ queryKey: ["proyecto", parseInt(project.id)] })
+          queryClient.invalidateQueries({ queryKey: ["proyecto", project.id] })
           queryClient.invalidateQueries({ queryKey: ["carpeta-contenido"] })
-          queryClient.invalidateQueries({ queryKey: ["carpetas-proyecto", parseInt(project.id)] })
-          queryClient.invalidateQueries({ queryKey: ["etapa-avanzar-info", parseInt(project.id)] })
+          queryClient.invalidateQueries({ queryKey: ["carpetas-proyecto", project.id] })
+          queryClient.invalidateQueries({ queryKey: ["etapa-avanzar-info", project.id] })
 
           // Mostrar mensaje de éxito
           toast.success("Se avanzó a la siguiente etapa exitosamente")

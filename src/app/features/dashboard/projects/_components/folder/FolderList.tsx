@@ -27,7 +27,8 @@ import { SearchHeader } from "../search-header"
 import { DocumentContextMenu } from "../document-context-menu"
 import { DocumentPreviewModal } from "../document-preview-modal"
 import { DeleteConfirmationDialog } from "./DeleteFolderConfirmationModal"
-import type { CarpetaItem, CreateCarpetaRequest, DocumentoItem, Project } from "../project/project.types"
+import type { ProyectoListItem } from "../project/project.types"
+import type { CarpetaItem, CreateCarpetaRequest, DocumentoItem } from "./folder.types"
 
 // Tipo extendido para documento con URL de preview temporal
 interface DocumentoItemWithPreview extends DocumentoItem {
@@ -35,9 +36,9 @@ interface DocumentoItemWithPreview extends DocumentoItem {
 }
 
 interface ProjectViewProps {
-  project: Project
+  project: ProyectoListItem
   onBack: () => void
-  onUpdateProject: (project: Project) => void
+  onUpdateProject: (project: ProyectoListItem) => void
 }
 
 // Componente para texto animado (cuando los nombres de archivos son muy largos)
@@ -116,9 +117,11 @@ export default function FolderList({ project, onBack }: ProjectViewProps) {
   const queryClient = useQueryClient()
 
   // Estado para navegación de carpetas
-  const [currentCarpetaId, setCurrentCarpetaId] = useState<number | undefined>(
-    project.targetFolderId || project.carpeta_raiz_id
-  )
+  // const [currentCarpetaId, setCurrentCarpetaId] = useState<number | undefined>(
+  //   project.targetFolderId || project.carpeta_raiz_id
+  // )
+
+  const [currentCarpetaId, setCurrentCarpetaId] = useState<number | undefined>(project.carpeta_raiz_id)
 
   const [navigationPath, setNavigationPath] = useState<Array<{ id: number, nombre: string }>>([])
 
@@ -174,28 +177,28 @@ export default function FolderList({ project, onBack }: ProjectViewProps) {
   // Hooks de búsqueda con la API (filtrando por proyecto)
   const { data: apiFileResults, isFetching: isSearchingFiles, error: fileSearchError } = useFileSearch(
     documentSearchTerm,
-    { proyecto_id: project.id }
+    { proyecto_id: project.id.toString() }
   )
   const { data: apiFolderResults, isFetching: isSearchingFolders } = useFolderSearch(
     folderSearchTerm, // Solo buscar carpetas cuando hay término específico de carpetas
-    { proyecto_id: project.id }
+    { proyecto_id: project.id.toString() }
   )
 
   // Limpiar targetFolderId después de usarlo para evitar interferencias en la navegación
-  useEffect(() => {
-    if (project.targetFolderId) {
-      // Limpiar el targetFolderId del proyecto después de usarlo
-      const projectWithoutTarget = { ...project }
-      delete projectWithoutTarget.targetFolderId
-      // Nota: En una implementación real, esto debería actualizar el estado del proyecto padre
-    }
-  }, [project.targetFolderId])
+  // useEffect(() => {
+  //   if (project.targetFolderId) {
+  //     // Limpiar el targetFolderId del proyecto después de usarlo
+  //     const projectWithoutTarget = { ...project }
+  //     delete projectWithoutTarget.targetFolderId
+  //     // Nota: En una implementación real, esto debería actualizar el estado del proyecto padre
+  //   }
+  // }, [project.targetFolderId])
 
   // Obtener contenido de la carpeta actual
-  const { data: carpetaData, isLoading, error } = useCarpetaContenido(currentCarpetaId)
+  const { data: carpetaData, isLoading, error } = useCarpetaContenido(project.carpeta_raiz_id)
 
   // Obtener carpetas del proyecto para el selector
-  const { data: carpetasProyecto } = useCarpetasProyecto(parseInt(project.id))
+  const { data: carpetasProyecto } = useCarpetasProyecto(project.id)
 
   // Hook para crear carpeta
   const createCarpetaMutation = useCreateCarpeta()
@@ -212,15 +215,15 @@ export default function FolderList({ project, onBack }: ProjectViewProps) {
   const navigateToFolder = useCallback((carpetaId: number) => {
     console.log("📁 [DEBUG] Navegando a carpeta:", {
       carpetaId,
-      currentCarpetaId,
+      currentCarpetaId: project.carpeta_raiz_id,
       isFromSearch: folderSearchTerm ? true : false,
       currentCarpeta: carpetaData?.carpeta?.nombre
     })
 
-    if (currentCarpetaId) {
+    if (project.carpeta_raiz_id) {
       const currentCarpeta = carpetaData?.carpeta
       if (currentCarpeta) {
-        setNavigationPath(prev => [...prev, { id: currentCarpetaId, nombre: currentCarpeta.nombre }])
+        setNavigationPath(prev => [...prev, { id: project.carpeta_raiz_id, nombre: currentCarpeta.nombre }])
       }
     }
     setCurrentCarpetaId(carpetaId)
@@ -461,7 +464,7 @@ export default function FolderList({ project, onBack }: ProjectViewProps) {
 
       // Invalidar queries para refrescar la lista
       queryClient.invalidateQueries({ queryKey: ["carpeta-contenido", currentCarpetaId] })
-      queryClient.invalidateQueries({ queryKey: ["carpetas-proyecto", parseInt(project.id)] })
+      queryClient.invalidateQueries({ queryKey: ["carpetas-proyecto", project.id] })
 
       // Reset estados
       setSelectedFiles([])
@@ -496,7 +499,7 @@ export default function FolderList({ project, onBack }: ProjectViewProps) {
       nombre: newFolderName.trim(),
       descripcion: newFolderDescription.trim(),
       carpeta_padre_id: carpetaPadreId,
-      proyecto_id: parseInt(project.id),
+      proyecto_id: project.id,
       etapa_tipo_id: 1, // Por ahora hardcodeado, debería venir del proyecto
       usuario_creador: 1, // Por ahora hardcodeado
       orden_visualizacion: 1, // Por ahora hardcodeado
@@ -511,7 +514,7 @@ export default function FolderList({ project, onBack }: ProjectViewProps) {
 
       // Invalidar queries para refrescar la lista
       queryClient.invalidateQueries({ queryKey: ["carpeta-contenido", currentCarpetaId] })
-      queryClient.invalidateQueries({ queryKey: ["carpetas-proyecto", parseInt(project.id)] })
+      queryClient.invalidateQueries({ queryKey: ["carpetas-proyecto", project.id] })
 
       // Reset estados
       setNewFolderName("")
@@ -543,8 +546,8 @@ export default function FolderList({ project, onBack }: ProjectViewProps) {
           folderId: currentCarpeta.id.toString(),
           folderName: currentCarpeta.nombre,
           folderPath: navigationPath.length > 0
-            ? `${project.name} > ${navigationPath.map(p => p.nombre).join(" > ")} > ${currentCarpeta.nombre}`
-            : `${project.name} > ${currentCarpeta.nombre}`,
+            ? `${project.nombre} > ${navigationPath.map(p => p.nombre).join(" > ")} > ${currentCarpeta.nombre}`
+            : `${project.nombre} > ${currentCarpeta.nombre}`,
           message: `Faltan ${minDocs - totalDocs} de ${minDocs} documentos`,
           count: minDocs - totalDocs,
           total: minDocs,
@@ -605,7 +608,7 @@ export default function FolderList({ project, onBack }: ProjectViewProps) {
 
     // Invalidar queries para refrescar la lista
     queryClient.invalidateQueries({ queryKey: ["carpeta-contenido", currentCarpetaId] })
-    queryClient.invalidateQueries({ queryKey: ["carpetas-proyecto", parseInt(project.id)] })
+    queryClient.invalidateQueries({ queryKey: ["carpetas-proyecto", project.id] })
   }
 
   // Función para mover carpeta
@@ -630,7 +633,7 @@ export default function FolderList({ project, onBack }: ProjectViewProps) {
 
     // Invalidar queries para refrescar la lista
     queryClient.invalidateQueries({ queryKey: ["carpeta-contenido", currentCarpetaId] })
-    queryClient.invalidateQueries({ queryKey: ["carpetas-proyecto", parseInt(project.id)] })
+    queryClient.invalidateQueries({ queryKey: ["carpetas-proyecto", project.id] })
   }
 
   // Handler para ver documento
@@ -706,7 +709,7 @@ export default function FolderList({ project, onBack }: ProjectViewProps) {
         onSuccess: () => {
           // Invalidar queries para refrescar la lista
           queryClient.invalidateQueries({ queryKey: ["carpeta-contenido", currentCarpetaId] })
-          queryClient.invalidateQueries({ queryKey: ["carpetas-proyecto", parseInt(project.id)] })
+          queryClient.invalidateQueries({ queryKey: ["carpetas-proyecto", project.id] })
 
           // Cerrar el modal de preview si está abierto
           if (isPreviewOpen) {
@@ -825,13 +828,13 @@ export default function FolderList({ project, onBack }: ProjectViewProps) {
           </Button>
           <div className="flex items-center gap-3">
             <div>
-              <h1 className="text-2xl font-bold">{project.name}</h1>
+              <h1 className="text-2xl font-bold">{project.nombre}</h1>
               <div className="flex items-center gap-2 mt-1">
                 <div
                   className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: getStageColor(project.etapa) }}
+                  style={{ backgroundColor: project.etapas_registro[0].etapa_tipo.color }}
                 />
-                <p className="text-sm text-muted-foreground">Etapa: {project.etapa}</p>
+                <p className="text-sm text-muted-foreground">Etapa: {project.etapas_registro[0].etapa_tipo.nombre}</p>
               </div>
             </div>
           </div>
@@ -1278,7 +1281,7 @@ export default function FolderList({ project, onBack }: ProjectViewProps) {
       {navigationPath.length > 0 && (
         <div className="mb-4">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span>{project.name}</span>
+            <span>{project.nombre}</span>
             {navigationPath.map((item) => (
               <span key={item.id} className="flex items-center gap-2">
                 <span>/</span>
@@ -1442,7 +1445,7 @@ export default function FolderList({ project, onBack }: ProjectViewProps) {
               <FolderCard
                 key={folder.id}
                 folder={folder}
-                projectStage={project.etapa}
+                projectStage={project.etapas_registro[0].etapa_tipo.nombre}
                 onNavigate={(folderId) => navigateToFolder(folderId)}
                 onViewDetails={handleViewDetails}
                 onConfig={handleConfig}

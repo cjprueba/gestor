@@ -2,7 +2,6 @@ import type { FolderStructure } from "@/app/features/dashboard/projects/_compone
 import type {
   ProyectoListItem,
   ProyectoDetalle,
-  Project,
 } from "@/app/features/dashboard/projects/_components/project/project.types";
 
 /**
@@ -90,98 +89,98 @@ export const createFolderStructureFromCarpetaInicial = (
 /**
  * Transforma los datos de la API al formato esperado por los componentes
  */
-export const transformApiProjectToComponent = (
-  proyectoLista: ProyectoListItem,
-  proyectoDetalle?: ProyectoDetalle
-): Project => {
-  // Parsear carpeta_inicial si existe
-  let carpetaInicialParsed: Record<string, any> = {};
-  if (proyectoDetalle?.carpeta_inicial) {
-    if (typeof proyectoDetalle.carpeta_inicial === "string") {
-      try {
-        carpetaInicialParsed = JSON.parse(proyectoDetalle.carpeta_inicial);
-      } catch (error) {
-        console.warn("Error parsing carpeta_inicial:", error);
-        carpetaInicialParsed = {};
-      }
-    } else if (typeof proyectoDetalle.carpeta_inicial === "object") {
-      carpetaInicialParsed = proyectoDetalle.carpeta_inicial;
-    }
-  }
+// export const transformApiProjectToComponent = (
+//   proyectoLista: ProyectoListItem,
+//   proyectoDetalle?: ProyectoDetalle
+// ): ProjectCardData => {
+//   // Parsear carpeta_inicial si existe
+//   let carpetaInicialParsed: Record<string, any> = {};
+//   if (proyectoDetalle?.carpeta_inicial) {
+//     if (typeof proyectoDetalle.carpeta_inicial === "string") {
+//       try {
+//         carpetaInicialParsed = JSON.parse(proyectoDetalle.carpeta_inicial);
+//       } catch (error) {
+//         console.warn("Error parsing carpeta_inicial:", error);
+//         carpetaInicialParsed = {};
+//       }
+//     } else if (typeof proyectoDetalle.carpeta_inicial === "object") {
+//       carpetaInicialParsed = proyectoDetalle.carpeta_inicial;
+//     }
+//   }
 
-  // Obtener la etapa del primer registro de etapas
-  const etapa =
-    proyectoLista.etapas_registro?.[0]?.etapa_tipo?.nombre || "Sin etapa";
+//   // Obtener la etapa del primer registro de etapas
+//   const etapa =
+//     proyectoLista.etapas_registro?.[0]?.etapa_tipo?.nombre || "Sin etapa";
 
-  // Obtener el tipo de obra del detalle si existe
-  const tipoObra =
-    proyectoDetalle?.etapas_registro?.[0]?.tipo_obra?.nombre ||
-    "Sin especificar";
+//   // Obtener el tipo de obra del detalle si existe
+//   const tipoObra =
+//     proyectoDetalle?.etapas_registro?.[0]?.tipo_obra?.nombre ||
+//     "Sin especificar";
 
-  // Crear estructura de carpetas basada en carpeta_inicial
-  const structure: FolderStructure = {
-    id: `root-${proyectoLista.id}`,
-    name: proyectoLista.nombre,
-    minDocuments: 0,
-    documents: [], // Por ahora sin documentos
-    subfolders: createFolderStructureFromCarpetaInicial(
-      carpetaInicialParsed,
-      proyectoLista.id
-    ),
-  };
+//   // Crear estructura de carpetas basada en carpeta_inicial
+//   const structure: FolderStructure = {
+//     id: `root-${proyectoLista.id}`,
+//     name: proyectoLista.nombre,
+//     minDocuments: 0,
+//     documents: [], // Por ahora sin documentos
+//     subfolders: createFolderStructureFromCarpetaInicial(
+//       carpetaInicialParsed,
+//       proyectoLista.id
+//     ),
+//   };
 
-  return {
-    id: proyectoLista.id.toString(),
-    name: proyectoLista.nombre,
-    createdAt: new Date(proyectoLista.created_at),
-    carpeta_raiz_id: proyectoDetalle?.carpeta_raiz_id,
-    structure,
-    etapa,
-    projectData: {
-      nombre: proyectoLista.nombre,
-      etapa,
-      tipoObra,
-      carpetaInicial: carpetaInicialParsed,
-      // Agregar otros datos del detalle si están disponibles
-      ...(proyectoDetalle?.etapas_registro?.[0] && {
-        tipoIniciativa:
-          proyectoDetalle.etapas_registro[0].tipo_iniciativa?.nombre,
-        region: proyectoDetalle.etapas_registro[0].region?.nombre,
-        provincia: proyectoDetalle.etapas_registro[0].provincia?.nombre,
-        comuna: proyectoDetalle.etapas_registro[0].comuna?.nombre,
-        volumen: proyectoDetalle.etapas_registro[0].volumen,
-        presupuestoOficial:
-          proyectoDetalle.etapas_registro[0].presupuesto_oficial,
-        fechaLlamadoLicitacion:
-          proyectoDetalle.etapas_registro[0].fecha_llamado_licitacion,
-        fechaRecepcionOfertas:
-          proyectoDetalle.etapas_registro[0].fecha_recepcion_ofertas_tecnicas,
-        fechaAperturaOfertas:
-          proyectoDetalle.etapas_registro[0].fecha_apertura_ofertas_economicas,
-        decretoAdjudicacion:
-          proyectoDetalle.etapas_registro[0].decreto_adjudicacion,
-        sociedadConcesionaria:
-          proyectoDetalle.etapas_registro[0].sociedad_concesionaria,
-        fechaInicioConcesion:
-          proyectoDetalle.etapas_registro[0].fecha_inicio_concesion,
-        plazoTotalConcesion:
-          proyectoDetalle.etapas_registro[0].plazo_total_concesion,
-        inspectorFiscal:
-          proyectoDetalle.etapas_registro[0].inspector_fiscal?.nombre_completo,
-      }),
-    },
-    metadata: {
-      createdBy: proyectoLista.creador.nombre_completo,
-      createdAt: new Date(proyectoLista.created_at),
-      lastModifiedBy:
-        proyectoDetalle?.creador?.nombre_completo ||
-        proyectoLista.creador.nombre_completo,
-      lastModifiedAt: new Date(
-        proyectoDetalle?.etapas_registro?.[0]?.fecha_actualizacion ||
-          proyectoLista.created_at
-      ),
-      currentStage: etapa,
-      history: [], // Por ahora sin historial
-    },
-  };
-};
+//   return {
+//     id: proyectoLista.id.toString(),
+//     name: proyectoLista.nombre,
+//     createdAt: new Date(proyectoLista.created_at),
+//     carpeta_raiz_id: proyectoDetalle?.carpeta_raiz_id,
+//     structure,
+//     etapa,
+//     projectData: {
+//       nombre: proyectoLista.nombre,
+//       etapa,
+//       tipoObra,
+//       carpetaInicial: carpetaInicialParsed,
+//       // Agregar otros datos del detalle si están disponibles
+//       ...(proyectoDetalle?.etapas_registro?.[0] && {
+//         tipoIniciativa:
+//           proyectoDetalle.etapas_registro[0].tipo_iniciativa?.nombre,
+//         region: proyectoDetalle.etapas_registro[0].region?.nombre,
+//         provincia: proyectoDetalle.etapas_registro[0].provincia?.nombre,
+//         comuna: proyectoDetalle.etapas_registro[0].comuna?.nombre,
+//         volumen: proyectoDetalle.etapas_registro[0].volumen,
+//         presupuestoOficial:
+//           proyectoDetalle.etapas_registro[0].presupuesto_oficial,
+//         fechaLlamadoLicitacion:
+//           proyectoDetalle.etapas_registro[0].fecha_llamado_licitacion,
+//         fechaRecepcionOfertas:
+//           proyectoDetalle.etapas_registro[0].fecha_recepcion_ofertas_tecnicas,
+//         fechaAperturaOfertas:
+//           proyectoDetalle.etapas_registro[0].fecha_apertura_ofertas_economicas,
+//         decretoAdjudicacion:
+//           proyectoDetalle.etapas_registro[0].decreto_adjudicacion,
+//         sociedadConcesionaria:
+//           proyectoDetalle.etapas_registro[0].sociedad_concesionaria,
+//         fechaInicioConcesion:
+//           proyectoDetalle.etapas_registro[0].fecha_inicio_concesion,
+//         plazoTotalConcesion:
+//           proyectoDetalle.etapas_registro[0].plazo_total_concesion,
+//         inspectorFiscal:
+//           proyectoDetalle.etapas_registro[0].inspector_fiscal?.nombre_completo,
+//       }),
+//     },
+//     metadata: {
+//       createdBy: proyectoLista.creador.nombre_completo,
+//       createdAt: new Date(proyectoLista.created_at),
+//       lastModifiedBy:
+//         proyectoDetalle?.creador?.nombre_completo ||
+//         proyectoLista.creador.nombre_completo,
+//       // lastModifiedAt: new Date(
+//       //   proyectoDetalle?.etapas_registro?.[0]?.fecha_creacion ||
+//       //     proyectoLista.created_at
+//       // ),
+//       currentStage: etapa,
+//       history: [], // Por ahora sin historial
+//     },
+//   };
+// };

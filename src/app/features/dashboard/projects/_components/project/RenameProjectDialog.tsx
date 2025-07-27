@@ -3,12 +3,13 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
 import { FolderOpen } from "lucide-react"
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
+import type { ProyectoListItem } from "./project.types"
 
 interface RenameProjectDialogProps {
   isOpen: boolean
   onClose: () => void
-  project: any
+  project: ProyectoListItem,
   onRename: (newName: string) => Promise<void>
   isLoading?: boolean
 }
@@ -25,13 +26,13 @@ export default function RenameProjectDialog({
   // Resetear el nombre cuando se abre el modal
   useEffect(() => {
     if (isOpen && project) {
-      setNewName(project.name || "")
+      setNewName(project.nombre || "")
     }
   }, [isOpen, project])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!newName.trim() || newName.trim() === project?.name) {
+    if (!newName.trim() || newName.trim() === project?.nombre) {
       return
     }
 
@@ -57,7 +58,7 @@ export default function RenameProjectDialog({
             Renombrar proyecto
           </DialogTitle>
           <DialogDescription>
-            Cambia el nombre del proyecto "{project?.name}"
+            Cambia el nombre del proyecto "{project?.nombre}"
           </DialogDescription>
         </DialogHeader>
 
@@ -66,7 +67,7 @@ export default function RenameProjectDialog({
             <Label htmlFor="currentName">Nombre actual</Label>
             <Input
               id="currentName"
-              value={project?.name || ""}
+              value={project?.nombre || ""}
               disabled
               className="bg-muted"
             />
@@ -88,7 +89,7 @@ export default function RenameProjectDialog({
             <Button
               type="submit"
               className="flex-1"
-              disabled={!newName.trim() || newName.trim() === project?.name || isLoading}
+              disabled={!newName.trim() || newName.trim() === project?.nombre || isLoading}
             >
               {isLoading ? "Renombrando..." : "Renombrar"}
             </Button>
