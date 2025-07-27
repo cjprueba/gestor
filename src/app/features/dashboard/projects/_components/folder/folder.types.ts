@@ -38,6 +38,33 @@ export interface CarpetaEstructura {
   nivel: number;
 }
 
+// Tipado para el detalle de una carpeta desde GET /carpetas/{id}
+export interface CarpetaDetalle {
+  id: number;
+  nombre: string;
+  descripcion: string;
+  carpeta_padre_id: number;
+  proyecto_id: number;
+  s3_path: string;
+  s3_bucket_name: string;
+  s3_created: boolean;
+  orden_visualizacion: number;
+  max_tamaño_mb: number;
+  tipos_archivo_permitidos: string[];
+  permisos_lectura: string[];
+  permisos_escritura: string[];
+  usuario_creador: number;
+  fecha_creacion: string;
+  fecha_actualizacion: string;
+  activa: boolean;
+}
+
+export interface CarpetaDetalleResponse {
+  success: boolean;
+  message: string;
+  data: CarpetaDetalle;
+}
+
 export interface CreateCarpetaRequest {
   nombre: string;
   descripcion: string;

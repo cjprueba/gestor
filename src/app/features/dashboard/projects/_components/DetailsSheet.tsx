@@ -6,8 +6,10 @@ import { Separator } from "@/shared/components/ui/separator"
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/shared/components/ui/sheet"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs"
 import { ETAPAS } from "@/shared/data/project-data"
-import { ArrowRight, Download, Edit, FileText, Folder, FolderOpen, Plus, Share, SortDesc } from "lucide-react"
+import { ArrowRight, Download, Edit, FileText, Folder, FolderOpen, Plus, Share, SortDesc, Loader2 } from "lucide-react"
 import { useState } from "react"
+import { useCarpetaDetalle } from "@/lib/api/hooks/useCarpetas"
+import dayjs from "dayjs"
 
 interface DetailsSheetProps {
   isOpen: boolean
@@ -21,7 +23,26 @@ interface DetailsSheetProps {
 export default function DetailsSheet({ isOpen, onClose, item, type, onStageChange }: DetailsSheetProps) {
   const [isEditingStage, setIsEditingStage] = useState(false)
 
+  // Obtener detalle de carpeta si el tipo es "folder"
+  const { data: carpetaDetalle, isLoading: isLoadingCarpeta } = useCarpetaDetalle(
+    type === "folder" && item?.id ? item.id : undefined
+  )
+
   if (!item) return null
+
+  // Datos de la carpeta (reales o fallback)
+  const carpetaData = type === "folder" ? carpetaDetalle?.data : null
+
+  // Debug para verificar los datos
+  if (type === "folder") {
+    console.log("DetailsSheet Debug:", {
+      item,
+      carpetaData,
+      isLoadingCarpeta,
+      itemName: item?.name,
+      carpetaName: carpetaData?.nombre
+    })
+  }
 
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat("es-ES", {
@@ -55,8 +76,25 @@ export default function DetailsSheet({ isOpen, onClose, item, type, onStageChang
             {type === "folder" && <Folder className="w-6 h-6 text-primary-500" />}
             {type === "document" && <FileText className="w-6 h-6 text-primary-500" />}
             <div className="flex-1 min-w-0">
-              <SheetTitle className="text-left truncate">{item.name}</SheetTitle>
-              <p className="text-sm text-muted-foreground capitalize">{type === "project" ? "Proyecto" : type === "folder" ? "Carpeta" : "Documento"}</p>
+              <SheetTitle className="text-left truncate">
+                {type === "folder" ? (
+                  carpetaData?.nombre ||
+                  item?.name ||
+                  item?.nombre ||
+                  `Carpeta ${item?.id || 'sin nombre'}`
+                ) : (
+                  item?.name || item?.nombre || 'Sin nombre'
+                )}
+              </SheetTitle>
+              <p className="text-sm text-muted-foreground capitalize">
+                {type === "project" ? "Proyecto" : type === "folder" ? "Carpeta" : "Documento"}
+              </p>
+              {type === "folder" && isLoadingCarpeta && (
+                <div className="flex items-center gap-2 mt-1">
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                  <span className="text-xs text-muted-foreground">Cargando...</span>
+                </div>
+              )}
             </div>
           </div>
         </SheetHeader>
@@ -148,7 +186,9 @@ export default function DetailsSheet({ isOpen, onClose, item, type, onStageChang
 
             {/* Detalles del Archivo/Carpeta */}
             <div className="space-y-4">
-              <h3 className="font-medium text-sm text-muted-foreground">{type === "document" ? "DETALLES DEL DOCUMENTO" : "DETALLES DE LA CARPETA"}</h3>
+              <h3 className="font-medium text-sm text-muted-foreground">
+                {type === "document" ? "DETALLES DEL DOCUMENTO" : "DETALLES DE LA CARPETA"}
+              </h3>
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Tipo</span>
@@ -157,6 +197,54 @@ export default function DetailsSheet({ isOpen, onClose, item, type, onStageChang
                   </span>
                 </div>
 
+                {/* Información específica de carpetas */}
+                {type === "folder" && carpetaData && (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Descripción</span>
+                      <span className="text-sm text-right max-w-32 truncate" title={carpetaData.descripcion}>
+                        {carpetaData.descripcion || "Sin descripción"}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Tamaño máximo</span>
+                      <span className="text-sm">{carpetaData.max_tamaño_mb} MB</span>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Estado</span>
+                      <Badge variant={carpetaData.activa ? "default" : "secondary"}>
+                        {carpetaData.activa ? "Activa" : "Inactiva"}
+                      </Badge>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Orden</span>
+                      <span className="text-sm">{carpetaData.orden_visualizacion}</span>
+                    </div>
+
+                    {carpetaData.tipos_archivo_permitidos.length > 0 && (
+                      <div className="space-y-2">
+                        <span className="text-sm text-muted-foreground">Tipos permitidos</span>
+                        <div className="flex flex-wrap gap-1">
+                          {carpetaData.tipos_archivo_permitidos.slice(0, 3).map((tipo, index) => (
+                            <Badge key={index} variant="outline" className="text-xs">
+                              {tipo}
+                            </Badge>
+                          ))}
+                          {carpetaData.tipos_archivo_permitidos.length > 3 && (
+                            <Badge variant="outline" className="text-xs">
+                              +{carpetaData.tipos_archivo_permitidos.length - 3}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {/* Información de documentos */}
                 {type === "document" && item.metadata?.size && (
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">Tamaño</span>
@@ -165,21 +253,22 @@ export default function DetailsSheet({ isOpen, onClose, item, type, onStageChang
                 )}
 
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Jefatura</span>
-                  <span className="text-sm">Departamento Legal</span>
-                </div>
-
-                <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Creado</span>
                   <span className="text-sm">
-                    {formatDate(item.metadata?.createdAt || item.createdAt || new Date())}
+                    {type === "folder" && carpetaData
+                      ? dayjs(carpetaData.fecha_creacion).format('DD/MM/YYYY HH:mm')
+                      : formatDate(item.metadata?.createdAt || item.createdAt || new Date())
+                    }
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Modificado</span>
                   <span className="text-sm">
-                    {formatDate(item.metadata?.lastModifiedAt || item.createdAt || new Date())}
+                    {type === "folder" && carpetaData
+                      ? dayjs(carpetaData.fecha_actualizacion).format('DD/MM/YYYY HH:mm')
+                      : formatDate(item.metadata?.lastModifiedAt || item.createdAt || new Date())
+                    }
                   </span>
                 </div>
 
@@ -191,6 +280,64 @@ export default function DetailsSheet({ isOpen, onClose, item, type, onStageChang
             </div>
 
             <Separator />
+
+            {/* Permisos de carpeta */}
+            {type === "folder" && carpetaData && (
+              <>
+                <div className="space-y-4">
+                  <h3 className="font-medium text-sm text-muted-foreground">PERMISOS</h3>
+                  <div className="space-y-3">
+                    {carpetaData.permisos_lectura.length > 0 && (
+                      <div className="space-y-2">
+                        <span className="text-sm text-muted-foreground">Lectura</span>
+                        <div className="flex flex-wrap gap-1">
+                          {carpetaData.permisos_lectura.slice(0, 2).map((permiso, index) => (
+                            <Badge key={index} variant="outline" className="text-xs bg-green-50 text-green-700">
+                              {permiso}
+                            </Badge>
+                          ))}
+                          {carpetaData.permisos_lectura.length > 2 && (
+                            <Badge variant="outline" className="text-xs bg-green-50 text-green-700">
+                              +{carpetaData.permisos_lectura.length - 2}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {carpetaData.permisos_escritura.length > 0 && (
+                      <div className="space-y-2">
+                        <span className="text-sm text-muted-foreground">Escritura</span>
+                        <div className="flex flex-wrap gap-1">
+                          {carpetaData.permisos_escritura.slice(0, 2).map((permiso, index) => (
+                            <Badge key={index} variant="outline" className="text-xs bg-blue-50 text-blue-700">
+                              {permiso}
+                            </Badge>
+                          ))}
+                          {carpetaData.permisos_escritura.length > 2 && (
+                            <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700">
+                              +{carpetaData.permisos_escritura.length - 2}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {carpetaData.s3_created && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">Almacenamiento</span>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-xs bg-purple-50 text-purple-700">
+                            S3 Configurado
+                          </Badge>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <Separator />
+              </>
+            )}
 
             {/* Acciones */}
             <div className="space-y-4">

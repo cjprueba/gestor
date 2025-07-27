@@ -1,29 +1,32 @@
 import type {
   AvanzarEtapaRequest,
   AvanzarEtapaResponse,
-  CarpetaContenidoResponse,
   Comuna,
   ComunasResponse,
-  CreateCarpetaRequest,
-  CreateCarpetaResponse,
   CreateProjectRequest,
   CreateProjectResponse,
   InspectoresFiscalesResponse,
   InspectorFiscal,
-  MoverCarpetaRequest,
-  MoverCarpetaResponse,
   Provincia,
   ProvinciasResponse,
   ProyectoDetalleResponse,
   ProyectosListResponse,
   Region,
   RegionesResponse,
-  RenombrarCarpetaRequest,
-  RenombrarCarpetaResponse,
   TipoIniciativa,
   TiposIniciativaResponse,
   TiposObraResponse,
 } from "@/app/features/dashboard/projects/_components/project/project.types";
+import type {
+  CarpetaContenidoResponse,
+  CarpetaDetalleResponse,
+  CreateCarpetaRequest,
+  CreateCarpetaResponse,
+  MoverCarpetaRequest,
+  MoverCarpetaResponse,
+  RenombrarCarpetaRequest,
+  RenombrarCarpetaResponse,
+} from "@/app/features/dashboard/projects/_components/folder/folder.types";
 import { apiClient } from "../config";
 
 export class ProjectsService {
@@ -288,6 +291,18 @@ export class ProjectsService {
     data: MoverCarpetaRequest
   ): Promise<MoverCarpetaResponse> {
     const response = await apiClient.put(`/carpetas/${carpetaId}/mover`, data);
+    return response.data;
+  }
+
+  /**
+   * Obtiene el detalle de una carpeta
+   */
+  static async getCarpetaDetalle(
+    carpetaId: number
+  ): Promise<CarpetaDetalleResponse> {
+    const response = await apiClient.get<CarpetaDetalleResponse>(
+      `/carpetas/${carpetaId}`
+    );
     return response.data;
   }
 }
