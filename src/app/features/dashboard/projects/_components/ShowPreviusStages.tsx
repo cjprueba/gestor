@@ -14,7 +14,7 @@ interface ShowPreviusStagesProps {
 // Componente Item para renderizar datos de manera reutilizable
 interface ItemProps {
   label: string;
-  value: string | number | null | undefined;
+  value: string | number | null | undefined; // TODO: null? undefined?
   isDate?: boolean;
 }
 

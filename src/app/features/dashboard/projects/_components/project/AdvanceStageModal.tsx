@@ -11,10 +11,11 @@ import ShowPreviusStages from "../ShowPreviusStages"
 import AdvanceStageStepOne from "./AdvanceStageSteps/AdvanceStageStepOne"
 import AdvanceStageStepTwo from "./AdvanceStageSteps/AdvanceStageStepTwo"
 import { useAdvanceStageForm } from "./hooks/useAdvanceStageForm"
-import type { Project } from "./project.types"
+
+import type { ProyectoListItem } from "./project.types"
 
 interface AdvanceStageModalProps {
-  project: Project | null
+  project: ProyectoListItem | null
   isOpen: boolean
   onClose: () => void
   onSuccess?: () => void
@@ -28,7 +29,7 @@ export const AdvanceStageModal: React.FC<AdvanceStageModalProps> = ({
 }) => {
   const [currentStep, setCurrentStep] = useState(1)
 
-  const { data: etapaAvanzarInfo, isLoading, error } = useEtapaAvanzarInfo(project ? parseInt(project.id) : undefined)
+  const { data: etapaAvanzarInfo, isLoading, error } = useEtapaAvanzarInfo(project ? project.id : undefined)
 
   const {
     methods,
@@ -114,8 +115,8 @@ export const AdvanceStageModal: React.FC<AdvanceStageModalProps> = ({
           </DialogTitle>
           <DialogDescription>
             <span className="text-sm text-muted-foreground">
-              {project?.name && (
-                <span className="font-medium block mb-2">Proyecto: {project.name}</span>
+              {project?.nombre && (
+                <span className="font-medium block mb-2">Proyecto: {project.nombre}</span>
               )}
               {currentStep === 1 && "Completa los campos requeridos para la nueva etapa"}
               {currentStep === 2 && "Revisa y configura las carpetas de la nueva etapa"}
@@ -154,13 +155,13 @@ export const AdvanceStageModal: React.FC<AdvanceStageModalProps> = ({
           ))}
         </div>
         <div className="flex items-center justify-center">
-          {project?.etapa && (
+          {project?.etapas_registro?.[0]?.etapa_tipo?.nombre && (
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-3 flex-col">
                 <h2 className="text-sm font-medium">Etapa actual</h2>
                 <div className="inline-flex items-center px-2 py-1 rounded border border-button-secondary text-primary-500 bg-background text-xs font-medium min-h-[24px]">
                   <span className="whitespace-normal break-words text-center leading-tight">
-                    {project.etapa}
+                    {project.etapas_registro[0].etapa_tipo.nombre}
                   </span>
                 </div>
               </div>
