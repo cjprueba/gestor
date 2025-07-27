@@ -1,6 +1,5 @@
 import { Button } from "@/shared/components/design-system/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog"
-import type { DocumentoItem } from "@/shared/types/project-types"
 import {
   Download,
   ExternalLink,
@@ -13,6 +12,7 @@ import {
 } from "lucide-react"
 import { useState, useEffect } from "react"
 import { revokeBlobUrl } from "@/shared/lib/file-utils"
+import type { DocumentoItem } from "./project/project.types"
 
 // Tipo extendido para documento con URL de preview temporal
 interface DocumentoItemWithPreview extends DocumentoItem {

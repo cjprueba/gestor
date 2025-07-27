@@ -5,11 +5,11 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Badge } from "@/shared/components/ui/badge";
 import { Check, Loader2 } from "lucide-react";
 import clsx from "clsx";
-import { BasicInfoStep } from "./form-steps/BasicInfoStep";
-import { StageSpecificFieldsStep } from "./form-steps/StageSpecificFieldsStep";
-import { FolderTemplatesStep } from "./form-steps/FolderTemplatesStep";
-import { ProjectAlertsStep } from "./form-steps/ProjectAlertsStep";
-import { useCreateProjectForm } from "./hooks/useCreateProjectForm";
+import { BasicInfoStep } from "../form-steps/BasicInfoStep"
+import { StageSpecificFieldsStep } from "../form-steps/StageSpecificFieldsStep"
+import { FolderTemplatesStep } from "../form-steps/FolderTemplatesStep"
+import { ProjectAlertsStep } from "../form-steps/ProjectAlertsStep"
+import { useCreateProjectForm } from "../hooks/useCreateProjectForm";
 
 interface CreateProjectDialogProps {
   isOpen: boolean;

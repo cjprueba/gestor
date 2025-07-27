@@ -59,12 +59,3 @@ export const useEtapasTipo = () => {
     staleTime: 30 * 60 * 1000, // 30 minutos
   });
 };
-
-// Hook para obtener tipos de obras
-export const useTiposObras = () => {
-  return useQuery({
-    queryKey: ["tipos-obras"],
-    queryFn: () => searchService.getTiposObras(),
-    staleTime: 30 * 60 * 1000, // 30 minutos
-  });
-};

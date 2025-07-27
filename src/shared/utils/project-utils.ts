@@ -1,4 +1,9 @@
-import type { Project, FolderStructure } from "../types/project-types";
+import type { FolderStructure } from "@/app/features/dashboard/projects/_components/folder/folder.types";
+import type {
+  ProyectoListItem,
+  ProyectoDetalle,
+  Project,
+} from "@/app/features/dashboard/projects/_components/project/project.types";
 
 /**
  * Cuenta el total de carpetas principales en carpeta_inicial
@@ -86,97 +91,8 @@ export const createFolderStructureFromCarpetaInicial = (
  * Transforma los datos de la API al formato esperado por los componentes
  */
 export const transformApiProjectToComponent = (
-  proyectoLista: {
-    id: number;
-    nombre: string;
-    created_at: string;
-    etapas_registro: Array<{
-      etapa_tipo: {
-        id: number;
-        nombre: string;
-      };
-    }>;
-    creador: {
-      id: number;
-      nombre_completo: string;
-    };
-  },
-  proyectoDetalle?: {
-    id: number;
-    nombre: string;
-    carpeta_inicial: string;
-    carpeta_raiz_id: number;
-    created_at: string;
-    etapas_registro: Array<{
-      id: number;
-      etapa_tipo: {
-        id: number;
-        nombre: string;
-        descripcion: string;
-      };
-      tipo_iniciativa: {
-        id: number;
-        nombre: string;
-      };
-      tipo_obra: {
-        id: number;
-        nombre: string;
-      };
-      region: {
-        id: number;
-        codigo: string;
-        nombre: string;
-        nombre_corto: string;
-      };
-      provincia: {
-        id: number;
-        codigo: string;
-        nombre: string;
-      };
-      comuna: {
-        id: number;
-        codigo: string;
-        nombre: string;
-      };
-      volumen: string;
-      presupuesto_oficial: string;
-      fecha_llamado_licitacion: string;
-      fecha_recepcion_ofertas_tecnicas: string;
-      fecha_apertura_ofertas_economicas: string;
-      decreto_adjudicacion: string;
-      sociedad_concesionaria: string;
-      fecha_inicio_concesion: string;
-      plazo_total_concesion: string;
-      inspector_fiscal: {
-        id: number;
-        nombre_completo: string;
-        correo_electronico: string;
-      };
-      fecha_creacion: string;
-      fecha_actualizacion: string;
-      activa: boolean;
-    }>;
-    division: {
-      id: number;
-      nombre: string;
-      descripcion: string;
-    };
-    departamento: {
-      id: number;
-      nombre: string;
-      descripcion: string;
-    };
-    unidad: {
-      id: number;
-      nombre: string;
-      descripcion: string;
-    };
-    creador: {
-      id: number;
-      nombre_completo: string;
-      correo_electronico: string;
-    };
-  }
+  proyectoLista: ProyectoListItem,
+  proyectoDetalle?: ProyectoDetalle
 ): Project => {
   // Parsear carpeta_inicial si existe
   let carpetaInicialParsed: Record<string, any> = {};
@@ -217,7 +133,6 @@ export const transformApiProjectToComponent = (
   return {
     id: proyectoLista.id.toString(),
     name: proyectoLista.nombre,
-    description: "", // No viene en la API
     createdAt: new Date(proyectoLista.created_at),
     carpeta_raiz_id: proyectoDetalle?.carpeta_raiz_id,
     structure,

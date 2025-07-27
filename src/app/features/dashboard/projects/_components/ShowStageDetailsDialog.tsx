@@ -7,15 +7,15 @@ import { Separator } from "@/shared/components/ui/separator"
 import { Input } from "@/shared/components/ui/input"
 import { Loader2 } from "lucide-react"
 import React from "react"
-import type { Project } from "./types"
+import type { Project } from "./project/project.types"
 
-interface ProjectDetailsModalProps {
+interface ShowStageDetailsDialogProps {
   project: Project | null
   isOpen: boolean
   onClose: () => void
 }
 
-export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
+export const ShowStageDetailsDialog: React.FC<ShowStageDetailsDialogProps> = ({
   project,
   isOpen,
   onClose,

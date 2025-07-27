@@ -3,9 +3,9 @@ import { Button } from "@/shared/components/design-system/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { FileText, FolderOpen, Plus } from "lucide-react"
 import React, { useMemo, useState } from "react"
+import { SearchHeader } from "../search-header"
+import type { ProjectListProps } from "./project.types"
 import { ProjectCard } from "./ProjectCard"
-import { SearchHeader } from "./search-header"
-import type { ProjectListProps } from "./types"
 
 // Función helper para obtener todos los documentos de un proyecto
 // const getAllDocumentsFromProject = (structure: FolderStructure): Array<Document & { folderPath: string }> => {
@@ -91,49 +91,38 @@ export const ProjectList: React.FC<ProjectListProps> = ({
   const [selectedStages, setSelectedStages] = useState<string[]>([])
   const [selectedTiposObra, setSelectedTiposObra] = useState<string[]>([])
 
-  // Hooks de búsqueda con la API
-  // const { data: apiSearchResults, isFetching: isSearchingProjects } = useProjectSearch(projectSearchTerm) // Deshabilitado: búsqueda local
   const { data: apiFileResults, isFetching: isSearchingFiles, error: fileSearchError } = useFileSearch(documentSearchTerm)
   const { data: apiFolderResults } = useFolderSearch(documentSearchTerm)
 
-  // Lógica de filtrado usando useMemo para optimizar performance (solo búsqueda local)
   const filteredProjects = useMemo(() => {
     let filtered = projects
 
-    // Filtrar por término de búsqueda de proyectos (búsqueda local)
     filtered = searchInProjects(filtered, projectSearchTerm)
 
-    // Filtrar por etapas seleccionadas
     filtered = filterByStages(filtered, selectedStages)
 
-    // Filtrar por tipos de obra seleccionados
     filtered = filterByTiposObra(filtered, selectedTiposObra)
 
     return filtered
   }, [projects, projectSearchTerm, selectedStages, selectedTiposObra])
 
-  // Búsqueda de documentos usando solo la API
   const searchedDocuments = useMemo(() => {
     if (!documentSearchTerm || !apiFileResults || !apiFileResults.archivos) {
       return []
     }
 
     return apiFileResults.archivos.map(file => {
-      // Extraer información del proyecto desde s3_path
       const pathParts = file.s3_path.split('/')
       const projectNameFromPath = pathParts.length > 1 ? pathParts[1] : null
 
-      // Determinar el nombre del proyecto
       let projectName = 'Sin proyecto'
       let projectId = '0'
 
       if (file.proyecto_id !== null) {
-        // Buscar el nombre real del proyecto en la lista de proyectos
         const foundProject = projects.find(p => p.id === file.proyecto_id!.toString())
         projectName = foundProject ? foundProject.name : 'Proyecto'
         projectId = file.proyecto_id!.toString()
       } else if (projectNameFromPath) {
-        // Si no hay proyecto_id pero hay información en el path, buscar el proyecto por nombre
         const normalizedProjectName = projectNameFromPath.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
 
         const foundProject = projects.find(p =>
@@ -154,18 +143,17 @@ export const ProjectList: React.FC<ProjectListProps> = ({
         id: file.id,
         name: file.nombre_archivo,
         uploadedAt: new Date(file.fecha_creacion),
-        folderPath: file.s3_path.split('/').slice(-2).join(' - '), // Extraer carpeta del s3_path
+        folderPath: file.s3_path.split('/').slice(-2).join(' - '),
         projectName,
         projectId,
         tipo: file.tipo_mime,
         tamaño: file.tamano,
         extension: file.extension,
-        carpetaId: file.carpeta_id // Agregar el ID de la carpeta para navegación
+        carpetaId: file.carpeta_id
       }
     })
   }, [documentSearchTerm, apiFileResults])
 
-  // Función para limpiar todos los filtros
   const clearAllFilters = () => {
     setProjectSearchTerm("")
     setDocumentSearchTerm("")
@@ -354,7 +342,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({
               key={project.id}
               project={project}
               onSelect={(project) => onSelectProject(project)}
-              totalAlerts={0} // This will be calculated in ProjectCard
+              totalAlerts={0}
             />
           ))}
         </div>

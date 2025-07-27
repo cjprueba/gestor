@@ -4,17 +4,17 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   createProjectSchema,
   type CreateProjectFormData,
-} from "@/shared/types/project-types";
+} from "../project/project.types";
 import {
   useCreateProject,
   useTiposIniciativa,
-  useTiposObra,
   useRegiones,
   useProvincias,
   useComunas,
   useInspectoresFiscales,
 } from "@/lib/api/hooks/useProjects";
 import { useStageTypes, useStageTypeDetail } from "@/lib/api/hooks/useStages";
+import { useTiposObras } from "@/lib/api/hooks/useTipoObra";
 import dayjs from "dayjs";
 
 export const useCreateProjectForm = () => {
@@ -92,7 +92,8 @@ export const useCreateProjectForm = () => {
     }
   }, [stageTypesData, selectedEtapaId, setValue]);
   const { data: tiposIniciativaData } = useTiposIniciativa();
-  const { data: tiposObraData } = useTiposObra(selectedEtapaId);
+  // Obtener todos los tipos de obra disponibles (no filtrados por etapa)
+  const { data: tiposObraData } = useTiposObras();
   const { data: regionesData } = useRegiones();
   const { data: provinciasData } = useProvincias(selectedRegionId);
   const { data: comunasData } = useComunas(
@@ -112,8 +113,7 @@ export const useCreateProjectForm = () => {
       );
       if (selectedStage) {
         setSelectedEtapaId(selectedStage.id);
-        // Resetear campos dependientes cuando cambia la etapa
-        setValue("createProjectStepTwo.tipo_obra_id", 0);
+        // Ya no reseteamos el tipo de obra porque ahora es independiente de la etapa
       }
     }
   }, [watchedStepOne.etapa, stageTypesData, setValue]);
@@ -369,7 +369,7 @@ export const useCreateProjectForm = () => {
     stageTypes: stageTypesData?.data || [],
     stageTypeDetail: stageTypeDetailData?.data,
     tiposIniciativa: tiposIniciativaData?.data || [],
-    tiposObra: tiposObraData?.data || [],
+    tiposObra: tiposObraData || [],
     regiones: regionesData?.data || [],
     provincias: provinciasData?.data || [],
     comunas: comunasData?.data || [],

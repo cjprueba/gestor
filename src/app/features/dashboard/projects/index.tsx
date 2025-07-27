@@ -1,12 +1,12 @@
 import { useState } from "react"
 import { Button } from "@/shared/components/design-system/button"
 import { Plus } from "lucide-react"
-import { CreateProjectDialog } from "./_components/CreateProjectDialog"
-import ProjectView from "./_components/project-view"
-import { ProjectList } from "./_components/ProjectList"
-import type { Project } from "./_components/types"
+import { CreateProjectDialog } from "./_components/project/CreateProjectDialog"
+import { ProjectList } from "./_components/project/ProjectList"
+import type { Project } from "./_components/project/project.types"
 import { useProyectosCompletos } from "@/lib/api/hooks/useProjects"
 import { transformApiProjectToComponent } from "@/shared/utils/project-utils"
+import FolderList from "./_components/folder/FolderList"
 
 export default function HomePage() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
@@ -106,9 +106,9 @@ export default function HomePage() {
     )
   }
 
-  if (selectedProject) {
+  if (selectedProject) { // TODO: Esto deberia ser una navegacion hacia la lista de carpetas.
     return (
-      <ProjectView
+      <FolderList
         project={selectedProject}
         onBack={() => setSelectedProject(null)}
         onUpdateProject={handleUpdateProject}

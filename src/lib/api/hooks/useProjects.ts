@@ -6,6 +6,11 @@ import {
 } from "@tanstack/react-query";
 import { ProjectsService } from "../services/projects.service";
 import { toast } from "sonner";
+import type {
+  CreateCarpetaRequest,
+  MoverCarpetaRequest,
+  RenombrarCarpetaRequest,
+} from "@/app/features/dashboard/projects/_components/project/project.types";
 
 // Hook para obtener la lista de proyectos
 export const useProyectos = () => {
@@ -101,6 +106,28 @@ export const useCreateProject = () => {
   });
 };
 
+// Hook para actualizar un proyecto
+export const useUpdateProject = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ projectId, data }: { projectId: number; data: any }) =>
+      ProjectsService.updateProject(projectId, data),
+    onSuccess: (_, { projectId }) => {
+      // Invalidar las queries de proyectos para refrescar los datos
+      queryClient.invalidateQueries({ queryKey: ["proyectos"] });
+      queryClient.invalidateQueries({ queryKey: ["proyecto", projectId] });
+      toast.success("Proyecto actualizado exitosamente");
+    },
+    onError: (error: any) => {
+      console.error("Error al actualizar proyecto:", error);
+      toast.error(
+        error.response?.data?.message || "Error al actualizar el proyecto"
+      );
+    },
+  });
+};
+
 export const useAvanzarEtapa = () => {
   const queryClient = useQueryClient();
 
@@ -143,10 +170,10 @@ export const useTiposIniciativa = () => {
   });
 };
 
-export const useTiposObra = (etapa_tipo_id?: number) => {
+export const useTiposObraPorEtapa = (etapa_tipo_id?: number) => {
   return useQuery({
     queryKey: ["tipos-obra", etapa_tipo_id],
-    queryFn: () => ProjectsService.getTiposObra(etapa_tipo_id),
+    queryFn: () => ProjectsService.getTiposObraPorEtapa(etapa_tipo_id),
     enabled: !!etapa_tipo_id,
   });
 };
@@ -206,9 +233,8 @@ export const useCreateCarpeta = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (
-      data: import("@/shared/types/project-types").CreateCarpetaRequest
-    ) => ProjectsService.createCarpeta(data),
+    mutationFn: (data: CreateCarpetaRequest) =>
+      ProjectsService.createCarpeta(data),
     onSuccess: () => {
       // Invalidar las queries de carpetas para refrescar los datos
       queryClient.invalidateQueries({ queryKey: ["carpeta-contenido"] });
@@ -241,7 +267,7 @@ export const useRenombrarCarpeta = () => {
       data,
     }: {
       carpetaId: number;
-      data: import("@/shared/types/project-types").RenombrarCarpetaRequest;
+      data: RenombrarCarpetaRequest;
     }) => ProjectsService.renombrarCarpeta(carpetaId, data),
     onSuccess: () => {
       // Invalidar las queries relacionadas para refrescar los datos
@@ -264,7 +290,7 @@ export const useMoverCarpeta = () => {
       data,
     }: {
       carpetaId: number;
-      data: import("@/shared/types/project-types").MoverCarpetaRequest;
+      data: MoverCarpetaRequest;
     }) => ProjectsService.moverCarpeta(carpetaId, data),
     onSuccess: () => {
       // Invalidar las queries relacionadas para refrescar los datos

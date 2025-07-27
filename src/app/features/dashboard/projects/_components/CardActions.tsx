@@ -1,5 +1,5 @@
-import { useState } from "react"
 import { Button } from "@/shared/components/design-system/button"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,9 +7,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog"
-import { MoreVertical, ArrowRightFromLine, Eye, Edit, Trash2, Download, Share, Copy, Settings2, FileText, FolderOpen } from "lucide-react"
-import { ETAPAS } from "@/shared/data/project-data"
+import { ArrowRightFromLine, Copy, Edit, Eye, FileText, FolderOpen, MoreVertical, Settings2, Trash2 } from "lucide-react"
+import { useState } from "react"
+import { useEtapasTipo } from "@/lib/api/hooks/useSearch"
 
 interface MenuItem {
   icon: any
@@ -19,9 +19,9 @@ interface MenuItem {
 }
 
 interface ContextMenuProps {
-  type: "project" | "folder" | "document"
+  type: "folder" | "project"
   item: any
-  onViewDetails: () => void
+  onViewDetails?: () => void
   onViewProjectDetails?: () => void
   onConfig?: () => void
   onEdit?: () => void
@@ -42,18 +42,20 @@ export default function ContextMenu({
   onEdit,
   onDelete,
   onMove,
-  onDownload,
-  onShare,
   onDuplicate,
   onAdvanceStage,
 }: ContextMenuProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
+  // Obtener etapas desde la API en lugar de usar datos locales
+  // Esto asegura que la validación de "última etapa" sea dinámica y real
+  const { data: etapasData } = useEtapasTipo()
+
   const getMenuItems = (): MenuItem[] => {
     const commonItems = [
       {
         icon: Eye,
-        label: "Ver Detalles",
+        label: "Ver detalles",
         action: onViewDetails,
       },
       {
@@ -63,37 +65,37 @@ export default function ContextMenu({
       }
     ]
 
-    if (type === "document") {
-      return [
-        ...commonItems,
-        {
-          icon: Download,
-          label: "Descargar",
-          action: onDownload,
-        },
-        {
-          icon: Share,
-          label: "Compartir",
-          action: onShare,
-        },
-        {
-          icon: Copy,
-          label: "Duplicar",
-          action: onDuplicate,
-        },
-        {
-          icon: Edit,
-          label: "Renombrar",
-          action: onEdit,
-        },
-        {
-          icon: Trash2,
-          label: "Eliminar",
-          action: () => setIsDeleteDialogOpen(true),
-          destructive: true,
-        },
-      ]
-    }
+    // if (type === "document") {
+    //   return [
+    //     ...commonItems,
+    //     {
+    //       icon: Download,
+    //       label: "Descargar",
+    //       action: onDownload,
+    //     },
+    //     {
+    //       icon: Share,
+    //       label: "Compartir",
+    //       action: onShare,
+    //     },
+    //     {
+    //       icon: Copy,
+    //       label: "Duplicar",
+    //       action: onDuplicate,
+    //     },
+    //     {
+    //       icon: Edit,
+    //       label: "Renombrar",
+    //       action: onEdit,
+    //     },
+    //     {
+    //       icon: Trash2,
+    //       label: "Eliminar",
+    //       action: () => setIsDeleteDialogOpen(true),
+    //       destructive: true,
+    //     },
+    //   ]
+    // }
 
     if (type === "folder") {
       const folderItems = [
@@ -133,29 +135,25 @@ export default function ContextMenu({
     }
 
     if (type === "project") {
-      const isLastStage = ETAPAS[ETAPAS.length - 1] === item.etapa
+      const etapas = etapasData || []
+      const isLastStage = etapas.length > 0 &&
+        etapas[etapas.length - 1]?.nombre === item.etapa
+
       const projectItems = [
-        ...commonItems,
-        !isLastStage ? {
+        {
+          icon: Eye,
+          label: "Ver ficha de etapa",
+          action: onViewProjectDetails,
+        },
+        (!isLastStage && etapas.length > 0) ? {
           icon: ArrowRightFromLine,
-          label: "Avanzar a siguiente etapa",
+          label: "Avanzar de etapa",
           action: onAdvanceStage,
         } : undefined,
         {
           icon: Edit,
-          label: "Editar",
+          label: "Renombrar",
           action: onEdit,
-        },
-        {
-          icon: Copy,
-          label: "Duplicar",
-          action: onDuplicate,
-        },
-        {
-          icon: Trash2,
-          label: "Eliminar",
-          action: () => setIsDeleteDialogOpen(true),
-          destructive: true,
         },
       ].filter(x => !!x) as MenuItem[]
       return projectItems
@@ -170,7 +168,11 @@ export default function ContextMenu({
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={(e) => e.stopPropagation()}
+          >
             <MoreVertical className="w-4 h-4" />
             <span className="sr-only">Abrir menú</span>
           </Button>
@@ -179,7 +181,11 @@ export default function ContextMenu({
           {menuItems.map((item, index) => (
             <div key={index}>
               <DropdownMenuItem
-                onClick={item.action}
+                onClick={(e) => {
+                  console.log("DropdownMenuItem clicked:", item.label)
+                  e.stopPropagation()
+                  item.action?.()
+                }}
                 className={item.destructive ? "text-destructive focus:text-destructive" : ""}
               >
                 <item.icon className="w-4 h-4 mr-2" />
@@ -215,6 +221,8 @@ export default function ContextMenu({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* TODO: Agregar los dialogs de mover y renombrar */}
     </>
   )
 }

@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Folder } from "lucide-react"
-import ContextMenu from "./context-menu"
+import CardActions from "../CardActions"
 
 interface FolderCardProps {
   folder: {
@@ -30,12 +30,12 @@ export const FolderCard: React.FC<FolderCardProps> = ({
   folder,
   onNavigate,
   onViewDetails,
-  onConfig,
+  // onConfig,
   onEdit,
   onDelete,
   onMove,
-  onDuplicate,
-  onViewProjectDetails,
+  // onDuplicate,
+  // onViewProjectDetails,
 }) => {
   // Simular minDocuments para la lógica de colores (3 por defecto)
   const minDocuments = 3;
@@ -44,29 +44,30 @@ export const FolderCard: React.FC<FolderCardProps> = ({
     <Card
       key={folder.id}
       className={"cursor-pointer hover:shadow-lg transition-all border-1"}
-      style={{ borderColor: folder.etapa_tipo?.color || undefined, borderWidth: folder.etapa_tipo?.color ? 2 : undefined }}
+      style={{ borderColor: folder.etapa_tipo?.color || undefined, borderWidth: folder.etapa_tipo?.color ? 1 : undefined }}
+      onClick={() => onNavigate(folder.id)}
     >
       <CardHeader>
         <div className="flex justify-between items-start">
           <div
             className="flex items-center space-x-2 flex-1"
-            onClick={() => onNavigate(folder.id)}
+
           >
             <Folder className="w-5 h-5 text-blue-500" />
             <CardTitle className="text-lg">{folder.nombre}</CardTitle>
           </div>
           <div className="flex items-center space-x-2">
             {/* Comentado temporalmente: {folderAlerts.length > 0 && <Badge variant="destructive">{folderAlerts.length}</Badge>} */}
-            <ContextMenu
+            <CardActions
               type="folder"
               item={folder}
               onViewDetails={() => onViewDetails(folder)}
-              onViewProjectDetails={onViewProjectDetails}
-              onConfig={() => onConfig(folder)}
+              // onViewProjectDetails={onViewProjectDetails}
+              // onConfig={() => onConfig(folder)}
               onEdit={() => onEdit(folder)}
               onDelete={() => onDelete(folder)}
               onMove={() => onMove(folder)}
-              onDuplicate={() => onDuplicate(folder)}
+            // onDuplicate={() => onDuplicate(folder)}
             />
           </div>
         </div>

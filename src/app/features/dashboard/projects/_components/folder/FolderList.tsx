@@ -11,25 +11,23 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
 import { cn } from "@/shared/lib/utils"
 import { downloadFileFromBase64, createBlobUrlFromBase64, revokeBlobUrl } from "@/shared/lib/file-utils"
-import type { CarpetaItem, CreateCarpetaRequest } from "@/shared/types/project-types"
 import { getStageColor } from "@/shared/utils/stage-colors"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import { ArrowLeft, CalendarIcon, FileText, FolderOpen, Plus, Search, Upload } from "lucide-react"
 import { useCallback, useEffect, useRef, useState, useMemo } from "react"
 import { useQueryClient } from "@tanstack/react-query"
-import AlertsPanel from "./alerts-panel"
-import DetailsSheet from "./details-sheet"
-import { FolderCard } from "./folder-card"
-import MoveFolderDialog from "./move-folder-dialog"
-import { ProjectDetailsModal } from "./project-details-modal"
-import RenameFolderDialog from "./rename-folder-dialog"
-import { SearchHeader } from "./search-header"
-import type { Project } from "./types"
-import { DocumentContextMenu } from "./document-context-menu"
-import { DocumentPreviewModal } from "./document-preview-modal"
-import { DeleteConfirmationDialog } from "./delete-confirmation-dialog"
-import type { DocumentoItem } from "@/shared/types/project-types"
+import AlertsPanel from "../alert/AlertPanelList"
+import DetailsSheet from "../DetailsSheet"
+import { FolderCard } from "./FolderCard"
+import MoveFolderDialog from "./MoveFolderDialog"
+// import { ProjectDetailsModal } from "./project/ProjectDetailModal"
+import RenameFolderDialog from "./RenameFolderDialog"
+import { SearchHeader } from "../search-header"
+import { DocumentContextMenu } from "../document-context-menu"
+import { DocumentPreviewModal } from "../document-preview-modal"
+import { DeleteConfirmationDialog } from "./DeleteFolderConfirmationModal"
+import type { CarpetaItem, CreateCarpetaRequest, DocumentoItem, Project } from "../project/project.types"
 
 // Tipo extendido para documento con URL de preview temporal
 interface DocumentoItemWithPreview extends DocumentoItem {
@@ -114,7 +112,7 @@ const AnimatedText = ({ text, className = "" }: AnimatedTextProps) => {
   )
 }
 
-export default function ProjectView({ project, onBack }: ProjectViewProps) {
+export default function FolderList({ project, onBack }: ProjectViewProps) {
   const queryClient = useQueryClient()
 
   // Estado para navegación de carpetas
@@ -1399,10 +1397,6 @@ export default function ProjectView({ project, onBack }: ProjectViewProps) {
         </Card>
       )}
 
-
-
-
-
       {/* Panel de Alertas */}
       <div className="mt-6">
         <AlertsPanel
@@ -1541,11 +1535,11 @@ export default function ProjectView({ project, onBack }: ProjectViewProps) {
       )}
 
       {/* Modal de detalles del proyecto */}
-      <ProjectDetailsModal
+      {/* <ProjectDetailsModal
         project={project}
         isOpen={isProjectDetailsOpen}
         onClose={() => setIsProjectDetailsOpen(false)}
-      />
+      /> */}
 
       {/* Sheet de detalles de carpetas */}
       <DetailsSheet

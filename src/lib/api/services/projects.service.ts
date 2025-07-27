@@ -1,21 +1,30 @@
-import { apiClient } from "../config";
 import type {
-  CreateProjectRequest,
-  CreateProjectResponse,
-  TiposIniciativaResponse,
-  TiposObraResponse,
-  RegionesResponse,
-  ProvinciasResponse,
-  ComunasResponse,
-  InspectoresFiscalesResponse,
-  TipoIniciativa,
-  Region,
-  Provincia,
-  Comuna,
-  InspectorFiscal,
   AvanzarEtapaRequest,
   AvanzarEtapaResponse,
-} from "@/shared/types/project-types";
+  CarpetaContenidoResponse,
+  Comuna,
+  ComunasResponse,
+  CreateCarpetaRequest,
+  CreateCarpetaResponse,
+  CreateProjectRequest,
+  CreateProjectResponse,
+  InspectoresFiscalesResponse,
+  InspectorFiscal,
+  MoverCarpetaRequest,
+  MoverCarpetaResponse,
+  Provincia,
+  ProvinciasResponse,
+  ProyectoDetalleResponse,
+  ProyectosListResponse,
+  Region,
+  RegionesResponse,
+  RenombrarCarpetaRequest,
+  RenombrarCarpetaResponse,
+  TipoIniciativa,
+  TiposIniciativaResponse,
+  TiposObraResponse,
+} from "@/app/features/dashboard/projects/_components/project/project.types";
+import { apiClient } from "../config";
 
 export class ProjectsService {
   private static readonly BASE_PATH = "/proyectos";
@@ -34,6 +43,20 @@ export class ProjectsService {
   }
 
   /**
+   * Actualiza un proyecto existente
+   */
+  static async updateProject(
+    projectId: number,
+    data: Partial<CreateProjectRequest>
+  ): Promise<{ success: boolean; message: string; data: any }> {
+    const response = await apiClient.put(
+      `${this.BASE_PATH}/${projectId}`,
+      data
+    );
+    return response.data;
+  }
+
+  /**
    * Obtiene los tipos de iniciativa disponibles
    */
   static async getTiposIniciativa(): Promise<TiposIniciativaResponse> {
@@ -45,7 +68,7 @@ export class ProjectsService {
   /**
    * Obtiene los tipos de obra disponibles según la etapa
    */
-  static async getTiposObra(
+  static async getTiposObraPorEtapa(
     etapa_tipo_id?: number
   ): Promise<TiposObraResponse> {
     if (!etapa_tipo_id) {
@@ -84,25 +107,7 @@ export class ProjectsService {
   /**
    * Obtiene la lista de proyectos
    */
-  static async getProyectos(): Promise<{
-    success: boolean;
-    message: string;
-    data: Array<{
-      id: number;
-      nombre: string;
-      created_at: string;
-      etapas_registro: Array<{
-        etapa_tipo: {
-          id: number;
-          nombre: string;
-        };
-      }>;
-      creador: {
-        id: number;
-        nombre_completo: string;
-      };
-    }>;
-  }> {
+  static async getProyectos(): Promise<ProyectosListResponse> {
     const response = await apiClient.get("/proyectos");
     return response.data;
   }
@@ -110,86 +115,9 @@ export class ProjectsService {
   /**
    * Obtiene el detalle de un proyecto por ID
    */
-  static async getProyectoDetalle(id: number): Promise<{
-    success: boolean;
-    message: string;
-    data: {
-      id: number;
-      nombre: string;
-      carpeta_inicial: string;
-      carpeta_raiz_id: number;
-      created_at: string;
-      etapas_registro: Array<{
-        id: number;
-        etapa_tipo: {
-          id: number;
-          nombre: string;
-          descripcion: string;
-        };
-        tipo_iniciativa: {
-          id: number;
-          nombre: string;
-        };
-        tipo_obra: {
-          id: number;
-          nombre: string;
-        };
-        region: {
-          id: number;
-          codigo: string;
-          nombre: string;
-          nombre_corto: string;
-        };
-        provincia: {
-          id: number;
-          codigo: string;
-          nombre: string;
-        };
-        comuna: {
-          id: number;
-          codigo: string;
-          nombre: string;
-        };
-        volumen: string;
-        presupuesto_oficial: string;
-        fecha_llamado_licitacion: string;
-        fecha_recepcion_ofertas_tecnicas: string;
-        fecha_apertura_ofertas_economicas: string;
-        decreto_adjudicacion: string;
-        sociedad_concesionaria: string;
-        fecha_inicio_concesion: string;
-        plazo_total_concesion: string;
-        inspector_fiscal: {
-          id: number;
-          nombre_completo: string;
-          correo_electronico: string;
-        };
-        fecha_creacion: string;
-        fecha_actualizacion: string;
-        activa: boolean;
-      }>;
-      division: {
-        id: number;
-        nombre: string;
-        descripcion: string;
-      };
-      departamento: {
-        id: number;
-        nombre: string;
-        descripcion: string;
-      };
-      unidad: {
-        id: number;
-        nombre: string;
-        descripcion: string;
-      };
-      creador: {
-        id: number;
-        nombre_completo: string;
-        correo_electronico: string;
-      };
-    };
-  }> {
+  static async getProyectoDetalle(
+    id: number
+  ): Promise<ProyectoDetalleResponse> {
     const response = await apiClient.get(`/proyectos/${id}`);
     return response.data;
   }
@@ -302,7 +230,7 @@ export class ProjectsService {
    */
   static async getCarpetaContenido(
     carpetaId: number
-  ): Promise<import("@/shared/types/project-types").CarpetaContenidoResponse> {
+  ): Promise<CarpetaContenidoResponse> {
     const response = await apiClient.get(`/carpetas/${carpetaId}/contenido`);
     return response.data;
   }
@@ -311,8 +239,8 @@ export class ProjectsService {
    * Método para crear una nueva carpeta
    */
   static async createCarpeta(
-    data: import("@/shared/types/project-types").CreateCarpetaRequest
-  ): Promise<import("@/shared/types/project-types").CreateCarpetaResponse> {
+    data: CreateCarpetaRequest
+  ): Promise<CreateCarpetaResponse> {
     const response = await apiClient.post("/carpetas", data);
     return response.data;
   }
@@ -343,8 +271,8 @@ export class ProjectsService {
    */
   static async renombrarCarpeta(
     carpetaId: number,
-    data: import("@/shared/types/project-types").RenombrarCarpetaRequest
-  ): Promise<import("@/shared/types/project-types").RenombrarCarpetaResponse> {
+    data: RenombrarCarpetaRequest
+  ): Promise<RenombrarCarpetaResponse> {
     const response = await apiClient.put(
       `/carpetas/${carpetaId}/renombrar`,
       data
@@ -357,8 +285,8 @@ export class ProjectsService {
    */
   static async moverCarpeta(
     carpetaId: number,
-    data: import("@/shared/types/project-types").MoverCarpetaRequest
-  ): Promise<import("@/shared/types/project-types").MoverCarpetaResponse> {
+    data: MoverCarpetaRequest
+  ): Promise<MoverCarpetaResponse> {
     const response = await apiClient.put(`/carpetas/${carpetaId}/mover`, data);
     return response.data;
   }

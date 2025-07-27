@@ -3,7 +3,7 @@ import { useFormContext } from 'react-hook-form';
 import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
 import { AlertTriangle, CalendarDays } from "lucide-react"
-import type { CreateProjectFormData } from "@/shared/types/project-types"
+import type { CreateProjectFormData } from "../project/project.types"
 
 interface ProjectAlertsStepProps {
   // Este paso se mantiene simple ya que las alertas se configuran después de crear el proyecto

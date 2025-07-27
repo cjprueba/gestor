@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
 import { Plus, Folder, Check, X, Pencil, Trash } from "lucide-react"
-import type { CreateProjectFormData } from "@/shared/types/project-types"
+import type { CreateProjectFormData } from "../project/project.types"
 import { useFormContext } from 'react-hook-form'
 
 interface Subcarpeta {
@@ -644,7 +644,7 @@ export const FolderTemplatesStep: React.FC<FolderTemplatesStepProps> = ({ carpet
       <div className="space-y-4">
         <div className="flex justify-between items-center">
           <div>
-            <Label className="text-base font-medium">Carpetas Personalizadas</Label>
+            <Label className="text-base font-medium">Carpetas personalizadas</Label>
             <p className="text-sm text-muted-foreground mt-1">
               Agrega carpetas adicionales con subcarpetas opcionales.
             </p>
@@ -653,7 +653,7 @@ export const FolderTemplatesStep: React.FC<FolderTemplatesStepProps> = ({ carpet
             <DialogTrigger asChild>
               <Button variant="primario" size="sm">
                 <Plus className="w-4 h-4 mr-1" />
-                Nueva Carpeta
+                Nueva carpeta
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-md">
@@ -676,7 +676,7 @@ export const FolderTemplatesStep: React.FC<FolderTemplatesStepProps> = ({ carpet
                   />
                 </div>
                 <Button onClick={handleCreateCustomFolder} className="w-full">
-                  Crear Carpeta
+                  Crear carpeta
                 </Button>
               </div>
             </DialogContent>
