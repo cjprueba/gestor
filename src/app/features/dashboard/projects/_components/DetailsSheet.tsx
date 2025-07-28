@@ -1,6 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avatar"
 import { Badge } from "@/shared/components/ui/badge"
-import { Button } from "@/shared/components/ui/button"
+import { Button } from "@/shared/components/design-system/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
 import { Separator } from "@/shared/components/ui/separator"
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/shared/components/ui/sheet"
@@ -9,6 +9,8 @@ import { ETAPAS } from "@/shared/data/project-data"
 import { ArrowRight, Download, Edit, FileText, Folder, FolderOpen, Plus, Share, SortDesc, Loader2 } from "lucide-react"
 import { useState } from "react"
 import { useCarpetaDetalle } from "@/lib/api/hooks/useCarpetas"
+import { useDocumentos } from "@/lib/api/hooks/useDocumentos"
+import { downloadFileFromBase64 } from "@/shared/lib/file-utils"
 import dayjs from "dayjs"
 
 interface DetailsSheetProps {
@@ -28,21 +30,18 @@ export default function DetailsSheet({ isOpen, onClose, item, type, onStageChang
     type === "folder" && item?.id ? item.id : undefined
   )
 
+  // Obtener detalle de documento si el tipo es "document"
+  const { useGetDocumentoMetadata, useDownloadDocumentoBase64 } = useDocumentos()
+  const { data: documentoDetalle, isLoading: isLoadingDocumento } = useGetDocumentoMetadata(
+    type === "document" && item?.id ? item.id : undefined
+  )
+  const downloadDocumentoBase64Mutation = useDownloadDocumentoBase64()
+
   if (!item) return null
 
-  // Datos de la carpeta (reales o fallback)
+  // Datos de la carpeta o documento (reales o fallback)
   const carpetaData = type === "folder" ? carpetaDetalle?.data : null
-
-  // Debug para verificar los datos
-  if (type === "folder") {
-    console.log("DetailsSheet Debug:", {
-      item,
-      carpetaData,
-      isLoadingCarpeta,
-      itemName: item?.name,
-      carpetaName: carpetaData?.nombre
-    })
-  }
+  const documentoData = type === "document" ? documentoDetalle?.documento : null
 
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat("es-ES", {
@@ -67,6 +66,29 @@ export default function DetailsSheet({ isOpen, onClose, item, type, onStageChang
     return `hace ${diffInDays} día${diffInDays > 1 ? "s" : ""}`
   }
 
+  // Función para descargar documento
+  const handleDownloadDocument = () => {
+    if (type === "document" && item?.id) {
+      downloadDocumentoBase64Mutation.mutate(
+        { documentoId: item.id },
+        {
+          onSuccess: (response) => {
+            if (response.success && response.data.base64) {
+              downloadFileFromBase64(
+                response.data.base64,
+                response.data.filename,
+                response.data.type
+              )
+            }
+          },
+          onError: (error) => {
+            console.error("Error al descargar documento:", error)
+          }
+        }
+      )
+    }
+  }
+
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent className="w-96 sm:w-96 overflow-y-auto">
@@ -76,12 +98,17 @@ export default function DetailsSheet({ isOpen, onClose, item, type, onStageChang
             {type === "folder" && <Folder className="w-6 h-6 text-primary-500" />}
             {type === "document" && <FileText className="w-6 h-6 text-primary-500" />}
             <div className="flex-1 min-w-0">
-              <SheetTitle className="text-left truncate">
+              <SheetTitle className="text-left break-words leading-tight">
                 {type === "folder" ? (
                   carpetaData?.nombre ||
                   item?.name ||
                   item?.nombre ||
                   `Carpeta ${item?.id || 'sin nombre'}`
+                ) : type === "document" ? (
+                  documentoData?.nombre_archivo ||
+                  item?.nombre_archivo ||
+                  item?.name ||
+                  'Documento sin nombre'
                 ) : (
                   item?.name || item?.nombre || 'Sin nombre'
                 )}
@@ -90,6 +117,12 @@ export default function DetailsSheet({ isOpen, onClose, item, type, onStageChang
                 {type === "project" ? "Proyecto" : type === "folder" ? "Carpeta" : "Documento"}
               </p>
               {type === "folder" && isLoadingCarpeta && (
+                <div className="flex items-center gap-2 mt-1">
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                  <span className="text-xs text-muted-foreground">Cargando...</span>
+                </div>
+              )}
+              {type === "document" && isLoadingDocumento && (
                 <div className="flex items-center gap-2 mt-1">
                   <Loader2 className="w-3 h-3 animate-spin" />
                   <span className="text-xs text-muted-foreground">Cargando...</span>
@@ -107,12 +140,51 @@ export default function DetailsSheet({ isOpen, onClose, item, type, onStageChang
           <TabsContent value="details" className="space-y-6 p-6">
             {/* Preview Section */}
             <div className="space-y-4">
-              <h3 className="font-medium text-sm text-muted-foreground">VISTA PREVIA</h3>
-              <div className="flex items-center justify-center h-32 bg-muted rounded-lg">
-                {type === "document" ? (
-                  <div className="text-center">
-                    <FileText className="w-12 h-12 mx-auto text-primary-500 mb-2" />
-                    <p className="text-xs text-muted-foreground">Vista previa del documento</p>
+              <h3 className="text-sm text-muted-foreground">VISTA PREVIA</h3>
+              <div className="flex items-center justify-center h-40 bg-muted rounded-lg overflow-hidden">
+                {type === "document" && documentoData ? (
+                  <div className="w-full h-full relative">
+                    {documentoData.extension.toLowerCase() === "pdf" ? (
+                      <div className="flex items-center justify-center h-full bg-red-50">
+                        <div className="text-center">
+                          <FileText className="w-16 h-16 mx-auto text-red-600 mb-2" />
+                          <p className="text-sm font-medium text-red-800">PDF</p>
+                          <p className="text-xs text-red-600">{documentoData.nombre_archivo}</p>
+                        </div>
+                      </div>
+                    ) : documentoData.extension.toLowerCase().match(/^(jpg|jpeg|png|gif|webp)$/) ? (
+                      <div className="flex items-center justify-center h-full bg-blue-50">
+                        <div className="text-center">
+                          <FileText className="w-16 h-16 mx-auto text-blue-600 mb-2" />
+                          <p className="text-sm font-medium text-blue-800">IMAGEN</p>
+                          <p className="text-xs text-blue-600">{documentoData.extension.toUpperCase()}</p>
+                        </div>
+                      </div>
+                    ) : documentoData.extension.toLowerCase().match(/^(doc|docx)$/) ? (
+                      <div className="flex items-center justify-center h-full bg-blue-50">
+                        <div className="text-center">
+                          <FileText className="w-16 h-16 mx-auto text-blue-600 mb-2" />
+                          <p className="text-sm font-medium text-blue-800">WORD</p>
+                          <p className="text-xs text-blue-600">{documentoData.extension.toUpperCase()}</p>
+                        </div>
+                      </div>
+                    ) : documentoData.extension.toLowerCase().match(/^(xls|xlsx)$/) ? (
+                      <div className="flex items-center justify-center h-full bg-green-50">
+                        <div className="text-center">
+                          <FileText className="w-16 h-16 mx-auto text-green-600 mb-2" />
+                          <p className="text-sm font-medium text-green-800">EXCEL</p>
+                          <p className="text-xs text-green-600">{documentoData.extension.toUpperCase()}</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center h-full bg-gray-50">
+                        <div className="text-center">
+                          <FileText className="w-16 h-16 mx-auto text-gray-600 mb-2" />
+                          <p className="text-sm font-medium text-gray-800">{documentoData.extension.toUpperCase()}</p>
+                          <p className="text-xs text-gray-600">Documento</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="text-center">
@@ -128,7 +200,7 @@ export default function DetailsSheet({ isOpen, onClose, item, type, onStageChang
             {/* Información General */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="font-medium text-sm text-muted-foreground">INFORMACIÓN GENERAL</h3>
+                <h3 className="text-sm text-muted-foreground">INFORMACIÓN GENERAL</h3>
               </div>
 
               <div className="space-y-3">
@@ -186,16 +258,116 @@ export default function DetailsSheet({ isOpen, onClose, item, type, onStageChang
 
             {/* Detalles del Archivo/Carpeta */}
             <div className="space-y-4">
-              <h3 className="font-medium text-sm text-muted-foreground">
+              <h3 className="text-sm text-muted-foreground">
                 {type === "document" ? "DETALLES DEL DOCUMENTO" : "DETALLES DE LA CARPETA"}
               </h3>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
+              <div className="space-y-4">
+                <div className="space-y-1">
                   <span className="text-sm text-muted-foreground">Tipo</span>
-                  <span className="text-sm">
-                    {type === "document" ? item.metadata?.type || "Documento" : "Carpeta"}
-                  </span>
+                  <div className="text-foreground text-sm">
+                    {type === "document" ? (documentoData?.tipo_documento.nombre || "Documento") : "Carpeta"}
+                  </div>
                 </div>
+
+                {/* Información específica de documentos */}
+                {type === "document" && documentoData && (
+                  <>
+                    <div className="space-y-1">
+                      <span className="text-sm text-muted-foreground">Descripción tipo</span>
+                      <div className="text-foreground text-sm break-words">
+                        {documentoData.tipo_documento.descripcion}
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <span className="text-sm text-muted-foreground">Tamaño</span>
+                      <div className="text-foreground text-sm">{(documentoData.tamano / 1024).toFixed(1)} KB</div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <span className="text-sm text-muted-foreground">Formato</span>
+                      <div className="text-foreground text-sm">{documentoData.extension.toUpperCase()}</div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <span className="text-sm text-muted-foreground">Estado</span>
+                      <div>
+                        <Badge variant={documentoData.estado === "activo" ? "default" : "secondary"} className="text-xs capitalize">
+                          {documentoData.estado}
+                        </Badge>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <span className="text-sm text-muted-foreground">Versión</span>
+                      <div className="text-foreground text-sm">{documentoData.version}</div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <span className="text-sm text-muted-foreground">Carpeta</span>
+                      <div className="text-foreground text-sm break-words">
+                        {documentoData.carpeta.nombre}
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <span className="text-sm text-muted-foreground">Proyecto</span>
+                      <div className="text-foreground text-sm break-words">
+                        {documentoData.proyecto.nombre}
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <span className="text-sm text-muted-foreground">Creado por</span>
+                      <div className="text-foreground text-sm break-words">
+                        {documentoData.creador.nombre_completo}
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <span className="text-sm text-muted-foreground">Subido por</span>
+                      <div className="text-foreground text-sm break-words">
+                        {documentoData.subio_por.nombre_completo}
+                      </div>
+                    </div>
+
+                    {documentoData.etiquetas.length > 0 && (
+                      <div className="space-y-1">
+                        <span className="text-sm text-muted-foreground">Etiquetas</span>
+                        <div className="flex flex-wrap gap-1">
+                          {documentoData.etiquetas.slice(0, 3).map((etiqueta, index) => (
+                            <Badge key={index} variant="outline" className="text-xs">
+                              {etiqueta}
+                            </Badge>
+                          ))}
+                          {documentoData.etiquetas.length > 3 && (
+                            <Badge variant="outline" className="text-xs">
+                              +{documentoData.etiquetas.length - 3}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {documentoData.documentos_relacionados.length > 0 && (
+                      <div className="space-y-1">
+                        <span className="text-sm text-muted-foreground">Documentos relacionados</span>
+                        <div className="space-y-1">
+                          {documentoData.documentos_relacionados.slice(0, 2).map((docRel, index) => (
+                            <div key={index} className="text-xs text-muted-foreground bg-muted p-2 rounded">
+                              {docRel.nombre_archivo}
+                            </div>
+                          ))}
+                          {documentoData.documentos_relacionados.length > 2 && (
+                            <Badge variant="outline" className="text-xs">
+                              +{documentoData.documentos_relacionados.length - 2} más
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
 
                 {/* Información específica de carpetas */}
                 {type === "folder" && carpetaData && (
@@ -244,37 +416,35 @@ export default function DetailsSheet({ isOpen, onClose, item, type, onStageChang
                   </>
                 )}
 
-                {/* Información de documentos */}
-                {type === "document" && item.metadata?.size && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Tamaño</span>
-                    <span className="text-sm">{(item.metadata.size / 1024 / 1024).toFixed(1)} MB</span>
-                  </div>
-                )}
 
-                <div className="flex items-center justify-between">
+
+                <div className="space-y-1">
                   <span className="text-sm text-muted-foreground">Creado</span>
-                  <span className="text-sm">
+                  <div className="text-foreground text-sm">
                     {type === "folder" && carpetaData
                       ? dayjs(carpetaData.fecha_creacion).format('DD/MM/YYYY HH:mm')
-                      : formatDate(item.metadata?.createdAt || item.createdAt || new Date())
+                      : type === "document" && documentoData
+                        ? dayjs(documentoData.fecha_creacion).format('DD/MM/YYYY HH:mm')
+                        : formatDate(item.metadata?.createdAt || item.createdAt || new Date())
                     }
-                  </span>
+                  </div>
                 </div>
 
-                <div className="flex items-center justify-between">
+                <div className="space-y-1">
                   <span className="text-sm text-muted-foreground">Modificado</span>
-                  <span className="text-sm">
+                  <div className="text-foreground text-sm">
                     {type === "folder" && carpetaData
                       ? dayjs(carpetaData.fecha_actualizacion).format('DD/MM/YYYY HH:mm')
-                      : formatDate(item.metadata?.lastModifiedAt || item.createdAt || new Date())
+                      : type === "document" && documentoData
+                        ? dayjs(documentoData.fecha_ultima_actualizacion).format('DD/MM/YYYY HH:mm')
+                        : formatDate(item.metadata?.lastModifiedAt || item.createdAt || new Date())
                     }
-                  </span>
+                  </div>
                 </div>
 
-                <div className="flex items-center justify-between">
+                <div className="space-y-1">
                   <span className="text-sm text-muted-foreground">Abierto</span>
-                  <span className="text-sm">{getRelativeTime(new Date())}</span>
+                  <div className="text-foreground text-sm">{getRelativeTime(new Date())}</div>
                 </div>
               </div>
             </div>
@@ -285,7 +455,7 @@ export default function DetailsSheet({ isOpen, onClose, item, type, onStageChang
             {type === "folder" && carpetaData && (
               <>
                 <div className="space-y-4">
-                  <h3 className="font-medium text-sm text-muted-foreground">PERMISOS</h3>
+                  <h3 className="text-sm text-muted-foreground">PERMISOS</h3>
                   <div className="space-y-3">
                     {carpetaData.permisos_lectura.length > 0 && (
                       <div className="space-y-2">
@@ -341,17 +511,25 @@ export default function DetailsSheet({ isOpen, onClose, item, type, onStageChang
 
             {/* Acciones */}
             <div className="space-y-4">
-              <h3 className="font-medium text-sm text-muted-foreground">ACCIONES</h3>
-              <div className="space-y-2">
-                <Button variant="outline" size="sm" className="w-full justify-start bg-transparent">
+              <h3 className="text-sm text-muted-foreground">ACCIONES</h3>
+              <div className="space-y-3">
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="w-full justify-start"
+                  onClick={handleDownloadDocument}
+                  disabled={type !== "document" || downloadDocumentoBase64Mutation.isPending}
+                >
                   <Download className="w-4 h-4 mr-2" />
-                  {type === "project" ? "Exportar Proyecto" : type === "document" ? "Descargar" : "Exportar Carpeta"}
+                  {downloadDocumentoBase64Mutation.isPending ? "Descargando..." :
+                    (type === "project" ? "Exportar Proyecto" : type === "document" ? "Descargar" : "Exportar Carpeta")
+                  }
                 </Button>
-                <Button variant="outline" size="sm" className="w-full justify-start bg-transparent">
+                <Button variant="ghost" size="sm" className="w-full justify-start hover:bg-muted">
                   <Share className="w-4 h-4 mr-2" />
                   Compartir
                 </Button>
-                <Button variant="outline" size="sm" className="w-full justify-start bg-transparent">
+                <Button variant="ghost" size="sm" className="w-full justify-start hover:bg-muted">
                   <Plus className="w-4 h-4 mr-2" />
                   Invitar Colaboradores
                 </Button>
@@ -362,7 +540,7 @@ export default function DetailsSheet({ isOpen, onClose, item, type, onStageChang
           <TabsContent value="activities" className="space-y-6 p-6">
 
             <div className="space-y-4 max-h-96 overflow-y-auto">
-              <h3 className="font-medium text-sm text-muted-foreground">Actividades</h3>
+              <h3 className="text-sm text-muted-foreground">Actividades</h3>
               <div className="space-y-4">
 
                 <div className="flex space-x-3 p-3 bg-blue-50 rounded-lg">
@@ -427,7 +605,7 @@ export default function DetailsSheet({ isOpen, onClose, item, type, onStageChang
             <Separator />
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="font-medium text-sm text-muted-foreground">HISTORIAL DE ETAPAS</h3>
+                <h3 className="text-sm text-muted-foreground">HISTORIAL DE ETAPAS</h3>
                 <div className="flex items-center">
                   <Button variant="ghost" size="sm" className="flex items-center">
                     <SortDesc className="w-1 h-1" />

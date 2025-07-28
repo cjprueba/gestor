@@ -6,8 +6,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
 import { Plus, Folder, Check, X, Pencil, Trash } from "lucide-react"
-import type { CreateProjectFormData } from "../project/project.types"
 import { useFormContext } from 'react-hook-form'
+import type { CreateProjectFormData } from "../project/project.validations"
 
 interface Subcarpeta {
   id: string;

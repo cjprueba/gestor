@@ -1,7 +1,7 @@
 import { Badge } from "@/shared/components/ui/badge";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
-import type { CreateProjectFormData } from "../project/project.types";
+import type { CreateProjectFormData } from "../project/project.validations";
 import React from "react";
 import { useFormContext } from 'react-hook-form';
 

@@ -10,7 +10,7 @@ import type {
   CreateCarpetaRequest,
   MoverCarpetaRequest,
   RenombrarCarpetaRequest,
-} from "@/app/features/dashboard/projects/_components/project/project.types";
+} from "@/app/features/dashboard/projects/_components/folder/folder.types";
 
 // Hook para obtener la lista de proyectos
 export const useProyectos = () => {

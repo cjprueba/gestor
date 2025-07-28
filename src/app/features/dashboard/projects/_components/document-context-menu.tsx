@@ -7,7 +7,7 @@ import {
 import { Button } from "@/shared/components/design-system/button"
 import { Download, Eye, MoreVertical, Trash } from "lucide-react"
 import { Separator } from "@/shared/components/ui/separator"
-import type { DocumentoItem } from "./project/project.types"
+import type { DocumentoItem } from "./folder/folder.types"
 
 interface DocumentContextMenuProps {
   document: DocumentoItem

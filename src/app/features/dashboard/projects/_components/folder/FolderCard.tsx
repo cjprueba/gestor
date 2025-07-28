@@ -1,20 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
+import { Badge } from "@/shared/components/ui/badge"
 import { Folder } from "lucide-react"
 import CardActions from "../CardActions"
+import type { CarpetaItem } from "./folder.types"
 
 interface FolderCardProps {
-  folder: {
-    id: number
-    nombre: string
-    descripcion: string
-    total_documentos: number
-    total_carpetas_hijas: number
-    fecha_creacion: string
-    activa: boolean
-    etapa_tipo?: {
-      color: string;
-    };
-  }
+  folder: CarpetaItem
   projectStage: string
   onNavigate: (folderId: number) => void
   onViewDetails: (folder: any) => void
@@ -23,7 +14,23 @@ interface FolderCardProps {
   onDelete: (folder: any) => void
   onMove: (folder: any) => void
   onDuplicate: (folder: any) => void
-  onViewProjectDetails: () => void
+  // onViewProjectDetails: () => void
+}
+
+// Función utilitaria para obtener el color de la carpeta
+const getFolderColor = (folder: CarpetaItem): string | undefined => {
+  // Si tiene carpeta_transversal y color, usar ese color
+  if (folder.carpeta_transversal?.color) {
+    return folder.carpeta_transversal.color
+  }
+
+  // Si no, usar el color de etapa_tipo
+  if (folder.etapa_tipo?.color) {
+    return folder.etapa_tipo.color
+  }
+
+  // Sin color definido
+  return undefined
 }
 
 export const FolderCard: React.FC<FolderCardProps> = ({
@@ -40,21 +47,48 @@ export const FolderCard: React.FC<FolderCardProps> = ({
   // Simular minDocuments para la lógica de colores (3 por defecto)
   const minDocuments = 3;
 
+  // Obtener el color apropiado para la carpeta
+  const folderColor = getFolderColor(folder);
+
   return (
     <Card
       key={folder.id}
       className={"cursor-pointer hover:shadow-lg transition-all border-1"}
-      style={{ borderColor: folder.etapa_tipo?.color || undefined, borderWidth: folder.etapa_tipo?.color ? 1 : undefined }}
+      style={{ borderColor: folderColor || undefined, borderWidth: folderColor ? 1 : undefined }}
       onClick={() => onNavigate(folder.id)}
     >
       <CardHeader>
         <div className="flex justify-between items-start">
-          <div
-            className="flex items-center space-x-2 flex-1"
-
-          >
-            <Folder className="w-5 h-5 text-blue-500" />
-            <CardTitle className="text-lg">{folder.nombre}</CardTitle>
+          <div className="flex space-x-2 flex-1">
+            <Folder
+              className="w-5 h-5 mt-0.5 flex-shrink-0"
+              style={{ color: folderColor || '#3b82f6' }}
+            />
+            <div className="flex-1 min-w-0">
+              <CardTitle className="text-lg leading-tight">{folder.nombre}</CardTitle>
+              <div className="flex flex-wrap items-center gap-1 mt-1">
+                {folder.carpeta_transversal ? (
+                  <Badge
+                    variant="secondary"
+                    className="text-xs p-0 px-1"
+                    style={{ backgroundColor: `${folder.carpeta_transversal.color}15`, color: folder.carpeta_transversal.color }}
+                  >
+                    Carpeta transversal
+                  </Badge>
+                ) : folder.etapa_tipo ? (
+                  <>
+                    <span className="text-xs text-gray-400">Carpeta de etapa:</span>
+                    <Badge
+                      variant="outline"
+                      className="text-xs p-0 px-1"
+                      style={{ borderColor: folder.etapa_tipo.color, color: folder.etapa_tipo.color }}
+                    >
+                      {folder.etapa_tipo.nombre}
+                    </Badge>
+                  </>
+                ) : null}
+              </div>
+            </div>
           </div>
           <div className="flex items-center space-x-2">
             {/* Comentado temporalmente: {folderAlerts.length > 0 && <Badge variant="destructive">{folderAlerts.length}</Badge>} */}

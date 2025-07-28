@@ -45,30 +45,24 @@ export const ProjectCard: React.FC<ProjectCardProps & { onUpdateProject?: (proje
     : proyectoDetalle?.data?.etapas_registro[0]?.tipo_obra?.nombre || "No especificado"
 
   const handleOpenAdvanceStage = () => {
-    console.log("handleOpenAdvanceStage llamado")
     setIsAdvanceStageModalOpen(true)
   }
 
   const handleCardClick = () => {
-    console.log("handleCardClick llamado - redirigiendo a proyecto")
     onSelect(project)
   }
 
   const handleViewDetails = () => {
-    console.log("handleViewDetails llamado")
     setIsDetailsModalOpen(true)
   }
 
   const handleEdit = () => {
-    console.log("handleEdit llamado")
     setSelectedProjectForAction(project)
     setIsRenameDialogOpen(true)
   }
 
   const handleRenameProject = async (newName: string) => {
     if (!selectedProjectForAction) return
-
-    console.log("Iniciando renombrado de proyecto:", selectedProjectForAction.nombre, "a:", newName)
 
     try {
       await updateProjectMutation.mutateAsync({
@@ -81,8 +75,6 @@ export const ProjectCard: React.FC<ProjectCardProps & { onUpdateProject?: (proje
       console.error("Error en handleRenameProject:", error)
     }
   }
-
-  console.log(project, "-------Project")
 
   return (
     <>

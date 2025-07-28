@@ -1,8 +1,4 @@
 import type { FolderStructure } from "@/app/features/dashboard/projects/_components/folder/folder.types";
-import type {
-  ProyectoListItem,
-  ProyectoDetalle,
-} from "@/app/features/dashboard/projects/_components/project/project.types";
 
 /**
  * Cuenta el total de carpetas principales en carpeta_inicial

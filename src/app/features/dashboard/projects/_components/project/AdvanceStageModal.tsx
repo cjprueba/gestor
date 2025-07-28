@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Separator } from "@/shared/components/ui/separator"
 import clsx from "clsx"
 import { ArrowRight, Check, Loader2 } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { FormProvider } from "react-hook-form"
 import ShowPreviusStages from "../ShowPreviusStages"
 import AdvanceStageStepOne from "./AdvanceStageSteps/AdvanceStageStepOne"
@@ -28,6 +28,7 @@ export const AdvanceStageModal: React.FC<AdvanceStageModalProps> = ({
   onSuccess,
 }) => {
   const [currentStep, setCurrentStep] = useState(1)
+  const hasPrefilled = useRef(false)
 
   const { data: etapaAvanzarInfo, isLoading, error } = useEtapaAvanzarInfo(project ? project.id : undefined)
 
@@ -36,7 +37,8 @@ export const AdvanceStageModal: React.FC<AdvanceStageModalProps> = ({
     canProceedToNextStep,
     handleAdvanceStage,
     cambiarEtapaMutation,
-    siguienteEtapa
+    siguienteEtapa,
+    prefillFormWithPreviousValues
   } = useAdvanceStageForm({
     project,
     etapaAvanzarInfo: etapaAvanzarInfo || null,
@@ -49,8 +51,25 @@ export const AdvanceStageModal: React.FC<AdvanceStageModalProps> = ({
     if (isOpen) {
       methods.reset()
       setCurrentStep(1)
+      hasPrefilled.current = false // Resetear el flag cuando se abre el modal
     }
   }, [isOpen, methods])
+
+  // Pre-llenar formulario con valores de etapa anterior después de que se carguen los datos
+  useEffect(() => {
+    if (isOpen && etapaAvanzarInfo && currentStep === 1 && !hasPrefilled.current) {
+      console.log("Modal abierto, datos cargados, ejecutando pre-llenado...")
+      // Usar setTimeout para asegurar que el FormProvider esté disponible
+      setTimeout(() => {
+        console.log("Ejecutando prefillFormWithPreviousValues...")
+        prefillFormWithPreviousValues()
+        hasPrefilled.current = true // Marcar como pre-llenado
+        console.log("Pre-llenado completado, hasPrefilled.current =", hasPrefilled.current)
+      }, 200)
+    } else if (isOpen && etapaAvanzarInfo && currentStep === 1 && hasPrefilled.current) {
+      console.log("Modal abierto, pero ya se pre-llenó anteriormente, saltando...")
+    }
+  }, [isOpen, etapaAvanzarInfo, currentStep, prefillFormWithPreviousValues])
 
   const getStepTitle = () => {
     switch (currentStep) {

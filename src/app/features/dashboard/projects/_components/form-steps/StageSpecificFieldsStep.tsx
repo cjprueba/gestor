@@ -4,8 +4,8 @@ import { Label } from "@/shared/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
 import { Badge } from "@/shared/components/ui/badge"
 import { Separator } from "@/shared/components/ui/separator"
-import type { CreateProjectFormData } from "../project/project.types"
-import type { TipoIniciativa, TipoObra, Region, Provincia, Comuna, InspectorFiscal } from "../project/project.types"
+import type { Comuna, InspectorFiscal, Provincia, Region, TipoIniciativa, TipoObra } from '../project/project.types';
+import type { CreateProjectFormData } from '../project/project.validations';
 
 interface StageSpecificFieldsStepProps {
   tiposIniciativa: TipoIniciativa[];
@@ -268,7 +268,7 @@ export const StageSpecificFieldsStep: React.FC<StageSpecificFieldsStepProps> = (
                   <SelectContent>
                     {inspectoresFiscales.map((inspector) => (
                       <SelectItem key={inspector.id} value={inspector.id.toString()}>
-                        {inspector.nombre} {inspector.apellido}
+                        {inspector.nombre_completo}
                       </SelectItem>
                     ))}
                   </SelectContent>

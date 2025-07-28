@@ -5,6 +5,7 @@ import type {
   UploadDocumentoRequest,
   UploadDocumentoResponse,
   GetTiposDocumentoResponse,
+  DocumentoMetadataResponse,
 } from "@/shared/types/document-types";
 import { apiClient } from "../config";
 
@@ -80,6 +81,14 @@ export const documentosService = {
     const response = await apiClient.get(
       `/documentos/${documentoId}/download-base64`
     );
+    return response.data;
+  },
+
+  // Obtener metadatos de un documento específico
+  getDocumentoMetadata: async (
+    documentoId: string
+  ): Promise<DocumentoMetadataResponse> => {
+    const response = await apiClient.get(`/documentos/${documentoId}`);
     return response.data;
   },
 };

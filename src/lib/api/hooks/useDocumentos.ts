@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { documentosService } from "../services/documentos.service";
-import type { UploadDocumentoRequest } from "../../../shared/types/document-types";
+import type { UploadDocumentoRequest } from "@/shared/types/document-types";
 import { toast } from "sonner";
 
 export const useDocumentos = () => {
@@ -21,6 +21,16 @@ export const useDocumentos = () => {
       queryKey: ["documentos", "carpeta", carpetaId],
       queryFn: () => documentosService.getDocumentosByCarpeta(carpetaId),
       enabled: !!carpetaId,
+    });
+  };
+
+  // Hook para obtener metadatos de un documento específico
+  const useGetDocumentoMetadata = (documentoId: string | undefined) => {
+    return useQuery({
+      queryKey: ["documento-metadata", documentoId],
+      queryFn: () => documentosService.getDocumentoMetadata(documentoId!),
+      enabled: !!documentoId,
+      staleTime: 5 * 60 * 1000, // 5 minutos
     });
   };
 
@@ -116,6 +126,7 @@ export const useDocumentos = () => {
   return {
     useGetTiposDocumento,
     useGetDocumentosByCarpeta,
+    useGetDocumentoMetadata,
     useUploadDocumentos,
     useDeleteDocumento,
     useDownloadDocumento,

@@ -12,7 +12,7 @@ import {
 } from "lucide-react"
 import { useState, useEffect } from "react"
 import { revokeBlobUrl } from "@/shared/lib/file-utils"
-import type { DocumentoItem } from "./project/project.types"
+import type { DocumentoItem } from "./folder/folder.types"
 
 // Tipo extendido para documento con URL de preview temporal
 interface DocumentoItemWithPreview extends DocumentoItem {

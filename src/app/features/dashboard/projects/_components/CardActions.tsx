@@ -1,3 +1,4 @@
+import { useEtapasTipo } from "@/lib/api/hooks/useSearch"
 import { Button } from "@/shared/components/design-system/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog"
 import {
@@ -7,9 +8,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu"
-import { ArrowRightFromLine, Copy, Edit, Eye, FileText, FolderOpen, MoreVertical, Settings2, Trash2 } from "lucide-react"
+import { ArrowRightFromLine, Copy, Download, Edit, Eye, FileText, FolderOpen, MoreVertical, Settings2, SquareChartGanttIcon, Trash2 } from "lucide-react"
 import { useState } from "react"
-import { useEtapasTipo } from "@/lib/api/hooks/useSearch"
 
 interface MenuItem {
   icon: any
@@ -19,7 +19,7 @@ interface MenuItem {
 }
 
 interface ContextMenuProps {
-  type: "folder" | "project"
+  type: "folder" | "project" | "document"
   item: any
   onViewDetails?: () => void
   onViewProjectDetails?: () => void
@@ -31,6 +31,7 @@ interface ContextMenuProps {
   onShare?: () => void
   onDuplicate?: () => void
   onAdvanceStage?: () => void
+  onPreview?: () => void
 }
 
 export default function ContextMenu({
@@ -44,6 +45,9 @@ export default function ContextMenu({
   onMove,
   onDuplicate,
   onAdvanceStage,
+  onDownload,
+  // onShare,
+  onPreview,
 }: ContextMenuProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
@@ -65,37 +69,47 @@ export default function ContextMenu({
       }
     ]
 
-    // if (type === "document") {
-    //   return [
-    //     ...commonItems,
-    //     {
-    //       icon: Download,
-    //       label: "Descargar",
-    //       action: onDownload,
-    //     },
-    //     {
-    //       icon: Share,
-    //       label: "Compartir",
-    //       action: onShare,
-    //     },
-    //     {
-    //       icon: Copy,
-    //       label: "Duplicar",
-    //       action: onDuplicate,
-    //     },
-    //     {
-    //       icon: Edit,
-    //       label: "Renombrar",
-    //       action: onEdit,
-    //     },
-    //     {
-    //       icon: Trash2,
-    //       label: "Eliminar",
-    //       action: () => setIsDeleteDialogOpen(true),
-    //       destructive: true,
-    //     },
-    //   ]
-    // }
+    if (type === "document") {
+      return [
+        // ...commonItems,
+        {
+          icon: Eye,
+          label: "Visualizar",
+          action: onPreview,
+        },
+        {
+          icon: SquareChartGanttIcon,
+          label: "Ver detalles",
+          action: onViewDetails,
+        },
+        // {
+        //   icon: FileSpreadsheetIcon,
+        //   label: "Ver ficha de etapa",
+        //   action: onViewProjectDetails,
+        // },
+        {
+          icon: Download,
+          label: "Descargar",
+          action: onDownload,
+        },
+        // {
+        //   icon: Share,
+        //   label: "Compartir",
+        //   action: onShare,
+        // },
+        // {
+        //   icon: Edit,
+        //   label: "Renombrar",
+        //   action: onEdit,
+        // },
+        {
+          icon: Trash2,
+          label: "Eliminar",
+          action: () => setIsDeleteDialogOpen(true),
+          destructive: true,
+        },
+      ]
+    }
 
     if (type === "folder") {
       const folderItems = [
@@ -182,7 +196,6 @@ export default function ContextMenu({
             <div key={index}>
               <DropdownMenuItem
                 onClick={(e) => {
-                  console.log("DropdownMenuItem clicked:", item.label)
                   e.stopPropagation()
                   item.action?.()
                 }}
@@ -202,7 +215,7 @@ export default function ContextMenu({
           <DialogHeader>
             <DialogTitle>Confirmar Eliminación</DialogTitle>
             <DialogDescription>
-              ¿Estás seguro de que deseas eliminar "{item.name}"? Esta acción no se puede deshacer.
+              ¿Estás seguro de que deseas eliminar "{item.nombre_archivo || item.nombre || item.name}"? Esta acción no se puede deshacer.
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end space-x-2 mt-4">

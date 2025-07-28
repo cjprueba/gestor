@@ -14,20 +14,22 @@ import { cn } from "@/shared/lib/utils"
 import { useQueryClient } from "@tanstack/react-query"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
-import { ArrowLeft, CalendarIcon, FileText, FolderOpen, Plus, Search, Upload } from "lucide-react"
+import { ArrowLeft, CalendarIcon, FileText, FolderOpen, Plus, Search, Upload, ArrowRight } from "lucide-react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { toast } from "sonner"
 import AlertsPanel from "../alert/AlertPanelList"
 import DetailsSheet from "../DetailsSheet"
 import { FolderCard } from "./FolderCard"
 import MoveFolderDialog from "./MoveFolderDialog"
 // import { ProjectDetailsModal } from "./project/ProjectDetailModal"
-import { DocumentContextMenu } from "../document-context-menu"
+import CardActions from "../CardActions"
 import { DocumentPreviewModal } from "../document-preview-modal"
 import type { ProyectoListItem } from "../project/project.types"
 import { SearchHeader } from "../search-header"
 import { DeleteConfirmationDialog } from "./DeleteFolderConfirmationModal"
 import type { CarpetaItem, CreateCarpetaRequest, DocumentoItem } from "./folder.types"
 import RenameFolderDialog from "./RenameFolderDialog"
+import { AdvanceStageModal } from "../project/AdvanceStageModal"
 
 // Tipo extendido para documento con URL de preview temporal
 interface DocumentoItemWithPreview extends DocumentoItem {
@@ -131,14 +133,16 @@ export default function FolderList({ project, onBack }: ProjectViewProps) {
   const [selectedTiposObra, setSelectedTiposObra] = useState<string[]>([])
 
   // Estados para modales y diálogos
-  const [isProjectDetailsOpen, setIsProjectDetailsOpen] = useState(false)
+  // const [isProjectDetailsOpen, setIsProjectDetailsOpen] = useState(false)
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false)
   const [isCreateFolderDialogOpen, setIsCreateFolderDialogOpen] = useState(false)
   const [isDetailsSheetOpen, setIsDetailsSheetOpen] = useState(false)
   const [selectedItem, setSelectedItem] = useState<any>(null)
+  const [selectedItemType, setSelectedItemType] = useState<"project" | "folder" | "document">("folder")
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false)
   const [isMoveDialogOpen, setIsMoveDialogOpen] = useState(false)
   const [selectedFolderForAction, setSelectedFolderForAction] = useState<any>(null)
+  const [isAdvanceStageModalOpen, setIsAdvanceStageModalOpen] = useState(false)
 
   // Estados para subir documentos
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
@@ -194,7 +198,7 @@ export default function FolderList({ project, onBack }: ProjectViewProps) {
   // }, [project.targetFolderId])
 
   // Obtener contenido de la carpeta actual
-  const { data: carpetaData, isLoading, error } = useCarpetaContenido(project.carpeta_raiz_id)
+  const { data: carpetaData, isLoading, error } = useCarpetaContenido(currentCarpetaId)
 
   // Obtener carpetas del proyecto para el selector
   const { data: carpetasProyecto } = useCarpetasProyecto(project.id)
@@ -214,17 +218,20 @@ export default function FolderList({ project, onBack }: ProjectViewProps) {
   const navigateToFolder = useCallback((carpetaId: number) => {
     console.log("📁 [DEBUG] Navegando a carpeta:", {
       carpetaId,
-      currentCarpetaId: project.carpeta_raiz_id,
+      currentCarpetaId,
       isFromSearch: folderSearchTerm ? true : false,
       currentCarpeta: carpetaData?.carpeta?.nombre
     })
 
-    if (project.carpeta_raiz_id) {
+    // Agregar la carpeta actual al path de navegación antes de cambiar
+    if (currentCarpetaId) {
       const currentCarpeta = carpetaData?.carpeta
       if (currentCarpeta) {
-        setNavigationPath(prev => [...prev, { id: project.carpeta_raiz_id, nombre: currentCarpeta.nombre }])
+        setNavigationPath(prev => [...prev, { id: currentCarpetaId, nombre: currentCarpeta.nombre }])
       }
     }
+
+    // Cambiar a la nueva carpeta
     setCurrentCarpetaId(carpetaId)
 
     // Limpiar búsquedas después de navegar
@@ -561,6 +568,15 @@ export default function FolderList({ project, onBack }: ProjectViewProps) {
   // Handlers para acciones de carpetas
   const handleViewDetails = (folder: any) => {
     setSelectedItem(folder)
+    setSelectedItemType("folder")
+    setIsDetailsSheetOpen(true)
+  }
+
+  // Handler para documentos
+  const handleViewDocumentDetails = (document: DocumentoItem) => {
+    console.log("📄 [DEBUG] Abriendo detalles de documento:", document)
+    setSelectedItem(document)
+    setSelectedItemType("document")
     setIsDetailsSheetOpen(true)
   }
 
@@ -587,9 +603,9 @@ export default function FolderList({ project, onBack }: ProjectViewProps) {
     console.log("Duplicar carpeta:", folder)
   }
 
-  const openProjectDetails = () => {
-    setIsProjectDetailsOpen(true)
-  }
+  // const openProjectDetails = () => {
+  //   setIsProjectDetailsOpen(true)
+  // }
 
   // Función para renombrar carpeta
   const handleRenameFolder = async (newName: string) => {
@@ -840,6 +856,16 @@ export default function FolderList({ project, onBack }: ProjectViewProps) {
         </div>
 
         <div className="flex flex-row gap-2">
+          {/* Botón Avanzar etapa */}
+          <Button
+            variant="secundario"
+            className="flex-1 sm:flex-none mr-4"
+            onClick={() => setIsAdvanceStageModalOpen(true)}
+          >
+            <ArrowRight className="w-4 h-4 mr-2" />
+            Avanzar etapa
+          </Button>
+
           {/* Botón Subir documento */}
           <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
             <DialogTrigger asChild>
@@ -1452,25 +1478,29 @@ export default function FolderList({ project, onBack }: ProjectViewProps) {
                 onDelete={handleDelete}
                 onMove={handleMove}
                 onDuplicate={handleDuplicate}
-                onViewProjectDetails={openProjectDetails}
+              // onViewProjectDetails={openProjectDetails}
               />
             ))}
 
             {/* Documentos */}
-            {displayedDocuments.map((doc: any) => (
+            {displayedDocuments.map((doc: DocumentoItem) => (
               <Card key={doc.id}>
                 <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <FileText className="w-5 h-5 text-green-500" />
-                      <CardTitle className="text-lg break-words">{doc.nombre_archivo}</CardTitle>
+                  <div className="flex justify-between items-start">
+                    <div className="flex space-x-2 flex-1">
+                      <FileText className="w-5 h-5 mt-0.5 flex-shrink-0 text-green-500" />
+                      <div className="flex-1 min-w-0">
+                        <CardTitle className="text-lg leading-tight break-words">{doc.nombre_archivo}</CardTitle>
+                      </div>
                     </div>
                     <div className="flex-shrink-0">
-                      <DocumentContextMenu
-                        document={doc}
-                        onView={handleViewDocument}
-                        onDownload={handleDownloadDocument}
-                        onDelete={handleDeleteDocument}
+                      <CardActions
+                        type="document"
+                        item={doc}
+                        onViewDetails={() => handleViewDocumentDetails(doc)}
+                        onPreview={() => handleViewDocument(doc)}
+                        onDownload={() => handleDownloadDocument(doc)}
+                        onDelete={() => handleDeleteDocument(doc)}
                       />
                     </div>
                   </div>
@@ -1543,15 +1573,16 @@ export default function FolderList({ project, onBack }: ProjectViewProps) {
         onClose={() => setIsProjectDetailsOpen(false)}
       /> */}
 
-      {/* Sheet de detalles de carpetas */}
+      {/* Sheet de detalles de carpetas y documentos */}
       <DetailsSheet
         isOpen={isDetailsSheetOpen}
         onClose={() => {
           setIsDetailsSheetOpen(false)
           setSelectedItem(null)
+          setSelectedItemType("folder")
         }}
         item={selectedItem}
-        type="folder"
+        type={selectedItemType}
         onStageChange={(newStage) => {
           console.log("Cambiar etapa a:", newStage)
           // Aquí se implementaría la lógica para cambiar la etapa
@@ -1600,6 +1631,24 @@ export default function FolderList({ project, onBack }: ProjectViewProps) {
         onDownload={() => handleDownloadDocument(previewedDocument!)}
         onView={(id) => window.open(`/api/documents/${id}/preview`, "_blank")}
         onDelete={() => handleDeleteDocument(previewedDocument!)}
+      />
+
+      {/* Modal avanzar etapa */}
+      <AdvanceStageModal
+        project={project}
+        isOpen={isAdvanceStageModalOpen}
+        onClose={() => setIsAdvanceStageModalOpen(false)}
+        onSuccess={() => {
+          // Invalidar queries para refrescar los datos
+          queryClient.invalidateQueries({ queryKey: ["proyectos"] })
+          queryClient.invalidateQueries({ queryKey: ["proyecto", project.id] })
+          queryClient.invalidateQueries({ queryKey: ["carpeta-contenido"] })
+          queryClient.invalidateQueries({ queryKey: ["carpetas-proyecto", project.id] })
+          queryClient.invalidateQueries({ queryKey: ["etapa-avanzar-info", project.id] })
+
+          // Mostrar mensaje de éxito
+          toast.success("Se avanzó a la siguiente etapa exitosamente")
+        }}
       />
 
       {/* Diálogo de confirmación de eliminación */}

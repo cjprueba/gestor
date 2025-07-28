@@ -152,6 +152,14 @@ export interface CarpetaInfo {
   carpeta_padre: any | null;
 }
 
+export interface CarpetaTransversal {
+  id: number;
+  nombre: string;
+  descripcion: string;
+  color: string;
+  orden: number;
+}
+
 export interface CarpetaItem {
   id: number;
   nombre: string;
@@ -167,6 +175,7 @@ export interface CarpetaItem {
     nombre: string;
     color: string;
   };
+  carpeta_transversal?: CarpetaTransversal | null;
 }
 
 export interface DocumentoItem {
