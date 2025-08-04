@@ -1,3 +1,4 @@
+import { useComunas, useProvincias, useRegiones, useTiposIniciativa, useTiposObras } from "@/lib/api"
 import { useEtapaAvanzarInfo, useProyectoDetalle, useUpdateProject } from "@/lib/api/hooks/useProjects"
 import { useStageTypeDetail } from "@/lib/api/hooks/useStages"
 import { Button } from "@/shared/components/design-system/button"
@@ -9,15 +10,16 @@ import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
 import { Separator } from "@/shared/components/ui/separator"
-import { useComunas, useProvincias, useRegiones, useTiposIniciativa, useTiposObras } from "@/lib/api"
 import { mapStageTypeToFormFields } from "@/shared/utils/stage-form-mapper"
 import dayjs from "dayjs"
+import utc from "dayjs/plugin/utc"
 import { ChevronDown, Edit, Loader2, Save, X } from "lucide-react"
 import React, { useState } from "react"
-import { useForm, FormProvider, useFormContext } from "react-hook-form"
+import { FormProvider, useForm, useFormContext } from "react-hook-form"
 import { toast } from "sonner"
-import { useQueryClient } from "@tanstack/react-query"
 import type { ProyectoListItem } from "./project/project.types"
+
+dayjs.extend(utc)
 
 // Componente Item para renderizar datos de manera reutilizable
 interface ItemProps {
@@ -44,7 +46,7 @@ const Item: React.FC<ItemProps> = ({
   if (!value && !isEditing) return null;
 
   const displayValue = isDate && value
-    ? dayjs(value as string).format('DD/MM/YYYY')
+    ? dayjs(value as string).utc().format('DD/MM/YYYY')
     : value?.toString() || '';
 
   if (isEditing && selectOptions && fieldKey) {
@@ -140,7 +142,6 @@ export const ShowStageDetailsDialog = ({
   onClose,
 }: ShowStageDetailsDialogProps) => {
   const [isEditing, setIsEditing] = useState(false)
-  const queryClient = useQueryClient()
 
   // React Hook Form
   const methods = useForm<EditFormData>()
@@ -344,17 +345,9 @@ export const ShowStageDetailsDialog = ({
         data: dataToSend
       })
 
-      // Invalidar las queries para refrescar los datos
-      await queryClient.invalidateQueries({ queryKey: ["proyecto", project.id] })
-      await queryClient.invalidateQueries({ queryKey: ["etapa-avanzar-info", project.id] })
-      await queryClient.invalidateQueries({ queryKey: ["proyectos"] })
-
       // Cerrar modo edición y limpiar formulario
       setIsEditing(false)
       reset({})
-
-      // Mostrar mensaje de éxito
-      toast.success("Proyecto actualizado exitosamente")
     } catch (error) {
       console.error("Error al actualizar proyecto:", error)
       toast.error("Error al actualizar el proyecto")
@@ -554,8 +547,9 @@ export const ShowStageDetailsDialog = ({
                                           <Select
                                             value={watchedFormData.tipo_obra_id?.toString() || ""}
                                             onValueChange={(value) => setValue('tipo_obra_id', parseInt(value))}
+                                            disabled
                                           >
-                                            <SelectTrigger className="w-40">
+                                            <SelectTrigger className="w-auto min-w-[200px]">
                                               <SelectValue placeholder="Seleccionar..." />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -688,7 +682,7 @@ export const ShowStageDetailsDialog = ({
                                         )}
                                         {etapaTypeDetail?.data?.decreto_adjudicacion && (
                                           <div className="flex flex-col gap-2">
-                                            <Label className="text-xs font-medium text-muted-foreground" htmlFor="decreto_adjudicacion">Decreto Adjudicación</Label>
+                                            <Label className="text-xs font-medium text-muted-foreground" htmlFor="decreto_adjudicacion">Decreto adjudicación</Label>
                                             <Input
                                               id="decreto_adjudicacion"
                                               {...methods.register('decreto_adjudicacion')}
@@ -699,7 +693,7 @@ export const ShowStageDetailsDialog = ({
                                         )}
                                         {etapaTypeDetail?.data?.plazo_total_concesion && (
                                           <div className="flex flex-col gap-2">
-                                            <Label className="text-xs font-medium text-muted-foreground" htmlFor="plazo_total_concesion">Plazo Total Concesión</Label>
+                                            <Label className="text-xs font-medium text-muted-foreground" htmlFor="plazo_total_concesion">Plazo total concesión</Label>
                                             <Input
                                               id="plazo_total_concesion"
                                               {...methods.register('plazo_total_concesion')}
@@ -710,7 +704,7 @@ export const ShowStageDetailsDialog = ({
                                         )}
                                         {etapaTypeDetail?.data?.sociedad_concesionaria && (
                                           <div className="flex flex-col gap-2">
-                                            <Label className="text-xs font-medium text-muted-foreground" htmlFor="sociedad_concesionaria">Sociedad Concesionaria</Label>
+                                            <Label className="text-xs font-medium text-muted-foreground" htmlFor="sociedad_concesionaria">Sociedad concesionaria</Label>
                                             <Input
                                               id="sociedad_concesionaria"
                                               {...methods.register('sociedad_concesionaria')}
@@ -721,7 +715,7 @@ export const ShowStageDetailsDialog = ({
                                         )}
                                         {etapaTypeDetail?.data?.inspector_fiscal_id && (
                                           <div className="flex flex-col gap-2">
-                                            <Label className="text-xs font-medium text-muted-foreground" htmlFor="inspector_fiscal_id">Inspector Fiscal</Label>
+                                            <Label className="text-xs font-medium text-muted-foreground" htmlFor="inspector_fiscal_id">Inspector fiscal</Label>
                                             <Input
                                               id="inspector_fiscal_id"
                                               {...methods.register('inspector_fiscal_id', { valueAsNumber: true })}
@@ -752,7 +746,7 @@ export const ShowStageDetailsDialog = ({
                                         )}
                                         {etapaTypeDetail?.data?.fecha_recepcion_ofertas_tecnicas && (
                                           <div className="flex flex-col gap-2">
-                                            <Label className="text-xs font-medium text-muted-foreground" htmlFor="fecha_recepcion_ofertas_tecnicas">Fecha Recepción Ofertas Técnicas</Label>
+                                            <Label className="text-xs font-medium text-muted-foreground" htmlFor="fecha_recepcion_ofertas_tecnicas">Fecha recepción ofertas técnicas</Label>
                                             <Input
                                               id="fecha_recepcion_ofertas_tecnicas"
                                               type="date"
@@ -763,7 +757,7 @@ export const ShowStageDetailsDialog = ({
                                         )}
                                         {etapaTypeDetail?.data?.fecha_apertura_ofertas_economicas && (
                                           <div className="flex flex-col gap-2">
-                                            <Label className="text-xs font-medium text-muted-foreground" htmlFor="fecha_apertura_ofertas_economicas">Fecha Apertura Ofertas Económicas</Label>
+                                            <Label className="text-xs font-medium text-muted-foreground" htmlFor="fecha_apertura_ofertas_economicas">Fecha apertura ofertas económicas</Label>
                                             <Input
                                               id="fecha_apertura_ofertas_economicas"
                                               type="date"
@@ -774,7 +768,7 @@ export const ShowStageDetailsDialog = ({
                                         )}
                                         {etapaTypeDetail?.data?.fecha_inicio_concesion && (
                                           <div className="flex flex-col gap-2">
-                                            <Label className="text-xs font-medium text-muted-foreground" htmlFor="fecha_inicio_concesion">Fecha Inicio Concesión</Label>
+                                            <Label className="text-xs font-medium text-muted-foreground" htmlFor="fecha_inicio_concesion">Fecha inicio concesión</Label>
                                             <Input
                                               id="fecha_inicio_concesion"
                                               type="date"

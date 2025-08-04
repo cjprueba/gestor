@@ -70,8 +70,9 @@ const AdvanceStageStepOne = ({ etapaAvanzarInfo, isLoading, error }: AdvanceStag
                 <Select
                   value={watchedStepOne.tipo_obra_id?.toString() || ""}
                   onValueChange={(value) => setValue('stepOne.tipo_obra_id', parseInt(value))}
+                  disabled
                 >
-                  <SelectTrigger className="w-40">
+                  <SelectTrigger className="w-auto min-w-[200px]">
                     <SelectValue placeholder="Seleccionar..." />
                   </SelectTrigger>
                   <SelectContent>

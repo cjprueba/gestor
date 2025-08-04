@@ -117,6 +117,9 @@ export const useUpdateProject = () => {
       // Invalidar las queries de proyectos para refrescar los datos
       queryClient.invalidateQueries({ queryKey: ["proyectos"] });
       queryClient.invalidateQueries({ queryKey: ["proyecto", projectId] });
+      queryClient.invalidateQueries({
+        queryKey: ["etapa-avanzar-info", projectId],
+      });
       toast.success("Proyecto actualizado exitosamente");
     },
     onError: (error: any) => {
