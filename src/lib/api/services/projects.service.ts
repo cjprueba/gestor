@@ -305,4 +305,20 @@ export class ProjectsService {
     );
     return response.data;
   }
+
+  /**
+   * Elimina un proyecto
+   */
+  static async deleteProject(
+    projectId: number,
+    data: {
+      usuario_eliminador: number;
+      motivo_eliminacion: string;
+    }
+  ): Promise<{ success: boolean; message: string; data: any }> {
+    const response = await apiClient.delete(`${this.BASE_PATH}/${projectId}`, {
+      data,
+    });
+    return response.data;
+  }
 }

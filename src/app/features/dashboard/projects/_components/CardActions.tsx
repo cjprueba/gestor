@@ -8,7 +8,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu"
-import { ArrowRightFromLine, Copy, Download, Edit, Eye, FileText, FolderOpen, MoreVertical, Settings2, SquareChartGanttIcon, Trash2 } from "lucide-react"
+import { Input } from "@/shared/components/ui/input"
+import { Label } from "@/shared/components/ui/label"
+import { Textarea } from "@/shared/components/ui/textarea"
+import { ArrowRightFromLine, Download, Edit, Eye, FileText, FolderOpen, MoreVertical, SquareChartGanttIcon, Trash2 } from "lucide-react"
 import { useState } from "react"
 
 interface MenuItem {
@@ -25,7 +28,7 @@ interface ContextMenuProps {
   onViewProjectDetails?: () => void
   onConfig?: () => void
   onEdit?: () => void
-  onDelete?: () => void
+  onDelete?: ((motivoEliminacion?: string | any) => void | Promise<void>) | undefined
   onMove?: () => void
   onDownload?: () => void
   onShare?: () => void
@@ -39,21 +42,49 @@ export default function ContextMenu({
   item,
   onViewDetails,
   onViewProjectDetails,
-  onConfig,
+  // onConfig,
   onEdit,
   onDelete,
   onMove,
-  onDuplicate,
+  // onDuplicate,
   onAdvanceStage,
   onDownload,
   // onShare,
   onPreview,
 }: ContextMenuProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [confirmationText, setConfirmationText] = useState("")
+  const [motivoEliminacion, setMotivoEliminacion] = useState("")
+  const [isDeleting, setIsDeleting] = useState(false)
 
   // Obtener etapas desde la API en lugar de usar datos locales
   // Esto asegura que la validación de "última etapa" sea dinámica y real
   const { data: etapasData } = useEtapasTipo()
+
+  // Función para obtener el nombre del item según el tipo
+  const getItemName = () => {
+    return item.nombre_archivo || item.nombre || item.name || ""
+  }
+
+  // Función para validar si se puede proceder con la eliminación
+  const canProceedWithDeletion = () => {
+    const itemName = getItemName()
+    const isConfirmationValid = confirmationText === itemName
+
+    if (type === "project") {
+      return isConfirmationValid && motivoEliminacion.trim().length > 0
+    }
+
+    return isConfirmationValid
+  }
+
+  // Función para resetear el modal
+  const resetDeleteModal = () => {
+    setConfirmationText("")
+    setMotivoEliminacion("")
+    setIsDeleting(false)
+    setIsDeleteDialogOpen(false)
+  }
 
   const getMenuItems = (): MenuItem[] => {
     const commonItems = [
@@ -62,11 +93,11 @@ export default function ContextMenu({
         label: "Ver detalles",
         action: onViewDetails,
       },
-      {
-        icon: Settings2,
-        label: "Configurar Alertas",
-        action: onConfig,
-      }
+      // {
+      //   icon: Settings2,
+      //   label: "Configurar Alertas",
+      //   action: onConfig,
+      // }
     ]
 
     if (type === "document") {
@@ -81,6 +112,11 @@ export default function ContextMenu({
           icon: SquareChartGanttIcon,
           label: "Ver detalles",
           action: onViewDetails,
+        },
+        {
+          icon: Edit,
+          label: "Editar",
+          action: onEdit,
         },
         // {
         //   icon: FileSpreadsheetIcon,
@@ -124,11 +160,11 @@ export default function ContextMenu({
           label: "Mover",
           action: onMove,
         },
-        {
-          icon: Copy,
-          label: "Duplicar",
-          action: onDuplicate,
-        },
+        // {
+        //   icon: Copy,
+        //   label: "Duplicar",
+        //   action: onDuplicate,
+        // },
         {
           icon: Trash2,
           label: "Eliminar",
@@ -169,6 +205,12 @@ export default function ContextMenu({
           label: "Renombrar",
           action: onEdit,
         },
+        {
+          icon: Trash2,
+          label: "Eliminar",
+          action: () => setIsDeleteDialogOpen(true),
+          destructive: true,
+        },
       ].filter(x => !!x) as MenuItem[]
       return projectItems
     }
@@ -194,42 +236,104 @@ export default function ContextMenu({
         <DropdownMenuContent align="end" className="w-48">
           {menuItems.map((item, index) => (
             <div key={index}>
+              {item.destructive && <DropdownMenuSeparator />}
               <DropdownMenuItem
                 onClick={(e) => {
                   e.stopPropagation()
                   item.action?.()
                 }}
-                className={item.destructive ? "text-destructive focus:text-destructive" : ""}
+                className={item.destructive ? "text-destructive focus:text-destructive hover:bg-destructive/10 hover:text-destructive" : ""}
               >
-                <item.icon className="w-4 h-4 mr-2" />
+                <item.icon className={`w-4 h-4 mr-2 ${item.destructive ? "text-destructive" : ""}`} />
                 {item.label}
               </DropdownMenuItem>
-              {(index === 0 || (item.label === "Ver ficha de etapa")) && <DropdownMenuSeparator />}
             </div>
           ))}
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent>
+      <Dialog open={isDeleteDialogOpen} onOpenChange={resetDeleteModal}>
+        <DialogContent
+          className="sm:max-w-md"
+          onClick={(e) => e.stopPropagation()}
+        >
           <DialogHeader>
             <DialogTitle>Confirmar Eliminación</DialogTitle>
             <DialogDescription>
-              ¿Estás seguro de que deseas eliminar "{item.nombre_archivo || item.nombre || item.name}"? Esta acción no se puede deshacer.
+              Esta acción no se puede deshacer. <br />
+              Para confirmar la eliminación, ingresa el nombre exacto del {type === "project" ? "proyecto" : type === "folder" ? "carpeta" : "documento"}.
+              <span className="text-red-500"> {getItemName()}</span>
             </DialogDescription>
           </DialogHeader>
-          <div className="flex justify-end space-x-2 mt-4">
-            <Button variant="secundario" onClick={() => setIsDeleteDialogOpen(false)}>
+
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="confirmation-text">
+                Nombre del {type === "project" ? "proyecto" : type === "folder" ? "carpeta" : "documento"}
+              </Label>
+              <Input
+                id="confirmation-text"
+                value={confirmationText}
+                onChange={(e) => setConfirmationText(e.target.value)}
+                onClick={(e) => e.stopPropagation()}
+                placeholder={`Ingresa "${getItemName()}"`}
+                className="mt-1"
+              />
+            </div>
+
+            {type === "project" && (
+              <div>
+                <Label htmlFor="motivo-eliminacion">
+                  Motivo de eliminación <span className="text-red-500">*</span>
+                </Label>
+                <Textarea
+                  id="motivo-eliminacion"
+                  value={motivoEliminacion}
+                  onChange={(e) => setMotivoEliminacion(e.target.value)}
+                  onClick={(e) => e.stopPropagation()}
+                  placeholder="Describe el motivo de la eliminación..."
+                  className="mt-1"
+                  rows={3}
+                />
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-end space-x-2 mt-6">
+            <Button
+              variant="secundario"
+              onClick={(e) => {
+                e.stopPropagation()
+                resetDeleteModal()
+              }}
+              disabled={isDeleting}
+            >
               Cancelar
             </Button>
             <Button
               variant="primario"
-              onClick={() => {
-                onDelete?.()
-                setIsDeleteDialogOpen(false)
+              onClick={async (e) => {
+                e.stopPropagation()
+                if (!canProceedWithDeletion()) return
+
+                setIsDeleting(true)
+                try {
+                  if (type === "project") {
+                    await onDelete?.(motivoEliminacion)
+                  } else {
+                    await onDelete?.(item)
+                  }
+                  resetDeleteModal()
+                } catch (error) {
+                  console.error("Error al eliminar:", error)
+                } finally {
+                  setIsDeleting(false)
+                }
               }}
+              disabled={!canProceedWithDeletion() || isDeleting}
+              className="bg-destructive text-white hover:bg-destructive/70 "
             >
-              Eliminar
+              {isDeleting ? "Eliminando..." : "Eliminar"}
             </Button>
           </div>
         </DialogContent>

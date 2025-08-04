@@ -30,6 +30,7 @@ import { DeleteConfirmationDialog } from "./DeleteFolderConfirmationModal"
 import type { CarpetaItem, CreateCarpetaRequest, DocumentoItem } from "./folder.types"
 import RenameFolderDialog from "./RenameFolderDialog"
 import { AdvanceStageModal } from "../project/AdvanceStageModal"
+import EditDocumentModal from "./EditDocumentModal"
 
 // Tipo extendido para documento con URL de preview temporal
 interface DocumentoItemWithPreview extends DocumentoItem {
@@ -170,6 +171,10 @@ export default function FolderList({ project, onBack }: ProjectViewProps) {
   // Estado para diálogo de confirmación de eliminación
   const [documentToDelete, setDocumentToDelete] = useState<DocumentoItem | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+
+  // Estado para modal de edición de documentos
+  const [documentToEdit, setDocumentToEdit] = useState<DocumentoItem | null>(null)
+  const [isEditDocumentModalOpen, setIsEditDocumentModalOpen] = useState(false)
 
   // Hook para descargar documento
   const { useDownloadDocumentoBase64, useDeleteDocumento, useGetTiposDocumento } = useDocumentos()
@@ -712,6 +717,25 @@ export default function FolderList({ project, onBack }: ProjectViewProps) {
   const handleDeleteDocument = (doc: DocumentoItem) => {
     setDocumentToDelete(doc)
     setIsDeleteDialogOpen(true)
+  }
+
+  const handleEditDocument = (doc: DocumentoItem) => {
+    setDocumentToEdit(doc)
+    setIsEditDocumentModalOpen(true)
+  }
+
+  const handleDocumentUpdated = () => {
+    // Invalidar queries para refrescar los datos
+    queryClient.invalidateQueries({ queryKey: ["carpeta-contenido"] })
+    queryClient.invalidateQueries({ queryKey: ["documentos"] })
+
+    // Invalidar la query específica del documento si hay uno seleccionado
+    if (documentToEdit?.id) {
+      queryClient.invalidateQueries({ queryKey: ["documento-metadata", documentToEdit.id] })
+    }
+
+    // Invalidar todas las queries de metadatos de documentos para asegurar que se actualicen
+    queryClient.invalidateQueries({ queryKey: ["documento-metadata"] })
   }
 
   // Handler para confirmar eliminación
@@ -1501,6 +1525,7 @@ export default function FolderList({ project, onBack }: ProjectViewProps) {
                         onPreview={() => handleViewDocument(doc)}
                         onDownload={() => handleDownloadDocument(doc)}
                         onDelete={() => handleDeleteDocument(doc)}
+                        onEdit={() => handleEditDocument(doc)}
                       />
                     </div>
                   </div>
@@ -1663,6 +1688,17 @@ export default function FolderList({ project, onBack }: ProjectViewProps) {
         description="¿Estás seguro de que quieres eliminar este documento? Esta acción no se puede deshacer."
         itemName={documentToDelete?.nombre_archivo || ""}
         isLoading={deleteDocumentoMutation.isPending}
+      />
+
+      {/* Modal de edición de documentos */}
+      <EditDocumentModal
+        isOpen={isEditDocumentModalOpen}
+        onClose={() => {
+          setIsEditDocumentModalOpen(false)
+          setDocumentToEdit(null)
+        }}
+        documento={documentToEdit}
+        onDocumentUpdated={handleDocumentUpdated}
       />
     </div>
   )

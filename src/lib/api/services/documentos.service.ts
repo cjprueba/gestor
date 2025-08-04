@@ -8,6 +8,7 @@ import type {
   DocumentoMetadataResponse,
 } from "@/shared/types/document-types";
 import { apiClient } from "../config";
+import type { DocumentoItem } from "@/app/features/dashboard/projects/_components/folder/folder.types";
 
 export const documentosService = {
   // Obtener tipos de documento
@@ -89,6 +90,32 @@ export const documentosService = {
     documentoId: string
   ): Promise<DocumentoMetadataResponse> => {
     const response = await apiClient.get(`/documentos/${documentoId}`);
+    return response.data;
+  },
+
+  // Actualizar documento
+  updateDocumento: async (
+    documentoId: string,
+    updateData: {
+      nombre_archivo: string;
+      // descripcion: string;
+      // categoria: string;
+      // estado: string;
+      // version: string;
+      // archivo_relacionado: string;
+      tipo_documento_id: number;
+      // etiquetas: string[];
+      // metadata: string;
+    }
+  ): Promise<{
+    success: boolean;
+    message: string;
+    documento: DocumentoItem;
+  }> => {
+    const response = await apiClient.put(
+      `/documentos/${documentoId}`,
+      updateData
+    );
     return response.data;
   },
 };

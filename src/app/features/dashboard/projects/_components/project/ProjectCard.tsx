@@ -1,4 +1,5 @@
 import { useCarpetaContenido, useProyectoDetalle, useUpdateProject } from "@/lib/api/hooks/useProjects"
+import { ProjectsService } from "@/lib/api/services/projects.service"
 import TagStage from "@/shared/components/TagStage"
 import { Card, CardContent, CardHeader } from "@/shared/components/ui/card"
 import { useQueryClient } from "@tanstack/react-query"
@@ -76,6 +77,24 @@ export const ProjectCard: React.FC<ProjectCardProps & { onUpdateProject?: (proje
     }
   }
 
+  const handleDeleteProject = async (motivoEliminacion: string | any) => {
+    try {
+      await ProjectsService.deleteProject(project.id, {
+        usuario_eliminador: 1, // Por ahora hardcodeado como 1
+        motivo_eliminacion: motivoEliminacion
+      })
+
+      // Invalidar queries para actualizar la lista
+      queryClient.invalidateQueries({ queryKey: ["proyectos"] })
+
+      toast.success("Proyecto eliminado exitosamente")
+    } catch (error) {
+      console.error("Error al eliminar proyecto:", error)
+      toast.error("Error al eliminar el proyecto")
+      throw error // Re-lanzar el error para que el modal lo maneje
+    }
+  }
+
   return (
     <>
       <Card
@@ -109,6 +128,7 @@ export const ProjectCard: React.FC<ProjectCardProps & { onUpdateProject?: (proje
                 onViewProjectDetails={handleViewDetails}
                 onAdvanceStage={handleOpenAdvanceStage}
                 onEdit={handleEdit}
+                onDelete={handleDeleteProject}
               />
             </div>
           </div>
