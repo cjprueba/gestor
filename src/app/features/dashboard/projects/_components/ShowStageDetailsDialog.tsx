@@ -16,6 +16,7 @@ import { ChevronDown, Edit, Loader2, Save, X } from "lucide-react"
 import React, { useState } from "react"
 import { useForm, FormProvider, useFormContext } from "react-hook-form"
 import { toast } from "sonner"
+import { useQueryClient } from "@tanstack/react-query"
 import type { ProyectoListItem } from "./project/project.types"
 
 // Componente Item para renderizar datos de manera reutilizable
@@ -139,6 +140,7 @@ export const ShowStageDetailsDialog = ({
   onClose,
 }: ShowStageDetailsDialogProps) => {
   const [isEditing, setIsEditing] = useState(false)
+  const queryClient = useQueryClient()
 
   // React Hook Form
   const methods = useForm<EditFormData>()
@@ -208,21 +210,15 @@ export const ShowStageDetailsDialog = ({
 
   // Función para manejar el inicio de la edición
   const handleStartEdit = () => {
-    console.log("=== DEBUG: Iniciando modo edición ===")
-
     // Inicializar los datos editados con los valores actuales de la etapa actual
     const etapaActualData = etapasParaMostrar[0] // La primera es la actual
-    console.log("Datos de la etapa actual:", etapaActualData)
 
     // Función para convertir fecha ISO a formato yyyy-MM-dd para inputs de tipo date
     const formatDateForInput = (dateString: string | null | undefined) => {
       if (!dateString) return undefined
       try {
-        const formatted = dayjs(dateString).format('YYYY-MM-DD')
-        console.log(`Fecha convertida: ${dateString} -> ${formatted}`)
-        return formatted
+        return dayjs(dateString).format('YYYY-MM-DD')
       } catch {
-        console.log(`Error al convertir fecha: ${dateString}`)
         return undefined
       }
     }
@@ -246,13 +242,8 @@ export const ShowStageDetailsDialog = ({
       inspector_fiscal_id: etapaActualData?.inspector_fiscal?.id,
     }
 
-    console.log("=== Datos del formulario a inicializar ===")
-    console.log("formData:", formData)
-
     reset(formData)
     setIsEditing(true)
-
-    console.log("=== Modo edición activado ===")
   }
 
   // Función para cancelar la edición
@@ -264,12 +255,8 @@ export const ShowStageDetailsDialog = ({
   // Función para guardar los cambios
   const handleSaveEdit = async () => {
     try {
-      console.log("=== DEBUG: Iniciando guardado de cambios ===")
-      console.log("Datos del formulario (watchedFormData):", watchedFormData)
-
       // Obtener los valores originales de la etapa actual
       const etapaActualData = etapasParaMostrar[0] // La primera es la actual
-      console.log("Datos originales de la etapa:", etapaActualData)
 
       // Preparar los datos para enviar al endpoint
       const updateData: any = {}
@@ -278,11 +265,8 @@ export const ShowStageDetailsDialog = ({
       const convertDateToISO = (dateString: string | null | undefined) => {
         if (!dateString) return undefined
         try {
-          const isoDate = dayjs(dateString).toISOString()
-          console.log(`Fecha convertida a ISO: ${dateString} -> ${isoDate}`)
-          return isoDate
+          return dayjs(dateString).toISOString()
         } catch {
-          console.log(`Error al convertir fecha a ISO: ${dateString}`)
           return undefined
         }
       }
@@ -331,7 +315,6 @@ export const ShowStageDetailsDialog = ({
       Object.entries(watchedFormData).forEach(([key, newValue]) => {
         if (newValue !== undefined && newValue !== null && newValue !== '') {
           const originalValue = getOriginalValue(key)
-          console.log(`Comparando campo ${key}: original=${originalValue}, nuevo=${newValue}`)
 
           // Solo incluir si el valor cambió
           if (originalValue !== newValue) {
@@ -340,38 +323,31 @@ export const ShowStageDetailsDialog = ({
               const isoDate = convertDateToISO(newValue as string)
               if (isoDate) {
                 updateData[key] = isoDate
-                console.log(`✅ Campo fecha ${key} cambiado:`, isoDate)
               }
             } else {
               updateData[key] = newValue
-              console.log(`✅ Campo ${key} cambiado:`, newValue)
             }
-          } else {
-            console.log(`⏭️ Campo ${key} sin cambios, omitido`)
           }
-        } else {
-          console.log(`⏭️ Campo ${key} vacío, omitido`)
         }
       })
 
       // Agregar el usuario que está realizando la actualización
       updateData.usuario_actualizador = 1 // Por ahora hardcodeado
-      console.log("usuario_actualizador agregado:", updateData.usuario_actualizador)
 
-      console.log("=== Datos finales a enviar al servidor ===")
-      console.log("projectId:", project.id)
-      console.log("updateData:", updateData)
-      console.log("Estructura completa:", {
-        projectId: project.id,
-        data: updateData
-      })
+      // Estructurar los datos dentro de etapas_registro
+      const dataToSend = {
+        etapas_registro: updateData
+      }
 
       await updateProjectMutation.mutateAsync({
         projectId: project.id,
-        data: updateData
+        data: dataToSend
       })
 
-      console.log("=== Guardado exitoso ===")
+      // Invalidar las queries para refrescar los datos
+      await queryClient.invalidateQueries({ queryKey: ["proyecto", project.id] })
+      await queryClient.invalidateQueries({ queryKey: ["etapa-avanzar-info", project.id] })
+      await queryClient.invalidateQueries({ queryKey: ["proyectos"] })
 
       // Cerrar modo edición y limpiar formulario
       setIsEditing(false)
@@ -380,10 +356,7 @@ export const ShowStageDetailsDialog = ({
       // Mostrar mensaje de éxito
       toast.success("Proyecto actualizado exitosamente")
     } catch (error) {
-      console.error("=== ERROR al actualizar proyecto ===")
-      console.error("Error completo:", error)
-      console.error("Tipo de error:", typeof error)
-      console.error("Mensaje de error:", error instanceof Error ? error.message : 'Error desconocido')
+      console.error("Error al actualizar proyecto:", error)
       toast.error("Error al actualizar el proyecto")
     }
   }
