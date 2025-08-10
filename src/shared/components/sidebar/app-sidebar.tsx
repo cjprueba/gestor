@@ -158,6 +158,10 @@ const navigationData = {
           title: "Plantillas de carpetas",
           url: "/app/folder_templates",
         },
+        {
+          title: "Mantenedor de documentos",
+          url: "/app/documents_types",
+        },
       ],
     },
     {

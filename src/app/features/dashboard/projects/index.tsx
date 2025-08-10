@@ -93,7 +93,7 @@ export default function HomePage() {
     )
   }
 
-  if (selectedProject) { // TODO: Esto deberia ser una navegacion hacia la lista de carpetas.
+  if (selectedProject) {
     return (
       <FolderList
         project={selectedProject}

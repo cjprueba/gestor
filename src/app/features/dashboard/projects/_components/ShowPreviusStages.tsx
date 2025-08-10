@@ -14,11 +14,11 @@ interface ShowPreviusStagesProps {
 // Componente Item para renderizar datos de manera reutilizable
 interface ItemProps {
   label: string;
-  value: string | number | null | undefined; // TODO: null? undefined?
+  value: string | number | null | undefined;
   isDate?: boolean;
 }
 
-// TODO: hacer flexible, utilizar el mapper de stage-form-mapper.ts
+
 const Item: React.FC<ItemProps> = ({ label, value, isDate = false }) => {
   if (!value) return null;
 

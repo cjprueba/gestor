@@ -17,6 +17,61 @@ export const documentosService = {
     return response.data;
   },
 
+  // Crear tipo de documento
+  createTipoDocumento: async (payload: {
+    nombre: string;
+    descripcion?: string;
+    requiere_nro_pro_exp?: boolean;
+    requiere_saf_exp?: boolean;
+    requiere_numerar?: boolean;
+    requiere_tramitar?: boolean;
+  }): Promise<{ success: boolean; message?: string }> => {
+    const body = {
+      nombre: payload.nombre,
+      descripcion: payload.descripcion ?? "",
+      requiere_nro_pro_exp: payload.requiere_nro_pro_exp ?? false,
+      requiere_saf_exp: payload.requiere_saf_exp ?? false,
+      requiere_numerar: payload.requiere_numerar ?? false,
+      requiere_tramitar: payload.requiere_tramitar ?? false,
+    };
+    const response = await apiClient.post("/documentos/tipos", body);
+    return response.data;
+  },
+
+  // Actualizar tipo de documento (por ahora principal campo editable: nombre)
+  updateTipoDocumento: async (
+    id: number,
+    payload: {
+      nombre: string;
+      descripcion?: string;
+      requiere_nro_pro_exp?: boolean;
+      requiere_saf_exp?: boolean;
+      requiere_numerar?: boolean;
+      requiere_tramitar?: boolean;
+      activo?: boolean;
+    }
+  ): Promise<{ success: boolean; message?: string }> => {
+    const body = {
+      nombre: payload.nombre,
+      descripcion: payload.descripcion ?? "",
+      requiere_nro_pro_exp: payload.requiere_nro_pro_exp ?? false,
+      requiere_saf_exp: payload.requiere_saf_exp ?? false,
+      requiere_numerar: payload.requiere_numerar ?? false,
+      requiere_tramitar: payload.requiere_tramitar ?? false,
+      activo: payload.activo ?? true,
+    };
+    const response = await apiClient.put(`/documentos/tipos/${id}`, body);
+    return response.data;
+  },
+
+  // Eliminar tipo de documento
+  deleteTipoDocumento: async (
+    id: number
+  ): Promise<{ success: boolean; message?: string }> => {
+    const response = await apiClient.delete(`/documentos/tipos/${id}`);
+    return response.data;
+  },
+
   // Subir documentos a una carpeta
   uploadDocumentos: async (
     request: UploadDocumentoRequest

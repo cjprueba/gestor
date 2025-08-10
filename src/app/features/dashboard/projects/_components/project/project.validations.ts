@@ -47,9 +47,10 @@ export const createProjectStepOneSchema = z.object({
 export const createProjectStepTwoSchema = z.object({
   tipo_iniciativa_id: z.number().min(1, "Tipo de iniciativa es obligatorio"),
   tipo_obra_id: z.number().min(1, "Tipo de obra es obligatorio"),
-  region_id: z.number().min(1, "Región es obligatoria"),
-  provincia_id: z.number().min(1, "Provincia es obligatoria"),
-  comuna_id: z.number().min(1, "Comuna es obligatoria"),
+  // Multi-select requerido
+  regiones_ids: z.array(z.number()).min(1, "Región es obligatoria"),
+  provincias_ids: z.array(z.number()).min(1, "Provincia es obligatoria"),
+  comunas_ids: z.array(z.number()).min(1, "Comuna es obligatoria"),
   volumen: z.string().optional(),
   presupuesto_oficial: z.string().optional(),
   valor_referencia: z.string().optional(),

@@ -40,7 +40,7 @@ export function DocumentPreviewModal({
   const [rotation, setRotation] = useState(0)
   const [pdfError, setPdfError] = useState(false)
   const [pdfLoaded, setPdfLoaded] = useState(false)
-
+  /* TODO: No abre modal al hacer click en previsualizar, hay bug. Debe abrirse automaticamente y si el doc aun no esta listo se muestra estado de carga */
   // Limpiar URL de blob cuando se cierre el modal
   useEffect(() => {
     return () => {

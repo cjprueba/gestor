@@ -1,4 +1,4 @@
-import { useComunas, useProvincias, useRegiones, useTiposIniciativa, useTiposObras } from "@/lib/api"
+import { useRegiones, useTiposIniciativa, useTiposObras } from "@/lib/api"
 import { useEtapaAvanzarInfo, useProyectoDetalle, useUpdateProject } from "@/lib/api/hooks/useProjects"
 import { useStageTypeDetail } from "@/lib/api/hooks/useStages"
 import { Button } from "@/shared/components/design-system/button"
@@ -14,10 +14,14 @@ import { mapStageTypeToFormFields } from "@/shared/utils/stage-form-mapper"
 import dayjs from "dayjs"
 import utc from "dayjs/plugin/utc"
 import { ChevronDown, Edit, Loader2, Save, X } from "lucide-react"
-import React, { useState } from "react"
+import React, { useMemo, useState } from "react"
+import { RegionsMultiSelect, ProvinciasMultiSelect, ComunasMultiSelect } from "@/shared/components/multi-select/geography-multi-select"
 import { FormProvider, useForm, useFormContext } from "react-hook-form"
 import { toast } from "sonner"
 import type { ProyectoListItem } from "./project/project.types"
+// Reemplazado por componentes compartidos en `src/shared/components/multi-select/geography-multi-select.tsx`
+import { useQueries } from "@tanstack/react-query"
+import { ProjectsService } from "@/lib/api/services/projects.service"
 
 dayjs.extend(utc)
 
@@ -58,13 +62,7 @@ const Item: React.FC<ItemProps> = ({
           onValueChange={(value) => {
             setValue(fieldKey as keyof EditFormData, parseInt(value))
 
-            // Manejar cascada para ubicación
-            if (fieldKey === 'region_id') {
-              setValue('provincia_id', undefined)
-              setValue('comuna_id', undefined)
-            } else if (fieldKey === 'provincia_id') {
-              setValue('comuna_id', undefined)
-            }
+            // Cascada legacy removida
           }}
         >
           <SelectTrigger className="w-full">
@@ -120,9 +118,9 @@ interface ShowStageDetailsDialogProps {
 interface EditFormData {
   tipo_iniciativa_id?: number
   tipo_obra_id?: number
-  region_id?: number
-  provincia_id?: number
-  comuna_id?: number
+  regiones_ids?: number[]
+  provincias_ids?: number[]
+  comunas_ids?: number[]
   volumen?: string
   presupuesto_oficial?: string
   bip?: string
@@ -142,6 +140,7 @@ export const ShowStageDetailsDialog = ({
   onClose,
 }: ShowStageDetailsDialogProps) => {
   const [isEditing, setIsEditing] = useState(false)
+  const [isEditingLocation, setIsEditingLocation] = useState(false)
 
   // React Hook Form
   const methods = useForm<EditFormData>()
@@ -154,10 +153,10 @@ export const ShowStageDetailsDialog = ({
   if (!project) return null
 
   // Obtener datos del proyecto desde la API
-  const { data: proyectoDetalle, isLoading: isLoadingProyecto } = useProyectoDetalle(project.id)
+  const { data: proyectoDetalle, isLoading: isLoadingProyecto, refetch: refetchProyecto } = useProyectoDetalle(project.id)
 
   // Obtener información completa de etapas (incluye etapa actual + anteriores)
-  const { data: etapasInfo, isLoading: isLoadingEtapas } = useEtapaAvanzarInfo(project.id)
+  const { data: etapasInfo, isLoading: isLoadingEtapas, refetch: refetchEtapas } = useEtapaAvanzarInfo(project.id)
 
   // Obtener la etapa actual del proyecto
   const etapaActual = proyectoDetalle?.data?.etapas_registro?.[0]?.etapa_tipo
@@ -169,10 +168,39 @@ export const ShowStageDetailsDialog = ({
   // Mapear los campos habilitados usando stage-form-mapper
   const mappedFields = etapaTypeDetail?.data ? mapStageTypeToFormFields(etapaTypeDetail.data) : { fields: [], hasFields: false, fieldCount: 0 }
 
-  // Hooks para los datos de los selects
+  // Hooks para los datos de ubicación (multi-select)
   const { data: regionesData } = useRegiones()
-  const { data: provinciasData } = useProvincias(watchedFormData.region_id)
-  const { data: comunasData } = useComunas(watchedFormData.region_id, watchedFormData.provincia_id)
+  const regionesIds = Array.isArray(watchedFormData.regiones_ids) ? watchedFormData.regiones_ids : []
+  const provinciasQueries = useQueries({
+    queries: regionesIds.map((rid) => ({
+      queryKey: ["provincias", rid],
+      queryFn: () => ProjectsService.getProvincias(rid),
+      enabled: !!rid,
+      staleTime: 5 * 60 * 1000,
+    })),
+  })
+  const provinciasList = provinciasQueries.flatMap((q) => q.data?.data || [])
+  const provinciasIds = Array.isArray(watchedFormData.provincias_ids) ? watchedFormData.provincias_ids : []
+  const provinciaIdToRegionId = useMemo(() => {
+    const map = new Map<number, number>()
+    provinciasList.forEach((p: any) => {
+      const rid = p.region_id ?? p.region?.id
+      if (rid) map.set(p.id, Number(rid))
+    })
+    return map
+  }, [provinciasList])
+  const comunaPairs = provinciasIds
+    .map((pid) => ({ provinciaId: pid, regionId: provinciaIdToRegionId.get(pid) }))
+    .filter((x) => x.regionId)
+  const comunasQueries = useQueries({
+    queries: comunaPairs.map(({ regionId, provinciaId }) => ({
+      queryKey: ["comunas", regionId, provinciaId],
+      queryFn: () => ProjectsService.getComunas(regionId as number, provinciaId as number),
+      enabled: !!regionId && !!provinciaId,
+      staleTime: 5 * 60 * 1000,
+    })),
+  })
+  const comunasList = comunasQueries.flatMap((q) => q.data?.data || [])
   const { data: tiposIniciativa } = useTiposIniciativa()
   const { data: tiposObra } = useTiposObras()
 
@@ -182,7 +210,7 @@ export const ShowStageDetailsDialog = ({
         <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto">
           <div className="flex items-center justify-center py-12">
             <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
-            <span className="ml-2 text-muted-foreground">Cargando detalles del proyecto...</span>
+            <span className="ml-2 text-muted-foreground">Cargando detalles del proyecto...</span> {/* TODO: Agregas mismo loader en avanzar etapa */}
           </div>
         </DialogContent>
       </Dialog>
@@ -190,6 +218,62 @@ export const ShowStageDetailsDialog = ({
   }
 
   const proyecto = proyectoDetalle?.data
+
+  // Render helpers
+  const renderUbicacion = (etapas: any[]) => {
+    const etapaActualVisual = etapas?.[0]
+    const regiones = etapaActualVisual?.etapas_regiones || []
+    if (!regiones || regiones.length === 0) {
+      return <div className="text-sm text-muted-foreground">Sin información de ubicación</div>
+    }
+    return (
+      <div className="space-y-3">
+        {regiones.map((reg: any, ridx: number) => {
+          const provincias = reg?.etapas_provincias || []
+          const comunasCount = provincias.reduce((acc: number, p: any) => acc + ((p?.provincia?.etapas_comunas || []).length || 0), 0)
+          return (
+            <Collapsible key={`${reg.id}-${ridx}`} defaultOpen={ridx === 0} className="group border rounded p-2">
+              <CollapsibleTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="w-full p-0 h-auto hover:bg-transparent focus:bg-transparent active:bg-transparent justify-start text-left"
+                >
+                  <div className="w-full text-left">
+                    <div className="flex items-center justify-between w-full">
+                      <h4 className="text-sm font-medium text-gray-800">Región de {reg?.nombre || `${reg?.id}`}</h4>
+                      <ChevronDown className="w-4 h-4 text-gray-600 transition-transform duration-300 ease-out group-data-[state=open]:rotate-180" />
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-1 pl-0 text-left">
+                      {provincias.length} provincia(s) · {comunasCount} comuna(s)
+                    </div>
+                  </div>
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-2">
+                {provincias.length === 0 ? (
+                  <div className="text-xs text-muted-foreground">Sin provincias</div>
+                ) : (
+                  <div className="space-y-3">
+                    {provincias.map((ep: any, pidx: number) => {
+                      const comunas = ep?.provincia?.etapas_comunas || []
+                      return (
+                        <div key={`${reg.id}-prov-${pidx}`} className="rounded p-2">
+                          <div className="text-sm font-medium">Provincia: {ep?.provincia?.nombre || '-'}</div>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            Comunas: {comunas.map((c: any) => c?.comuna?.nombre).filter(Boolean).join(', ') || '-'}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </CollapsibleContent>
+            </Collapsible>
+          )
+        })}
+      </div>
+    )
+  }
   if (!proyecto) {
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
@@ -224,12 +308,16 @@ export const ShowStageDetailsDialog = ({
       }
     }
 
+    const regiones_ids = (etapaActualData?.etapas_regiones || []).map((r: any) => r.id as number)
+    const provincias_ids = (etapaActualData?.etapas_regiones || []).flatMap((r: any) => (r.etapas_provincias || []).map((p: any) => p.provincia?.id as number).filter((x: any) => !!x))
+    const comunas_ids = (etapaActualData?.etapas_regiones || []).flatMap((r: any) => (r.etapas_provincias || []).flatMap((p: any) => (p.provincia?.etapas_comunas || []).map((c: any) => c.comuna?.id as number).filter((x: any) => !!x)))
+
     const formData = {
       tipo_iniciativa_id: etapaActualData?.tipo_iniciativa?.id,
       tipo_obra_id: etapaActualData?.tipo_obra?.id,
-      region_id: etapaActualData?.region?.id,
-      provincia_id: etapaActualData?.provincia?.id,
-      comuna_id: etapaActualData?.comuna?.id,
+      regiones_ids,
+      provincias_ids,
+      comunas_ids,
       volumen: etapaActualData?.volumen || undefined,
       presupuesto_oficial: etapaActualData?.presupuesto_oficial || undefined,
       bip: etapaActualData?.bip || undefined,
@@ -279,12 +367,7 @@ export const ShowStageDetailsDialog = ({
             return etapaActualData?.tipo_iniciativa?.id
           case 'tipo_obra_id':
             return etapaActualData?.tipo_obra?.id
-          case 'region_id':
-            return etapaActualData?.region?.id
-          case 'provincia_id':
-            return etapaActualData?.provincia?.id
-          case 'comuna_id':
-            return etapaActualData?.comuna?.id
+          // campos legacy de ubicación eliminados
           case 'volumen':
             return etapaActualData?.volumen
           case 'presupuesto_oficial':
@@ -312,25 +395,70 @@ export const ShowStageDetailsDialog = ({
         }
       }
 
-      // Solo incluir campos que hayan cambiado
+      // Solo incluir campos que hayan cambiado (excluyendo ubicación legacy y arrays)
       Object.entries(watchedFormData).forEach(([key, newValue]) => {
+        if (['region_id', 'provincia_id', 'comuna_id', 'regiones_ids', 'provincias_ids', 'comunas_ids'].includes(key)) return
         if (newValue !== undefined && newValue !== null && newValue !== '') {
           const originalValue = getOriginalValue(key)
-
-          // Solo incluir si el valor cambió
           if (originalValue !== newValue) {
-            // Convertir fechas a formato ISO
             if (key.includes('fecha_')) {
               const isoDate = convertDateToISO(newValue as string)
-              if (isoDate) {
-                updateData[key] = isoDate
-              }
+              if (isoDate) updateData[key] = isoDate
             } else {
               updateData[key] = newValue
             }
           }
         }
       })
+
+      // Manejar regiones/provincias/comunas en formato anidado
+      const selectedRegionIds = Array.isArray(watchedFormData.regiones_ids) ? watchedFormData.regiones_ids : []
+      const selectedProvinciaIds = Array.isArray(watchedFormData.provincias_ids) ? watchedFormData.provincias_ids : []
+      const selectedComunaIds = Array.isArray(watchedFormData.comunas_ids) ? watchedFormData.comunas_ids : []
+
+      const provinciasAll = provinciasList
+      const comunasAll = comunasList
+      const provinciaIdToRegionId = new Map<number, number>()
+      provinciasAll.forEach((p: any) => {
+        const rid = p.region_id ?? p.region?.id
+        if (rid) provinciaIdToRegionId.set(p.id, Number(rid))
+      })
+      const comunaIdToProvinciaId = new Map<number, number>()
+      comunasAll.forEach((c: any) => {
+        const pid = c.provincia_id ?? c.provincia?.id
+        if (pid) comunaIdToProvinciaId.set(c.id, Number(pid))
+      })
+
+      const regionesNested = Array.from(new Set(selectedRegionIds)).map((rid) => {
+        const provinciasForRegion = selectedProvinciaIds.filter((pid) => provinciaIdToRegionId.get(pid) === rid)
+        const provinciasNested = Array.from(new Set(provinciasForRegion)).map((pid) => {
+          const comunasForProvincia = selectedComunaIds.filter((cid) => comunaIdToProvinciaId.get(cid) === pid)
+          const comunasNested = Array.from(new Set(comunasForProvincia)).map((cid) => ({ id: cid }))
+          return { id: pid, comunas: comunasNested }
+        })
+        return { id: rid, provincias: provinciasNested }
+      })
+
+      // Comparar con valores originales de la etapa actual
+      const originalRegionIds = (etapaActualData?.etapas_regiones || []).map((r: any) => r.id as number)
+      const originalProvinciaIds = (etapaActualData?.etapas_regiones || []).flatMap((r: any) => (r.etapas_provincias || []).map((p: any) => p.provincia?.id as number).filter((x: any) => !!x))
+      const originalComunaIds = (etapaActualData?.etapas_regiones || []).flatMap((r: any) => (r.etapas_provincias || []).flatMap((p: any) => (p.provincia?.etapas_comunas || []).map((c: any) => c.comuna?.id as number).filter((x: any) => !!x)))
+
+      const arraysEqual = (a: number[], b: number[]) => {
+        const as = [...new Set(a)].sort((x, y) => x - y)
+        const bs = [...new Set(b)].sort((x, y) => x - y)
+        if (as.length !== bs.length) return false
+        for (let i = 0; i < as.length; i++) if (as[i] !== bs[i]) return false
+        return true
+      }
+
+      const changedUbicacion = !arraysEqual(selectedRegionIds, originalRegionIds) ||
+        !arraysEqual(selectedProvinciaIds, originalProvinciaIds) ||
+        !arraysEqual(selectedComunaIds, originalComunaIds)
+
+      if (changedUbicacion) {
+        updateData.regiones = regionesNested
+      }
 
       // Agregar el usuario que está realizando la actualización
       updateData.usuario_actualizador = 1 // Por ahora hardcodeado
@@ -345,8 +473,12 @@ export const ShowStageDetailsDialog = ({
         data: dataToSend
       })
 
+      // refrescar datos y salir de modo edición local
+      await Promise.all([refetchProyecto(), refetchEtapas()])
+
       // Cerrar modo edición y limpiar formulario
       setIsEditing(false)
+      setIsEditingLocation(false)
       reset({})
     } catch (error) {
       console.error("Error al actualizar proyecto:", error)
@@ -418,6 +550,100 @@ export const ShowStageDetailsDialog = ({
                     />
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+
+            <Separator />
+
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between w-full">
+                  <CardTitle className="text-base">Información de ubicación</CardTitle>
+                  {!isEditingLocation ? (
+                    <Button
+                      variant="secundario"
+                      size="sm"
+                      onClick={() => setIsEditingLocation(true)}
+                      className="flex items-center gap-2"
+                    >
+                      <Edit className="w-4 h-4" />
+                      Editar
+                    </Button>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="secundario"
+                        size="sm"
+                        onClick={() => setIsEditingLocation(false)}
+                        className="flex items-center gap-2"
+                      >
+                        <X className="w-4 h-4" />
+                        Cancelar
+                      </Button>
+                      <Button
+                        variant="primario"
+                        size="sm"
+                        onClick={() => handleSaveEdit()}
+                        disabled={updateProjectMutation.isPending}
+                        className="flex items-center gap-2"
+                      >
+                        {updateProjectMutation.isPending ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Save className="w-4 h-4" />
+                        )}
+                        {updateProjectMutation.isPending ? "Guardando..." : "Guardar"}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent>
+                {!isEditingLocation ? (
+                  renderUbicacion(etapasParaMostrar)
+                ) : (
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="flex flex-col gap-2">
+                      <Label className="text-xs font-medium text-muted-foreground">Región(es)</Label>
+                      <RegionsMultiSelect
+                        regions={regionesData?.data || []}
+                        value={watchedFormData.regiones_ids || []}
+                        onChange={(next) => {
+                          setValue('regiones_ids', next, { shouldValidate: true })
+                          if (next.length === 0) {
+                            setValue('provincias_ids', [])
+                            setValue('comunas_ids', [])
+                          }
+                        }}
+                      />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <Label className="text-xs font-medium text-muted-foreground">Provincia(s)</Label>
+                      <ProvinciasMultiSelect
+                        regiones={regionesData?.data || []}
+                        provincias={provinciasList}
+                        regionesSeleccionadas={watchedFormData.regiones_ids || []}
+                        value={watchedFormData.provincias_ids || []}
+                        onChange={(next) => {
+                          setValue('provincias_ids', next, { shouldValidate: true })
+                          if (next.length === 0) setValue('comunas_ids', [])
+                        }}
+                        disabled={(watchedFormData.regiones_ids || []).length === 0}
+                      />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <Label className="text-xs font-medium text-muted-foreground">Comuna(s)</Label>
+                      <ComunasMultiSelect
+                        provincias={provinciasList}
+                        comunas={comunasList}
+                        provinciasSeleccionadas={watchedFormData.provincias_ids || []}
+                        value={watchedFormData.comunas_ids || []}
+                        onChange={(next) => setValue('comunas_ids', next, { shouldValidate: true })}
+                        disabled={(watchedFormData.provincias_ids || []).length === 0}
+                      />
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -508,7 +734,7 @@ export const ShowStageDetailsDialog = ({
                             )}
                           </div>
                           <CollapsibleContent className="transition-all duration-500 ease-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:slide-out-to-top-4 data-[state=open]:slide-in-from-top-4">
-                            <CardTitle className="text-sm ml-2 mt-4">Información de la etapa</CardTitle>
+                            <CardTitle className="text-sm ml-2 mt-4">Información de la etapa</CardTitle>  {/* TODO: AGREGAR VISUALIZACION DE REGIONES, PROVINCIAS Y COMUNAS  */}  {/* TODO: Utilizar combobox para seleccionar regiones, provincias y comunas, misma logica que al crear proyecto */}
                           </CollapsibleContent>
                         </CardHeader>
 
@@ -556,81 +782,6 @@ export const ShowStageDetailsDialog = ({
                                               {tiposObra?.map((tipo) => (
                                                 <SelectItem key={tipo.id} value={tipo.id.toString()}>
                                                   {tipo.nombre}
-                                                </SelectItem>
-                                              ))}
-                                            </SelectContent>
-                                          </Select>
-                                        </div>
-                                      )}
-                                    </div>
-                                  )}
-
-                                  {/* Sección 2: Selects de ubicación (Región, Provincia, Comuna) - 3 columnas */}
-                                  {(etapaTypeDetail?.data?.region || etapaTypeDetail?.data?.provincia || etapaTypeDetail?.data?.comuna) && (
-                                    <div className="grid grid-cols-3 gap-4">
-                                      {etapaTypeDetail?.data?.region && (
-                                        <div className="flex flex-col gap-2">
-                                          <Label className="text-xs font-medium text-muted-foreground" htmlFor="region_id">Región</Label>
-                                          <Select
-                                            value={watchedFormData.region_id?.toString() || ""}
-                                            onValueChange={(value) => {
-                                              setValue('region_id', parseInt(value))
-                                              setValue('provincia_id', undefined)
-                                              setValue('comuna_id', undefined)
-                                            }}
-                                          >
-                                            <SelectTrigger className="w-full">
-                                              <SelectValue placeholder="Seleccionar..." />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                              {regionesData?.data?.map((region) => (
-                                                <SelectItem key={region.id} value={region.id.toString()}>
-                                                  {region.nombre}
-                                                </SelectItem>
-                                              ))}
-                                            </SelectContent>
-                                          </Select>
-                                        </div>
-                                      )}
-                                      {etapaTypeDetail?.data?.provincia && (
-                                        <div className="flex flex-col gap-2">
-                                          <Label className="text-xs font-medium text-muted-foreground" htmlFor="provincia_id">Provincia</Label>
-                                          <Select
-                                            value={watchedFormData.provincia_id?.toString() || ""}
-                                            onValueChange={(value) => {
-                                              setValue('provincia_id', parseInt(value))
-                                              setValue('comuna_id', undefined)
-                                            }}
-                                            disabled={!watchedFormData.region_id}
-                                          >
-                                            <SelectTrigger className="w-full">
-                                              <SelectValue placeholder="Seleccionar..." />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                              {provinciasData?.data?.map((provincia) => (
-                                                <SelectItem key={provincia.id} value={provincia.id.toString()}>
-                                                  {provincia.nombre}
-                                                </SelectItem>
-                                              ))}
-                                            </SelectContent>
-                                          </Select>
-                                        </div>
-                                      )}
-                                      {etapaTypeDetail?.data?.comuna && (
-                                        <div className="flex flex-col gap-2">
-                                          <Label className="text-xs font-medium text-muted-foreground" htmlFor="comuna_id">Comuna</Label>
-                                          <Select
-                                            value={watchedFormData.comuna_id?.toString() || ""}
-                                            onValueChange={(value) => setValue('comuna_id', parseInt(value))}
-                                            disabled={!watchedFormData.provincia_id}
-                                          >
-                                            <SelectTrigger className="w-full">
-                                              <SelectValue placeholder="Seleccionar..." />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                              {comunasData?.data?.map((comuna) => (
-                                                <SelectItem key={comuna.id} value={comuna.id.toString()}>
-                                                  {comuna.nombre}
                                                 </SelectItem>
                                               ))}
                                             </SelectContent>
@@ -792,24 +943,6 @@ export const ShowStageDetailsDialog = ({
                                       <Item
                                         label="Tipo de obra"
                                         value={etapa.tipo_obra?.nombre}
-                                      />
-                                    </div>
-                                  )}
-
-                                  {/* Sección 2: Ubicación - 3 columnas */}
-                                  {(etapa.region || etapa.provincia || etapa.comuna) && (
-                                    <div className="grid grid-cols-3 gap-4">
-                                      <Item
-                                        label="Región"
-                                        value={etapa.region?.nombre}
-                                      />
-                                      <Item
-                                        label="Provincia"
-                                        value={etapa.provincia?.nombre}
-                                      />
-                                      <Item
-                                        label="Comuna"
-                                        value={etapa.comuna?.nombre}
                                       />
                                     </div>
                                   )}

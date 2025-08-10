@@ -12,7 +12,6 @@ interface TagStageProps {
 }
 
 const TagStage = ({ etapa, size = "md", bgColor, textColor, badgeStyle, labelStyle }: TagStageProps) => {
-  // TODO: Agregar funcion util que obtenga el color de la etapa
 
   return (
     <Label htmlFor={etapa} style={{ ...labelStyle }}>

@@ -22,7 +22,24 @@ export interface ProyectoListItem {
   created_at: string;
   carpeta_raiz_id: number;
   etapas_registro: Array<{
+    id: number;
     etapa_tipo: EtapaTipoBasica;
+    etapas_regiones: Array<{
+      id: number;
+      codigo: string;
+      nombre: string;
+      nombre_corto: string;
+      etapas_provincias: Array<{
+        provincia: {
+          id: number;
+          codigo: string;
+          nombre: string;
+          etapas_comunas: Array<{
+            comuna: { id: number; nombre: string };
+          }>;
+        };
+      }>;
+    }>;
   }>;
   creador: CreadorBasico;
 }
@@ -80,9 +97,26 @@ export interface EtapaRegistroDetalle {
   etapa_tipo: EtapaTipoDetallada;
   tipo_iniciativa: TipoIniciativa;
   tipo_obra: TipoObra;
-  region: Region;
-  provincia: Provincia;
-  comuna: Comuna;
+  // Nueva estructura jerárquica de ubicación
+  etapas_regiones: Array<{
+    id: number;
+    codigo: string;
+    nombre: string;
+    nombre_corto: string;
+    etapas_provincias: Array<{
+      provincia: {
+        id: number;
+        codigo: string;
+        nombre: string;
+        etapas_comunas: Array<{
+          comuna: {
+            id: number;
+            nombre: string;
+          };
+        }>;
+      };
+    }>;
+  }>;
   volumen: string;
   presupuesto_oficial: string;
   bip: string;
@@ -151,9 +185,13 @@ export interface CreateProjectRequest {
     etapa_tipo_id: number;
     tipo_iniciativa_id?: number;
     tipo_obra_id?: number;
-    region_id?: number;
-    provincia_id?: number;
-    comuna_id?: number;
+    regiones?: Array<{
+      id: number;
+      provincias: Array<{
+        id: number;
+        comunas: Array<{ id: number }>;
+      }>;
+    }>;
     volumen?: string;
     presupuesto_oficial?: string;
     valor_referencia?: string;
@@ -300,6 +338,23 @@ export interface EtapaRegistro {
   region?: Region;
   provincia?: Provincia;
   comuna?: Comuna;
+  // Nueva estructura jerárquica opcional (para respuestas actualizadas)
+  etapas_regiones?: Array<{
+    id: number;
+    codigo: string;
+    nombre: string;
+    nombre_corto: string;
+    etapas_provincias: Array<{
+      provincia: {
+        id: number;
+        codigo: string;
+        nombre: string;
+        etapas_comunas: Array<{
+          comuna: { id: number; nombre: string };
+        }>;
+      };
+    }>;
+  }>;
   volumen?: string;
   presupuesto_oficial?: string;
   valor_referencia?: string;

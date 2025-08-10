@@ -1,11 +1,14 @@
+// import { useState } from 'react'
 import { useFormContext } from 'react-hook-form';
 import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
+// Eliminadas importaciones de la implementación inline de combobox
 import { Badge } from "@/shared/components/ui/badge"
 import { Separator } from "@/shared/components/ui/separator"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
 import type { Comuna, InspectorFiscal, Provincia, Region, TipoIniciativa, TipoObra } from '../project/project.types';
 import type { CreateProjectFormData } from '../project/project.validations';
+import { RegionsMultiSelect, ProvinciasMultiSelect, ComunasMultiSelect } from '@/shared/components/multi-select/geography-multi-select'
 
 interface StageSpecificFieldsStepProps {
   tiposIniciativa: TipoIniciativa[];
@@ -44,6 +47,7 @@ export const StageSpecificFieldsStep: React.FC<StageSpecificFieldsStepProps> = (
   stageTypeDetail,
 }) => {
   const { register, formState: { errors }, watch, setValue } = useFormContext<CreateProjectFormData>();
+  // estados de UI para combobox inline removidos: ahora se usan componentes compartidos
 
   const watchedStepTwo = watch('createProjectStepTwo');
 
@@ -111,73 +115,47 @@ export const StageSpecificFieldsStep: React.FC<StageSpecificFieldsStepProps> = (
         <div className="grid grid-cols-3 gap-4">
           {stageTypeDetail?.region && (
             <div className="flex flex-col gap-2">
-              <Label htmlFor="region_id">Región</Label>
-              <Select
-                value={watchedStepTwo.region_id > 0 ? watchedStepTwo.region_id.toString() : ""}
-                onValueChange={(value) => setValue('createProjectStepTwo.region_id', parseInt(value))}
-              >
-                <SelectTrigger className={`w-full ${errors.createProjectStepTwo?.region_id ? "border-red-500" : ""}`}>
-                  <SelectValue placeholder="Seleccionar..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {regiones.map((region) => (
-                    <SelectItem key={region.id} value={region.id.toString()}>
-                      {region.nombre}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.createProjectStepTwo?.region_id && (
-                <p className="text-sm text-red-500 mt-1">{errors.createProjectStepTwo.region_id.message}</p>
-              )}
+              <Label>Región</Label>
+              <RegionsMultiSelect
+                regions={regiones}
+                value={Array.isArray(watchedStepTwo.regiones_ids) ? watchedStepTwo.regiones_ids : []}
+                onChange={(next) => {
+                  setValue('createProjectStepTwo.regiones_ids', next, { shouldValidate: true })
+                  if (next.length === 0) {
+                    setValue('createProjectStepTwo.provincias_ids', [])
+                    setValue('createProjectStepTwo.comunas_ids', [])
+                  }
+                }}
+              />
             </div>
           )}
           {stageTypeDetail?.provincia && (
             <div className="flex flex-col gap-2">
-              <Label htmlFor="provincia_id">Provincia</Label>
-              <Select
-                value={watchedStepTwo.provincia_id > 0 ? watchedStepTwo.provincia_id.toString() : ""}
-                onValueChange={(value) => setValue('createProjectStepTwo.provincia_id', parseInt(value))}
-                disabled={!watchedStepTwo.region_id}
-              >
-                <SelectTrigger className={`w-full ${errors.createProjectStepTwo?.provincia_id ? "border-red-500" : ""}`}>
-                  <SelectValue placeholder="Seleccionar..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {provincias.map((provincia) => (
-                    <SelectItem key={provincia.id} value={provincia.id.toString()}>
-                      {provincia.nombre}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.createProjectStepTwo?.provincia_id && (
-                <p className="text-sm text-red-500 mt-1">{errors.createProjectStepTwo.provincia_id.message}</p>
-              )}
+              <Label>Provincia</Label>
+              <ProvinciasMultiSelect
+                regiones={regiones}
+                provincias={provincias}
+                regionesSeleccionadas={Array.isArray(watchedStepTwo.regiones_ids) ? watchedStepTwo.regiones_ids : []}
+                value={Array.isArray(watchedStepTwo.provincias_ids) ? watchedStepTwo.provincias_ids : []}
+                onChange={(next) => {
+                  setValue('createProjectStepTwo.provincias_ids', next, { shouldValidate: true })
+                  if (next.length === 0) setValue('createProjectStepTwo.comunas_ids', [])
+                }}
+                disabled={!Array.isArray(watchedStepTwo.regiones_ids) || watchedStepTwo.regiones_ids.length === 0}
+              />
             </div>
           )}
           {stageTypeDetail?.comuna && (
             <div className="flex flex-col gap-2">
-              <Label htmlFor="comuna_id">Comuna</Label>
-              <Select
-                value={watchedStepTwo.comuna_id > 0 ? watchedStepTwo.comuna_id.toString() : ""}
-                onValueChange={(value) => setValue('createProjectStepTwo.comuna_id', parseInt(value))}
-                disabled={!watchedStepTwo.provincia_id}
-              >
-                <SelectTrigger className={`w-full ${errors.createProjectStepTwo?.comuna_id ? "border-red-500" : ""}`}>
-                  <SelectValue placeholder="Seleccionar..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {comunas.map((comuna) => (
-                    <SelectItem key={comuna.id} value={comuna.id.toString()}>
-                      {comuna.nombre}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.createProjectStepTwo?.comuna_id && (
-                <p className="text-sm text-red-500 mt-1">{errors.createProjectStepTwo.comuna_id.message}</p>
-              )}
+              <Label>Comuna</Label>
+              <ComunasMultiSelect
+                provincias={provincias}
+                comunas={comunas}
+                provinciasSeleccionadas={Array.isArray(watchedStepTwo.provincias_ids) ? watchedStepTwo.provincias_ids : []}
+                value={Array.isArray(watchedStepTwo.comunas_ids) ? watchedStepTwo.comunas_ids : []}
+                onChange={(next) => setValue('createProjectStepTwo.comunas_ids', next, { shouldValidate: true })}
+                disabled={!Array.isArray(watchedStepTwo.provincias_ids) || watchedStepTwo.provincias_ids.length === 0}
+              />
             </div>
           )}
         </div>

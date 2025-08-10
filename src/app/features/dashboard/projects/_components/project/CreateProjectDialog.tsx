@@ -44,6 +44,7 @@ export const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
     getCarpetasIniciales,
   } = useCreateProjectForm();
 
+  /* TODO: verificar hook useCreateProjectForm, should have a queue. You are likely calling Hooks condintinally */
   const getStepTitle = () => {
     switch (currentStep) {
       case 1:
@@ -123,12 +124,12 @@ export const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
             <Badge variant="outline">Paso {currentStep} de 4</Badge>
           </DialogTitle>
           <DialogDescription>
-            <div className="text-sm text-muted-foreground">
+            <>
               {currentStep === 1 && "Ingresa la información básica del proyecto"}
               {currentStep === 2 && "Completa los detalles específicos según la etapa seleccionada"}
               {currentStep === 3 && "Selecciona las carpetas base para organizar tu proyecto"}
               {currentStep === 4 && "Configura alertas importantes para el proyecto"}
-            </div>
+            </>
           </DialogDescription>
         </DialogHeader>
 

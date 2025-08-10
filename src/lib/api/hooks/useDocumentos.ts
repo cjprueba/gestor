@@ -15,6 +15,73 @@ export const useDocumentos = () => {
     });
   };
 
+  // Crear tipo de documento
+  const useCreateTipoDocumento = () => {
+    return useMutation({
+      mutationFn: (payload: {
+        nombre: string;
+        descripcion?: string;
+        requiere_nro_pro_exp?: boolean;
+        requiere_saf_exp?: boolean;
+        requiere_numerar?: boolean;
+        requiere_tramitar?: boolean;
+      }) => documentosService.createTipoDocumento(payload),
+      onSuccess: () => {
+        toast.success("Tipo de documento creado correctamente");
+        queryClient.invalidateQueries({ queryKey: ["tipos-documento"] });
+      },
+      onError: (error: any) => {
+        toast.error(
+          error.response?.data?.message || "Error al crear tipo de documento"
+        );
+      },
+    });
+  };
+
+  // Actualizar tipo de documento
+  const useUpdateTipoDocumento = () => {
+    return useMutation({
+      mutationFn: (args: {
+        id: number;
+        payload: {
+          nombre: string;
+          descripcion?: string;
+          requiere_nro_pro_exp?: boolean;
+          requiere_saf_exp?: boolean;
+          requiere_numerar?: boolean;
+          requiere_tramitar?: boolean;
+          activo?: boolean;
+        };
+      }) => documentosService.updateTipoDocumento(args.id, args.payload),
+      onSuccess: () => {
+        toast.success("Tipo de documento actualizado");
+        queryClient.invalidateQueries({ queryKey: ["tipos-documento"] });
+      },
+      onError: (error: any) => {
+        toast.error(
+          error.response?.data?.message ||
+            "Error al actualizar tipo de documento"
+        );
+      },
+    });
+  };
+
+  // Eliminar tipo de documento
+  const useDeleteTipoDocumento = () => {
+    return useMutation({
+      mutationFn: (id: number) => documentosService.deleteTipoDocumento(id),
+      onSuccess: () => {
+        toast.success("Tipo de documento eliminado");
+        queryClient.invalidateQueries({ queryKey: ["tipos-documento"] });
+      },
+      onError: (error: any) => {
+        toast.error(
+          error.response?.data?.message || "Error al eliminar tipo de documento"
+        );
+      },
+    });
+  };
+
   // Hook para obtener documentos de una carpeta
   const useGetDocumentosByCarpeta = (carpetaId: number) => {
     return useQuery({
@@ -125,6 +192,9 @@ export const useDocumentos = () => {
 
   return {
     useGetTiposDocumento,
+    useCreateTipoDocumento,
+    useUpdateTipoDocumento,
+    useDeleteTipoDocumento,
     useGetDocumentosByCarpeta,
     useGetDocumentoMetadata,
     useUploadDocumentos,

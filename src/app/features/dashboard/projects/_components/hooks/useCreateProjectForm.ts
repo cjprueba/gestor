@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useQueries } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -6,10 +7,9 @@ import {
   useCreateProject,
   useTiposIniciativa,
   useRegiones,
-  useProvincias,
-  useComunas,
   useInspectoresFiscales,
 } from "@/lib/api/hooks/useProjects";
+import { ProjectsService } from "@/lib/api/services/projects.service";
 import { useStageTypes, useStageTypeDetail } from "@/lib/api/hooks/useStages";
 import { useTiposObras } from "@/lib/api/hooks/useTipoObra";
 import dayjs from "dayjs";
@@ -23,12 +23,7 @@ export const useCreateProjectForm = () => {
   const [selectedEtapaId, setSelectedEtapaId] = useState<number | undefined>(
     undefined
   );
-  const [selectedRegionId, setSelectedRegionId] = useState<number | undefined>(
-    undefined
-  );
-  const [selectedProvinciaId, setSelectedProvinciaId] = useState<
-    number | undefined
-  >(undefined);
+  // IDs legacy removidos: ya no se usan seleccionadores simples
 
   // Formulario con react-hook-form y zod
   const methods = useForm<CreateProjectFormData>({
@@ -41,9 +36,9 @@ export const useCreateProjectForm = () => {
       createProjectStepTwo: {
         tipo_iniciativa_id: 0,
         tipo_obra_id: 0,
-        region_id: 0,
-        provincia_id: 0,
-        comuna_id: 0,
+        regiones_ids: [],
+        provincias_ids: [],
+        comunas_ids: [],
         volumen: "",
         presupuesto_oficial: "",
         valor_referencia: "",
@@ -96,11 +91,53 @@ export const useCreateProjectForm = () => {
   // Obtener todos los tipos de obra disponibles (no filtrados por etapa)
   const { data: tiposObraData } = useTiposObras();
   const { data: regionesData } = useRegiones();
-  const { data: provinciasData } = useProvincias(selectedRegionId);
-  const { data: comunasData } = useComunas(
-    selectedRegionId,
-    selectedProvinciaId
-  );
+
+  // Multi-fetch para provincias cuando hay múltiples regiones seleccionadas
+  const regionesIds = Array.isArray(watchedStepTwo.regiones_ids)
+    ? watchedStepTwo.regiones_ids
+    : [];
+
+  const provinciasQueries = useQueries({
+    queries: regionesIds.map((rid) => ({
+      queryKey: ["provincias", rid],
+      queryFn: () => ProjectsService.getProvincias(rid),
+      enabled: !!rid,
+      staleTime: 5 * 60 * 1000,
+    })),
+  });
+
+  const provinciasList = provinciasQueries.flatMap((q) => q.data?.data || []);
+
+  // Multi-fetch para comunas cuando hay múltiples provincias seleccionadas
+  const provinciasIds = Array.isArray(watchedStepTwo.provincias_ids)
+    ? watchedStepTwo.provincias_ids
+    : [];
+
+  // Mapear provincia->region usando las provincias ya cargadas
+  const provinciaIdToRegionId = new Map<number, number>();
+  provinciasList.forEach((p: any) => {
+    const regionId = p.region_id ?? p.region?.id;
+    if (regionId) provinciaIdToRegionId.set(p.id, Number(regionId));
+  });
+
+  const comunaPairs = provinciasIds
+    .map((pid) => ({
+      provinciaId: pid,
+      regionId: provinciaIdToRegionId.get(pid),
+    }))
+    .filter((x) => x.regionId);
+
+  const comunasQueries = useQueries({
+    queries: comunaPairs.map(({ regionId, provinciaId }) => ({
+      queryKey: ["comunas", regionId, provinciaId],
+      queryFn: () =>
+        ProjectsService.getComunas(regionId as number, provinciaId as number),
+      enabled: !!regionId && !!provinciaId,
+      staleTime: 5 * 60 * 1000,
+    })),
+  });
+
+  const comunasList = comunasQueries.flatMap((q) => q.data?.data || []);
   const { data: inspectoresFiscalesData } = useInspectoresFiscales();
 
   // Mutation para crear proyecto
@@ -120,23 +157,7 @@ export const useCreateProjectForm = () => {
   }, [watchedStepOne.etapa, stageTypesData, setValue]);
 
   // Efecto para actualizar el ID de la región cuando cambia la selección
-  useEffect(() => {
-    if (watchedStepTwo.region_id) {
-      setSelectedRegionId(watchedStepTwo.region_id);
-      // Resetear provincia y comuna cuando cambia la región
-      setValue("createProjectStepTwo.provincia_id", 0);
-      setValue("createProjectStepTwo.comuna_id", 0);
-    }
-  }, [watchedStepTwo.region_id, setValue]);
-
-  // Efecto para actualizar el ID de la provincia cuando cambia la selección
-  useEffect(() => {
-    if (watchedStepTwo.provincia_id) {
-      setSelectedProvinciaId(watchedStepTwo.provincia_id);
-      // Resetear comuna cuando cambia la provincia
-      setValue("createProjectStepTwo.comuna_id", 0);
-    }
-  }, [watchedStepTwo.provincia_id, setValue]);
+  // Efectos legacy removidos (IDs simples)
 
   // Función para obtener las carpetas iniciales de la etapa
   const getCarpetasIniciales = () => {
@@ -173,14 +194,24 @@ export const useCreateProjectForm = () => {
         return (
           watchedStepOne.nombre.trim() !== "" && watchedStepOne.etapa !== ""
         );
-      case 2:
+      case 2: {
+        const regionOk =
+          Array.isArray(watchedStepTwo.regiones_ids) &&
+          watchedStepTwo.regiones_ids.length > 0;
+        const provinciaOk =
+          Array.isArray(watchedStepTwo.provincias_ids) &&
+          watchedStepTwo.provincias_ids.length > 0;
+        const comunaOk =
+          Array.isArray(watchedStepTwo.comunas_ids) &&
+          watchedStepTwo.comunas_ids.length > 0;
         return (
           watchedStepTwo.tipo_iniciativa_id > 0 &&
           watchedStepTwo.tipo_obra_id > 0 &&
-          watchedStepTwo.region_id > 0 &&
-          watchedStepTwo.provincia_id > 0 &&
-          watchedStepTwo.comuna_id > 0
+          regionOk &&
+          provinciaOk &&
+          comunaOk
         );
+      }
       case 3:
         // Permitir continuar si hay carpetas (iniciales o personalizadas)
         // Las carpetas iniciales siempre estarán presentes
@@ -271,17 +302,67 @@ export const useCreateProjectForm = () => {
         "etapa_tipo_id",
         "inspector_fiscal_id",
         "usuario_creador",
+        "regiones",
       ])
     );
 
     // Preparar los datos para la API
+    // Construir estructura anidada regiones -> provincias -> comunas
+    const selectedRegionIds = Array.isArray(
+      formData.createProjectStepTwo.regiones_ids
+    )
+      ? formData.createProjectStepTwo.regiones_ids
+      : [];
+
+    const selectedProvinciaIds = Array.isArray(
+      formData.createProjectStepTwo.provincias_ids
+    )
+      ? formData.createProjectStepTwo.provincias_ids
+      : [];
+
+    const selectedComunaIds = Array.isArray(
+      formData.createProjectStepTwo.comunas_ids
+    )
+      ? formData.createProjectStepTwo.comunas_ids
+      : [];
+
+    // Map provincia -> region
+    const provinciaIdToRegionId = new Map<number, number>();
+    provinciasList.forEach((p: any) => {
+      const rid = p.region_id ?? p.region?.id;
+      if (rid) provinciaIdToRegionId.set(p.id, Number(rid));
+    });
+
+    // Map comuna -> provincia
+    const comunaIdToProvinciaId = new Map<number, number>();
+    comunasList.forEach((c: any) => {
+      const pid = c.provincia_id ?? c.provincia?.id;
+      if (pid) comunaIdToProvinciaId.set(c.id, Number(pid));
+    });
+
+    const regionesNested = Array.from(new Set(selectedRegionIds)).map((rid) => {
+      const provinciasForRegion = selectedProvinciaIds.filter(
+        (pid) => provinciaIdToRegionId.get(pid) === rid
+      );
+      const provinciasNested = Array.from(new Set(provinciasForRegion)).map(
+        (pid) => {
+          const comunasForProvincia = selectedComunaIds.filter(
+            (cid) => comunaIdToProvinciaId.get(cid) === pid
+          );
+          const comunasNested = Array.from(new Set(comunasForProvincia)).map(
+            (cid) => ({ id: cid })
+          );
+          return { id: pid, comunas: comunasNested };
+        }
+      );
+      return { id: rid, provincias: provinciasNested };
+    });
+
     const etapasRegistroRaw = {
       etapa_tipo_id: selectedEtapaId || 1,
       tipo_iniciativa_id: formData.createProjectStepTwo.tipo_iniciativa_id,
       tipo_obra_id: formData.createProjectStepTwo.tipo_obra_id,
-      region_id: formData.createProjectStepTwo.region_id,
-      provincia_id: formData.createProjectStepTwo.provincia_id,
-      comuna_id: formData.createProjectStepTwo.comuna_id,
+      regiones: regionesNested,
       volumen: formData.createProjectStepTwo.volumen,
       presupuesto_oficial: formData.createProjectStepTwo.presupuesto_oficial,
       valor_referencia: formData.createProjectStepTwo.valor_referencia,
@@ -338,6 +419,7 @@ export const useCreateProjectForm = () => {
     console.log("================================");
 
     try {
+      console.log("[Crear Proyecto] Payload a enviar:", projectData);
       await createProjectMutation.mutateAsync(projectData);
       resetForm();
       return true;
@@ -352,8 +434,6 @@ export const useCreateProjectForm = () => {
     methods.reset();
     setCurrentStep(1);
     setSelectedEtapaId(undefined);
-    setSelectedRegionId(undefined);
-    setSelectedProvinciaId(undefined);
   };
 
   return {
@@ -372,8 +452,8 @@ export const useCreateProjectForm = () => {
     tiposIniciativa: tiposIniciativaData?.data || [],
     tiposObra: tiposObraData || [],
     regiones: regionesData?.data || [],
-    provincias: provinciasData?.data || [],
-    comunas: comunasData?.data || [],
+    provincias: provinciasList,
+    comunas: comunasList,
     inspectoresFiscales: inspectoresFiscalesData?.data || [],
 
     // Funciones

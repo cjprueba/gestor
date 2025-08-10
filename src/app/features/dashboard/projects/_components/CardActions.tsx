@@ -339,7 +339,6 @@ export default function ContextMenu({
         </DialogContent>
       </Dialog>
 
-      {/* TODO: Agregar los dialogs de mover y renombrar */}
     </>
   )
 }
