@@ -7,7 +7,7 @@ import { FolderOpen, Plus, ArrowLeft, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { ProyectoListItem } from "../project/project.types";
 import { SearchHeader } from "../search-header";
-import { useCarpetaContenido, useProyectos, useAsignarProyectosHijos, useProyectosHijos, useRemoverProyectosHijos } from "@/lib/api/hooks/useProjects";
+import { useProyectos, useAsignarProyectosHijos, useProyectosHijos, useRemoverProyectosHijos } from "@/lib/api/hooks/useProjects";
 import { useQueryClient } from "@tanstack/react-query";
 import { ProjectCard } from "../project/ProjectCard";
 
@@ -24,41 +24,43 @@ export default function ParentProjectView({ project, onBack, onOpenChild }: Pare
   const [isRemoveOpen, setIsRemoveOpen] = useState(false);
   const [selectedToAssign, setSelectedToAssign] = useState<number[]>([]);
   const [selectedToRemove, setSelectedToRemove] = useState<number[]>([]);
-  const { data: carpetaContenido } = useCarpetaContenido(project.carpeta_raiz_id);
-  const folders = carpetaContenido?.contenido?.carpetas || [];
-
   const { data: projectsResponse } = useProyectos();
   const allProjects: ProyectoListItem[] = projectsResponse?.data || [];
 
+  const asignarMutation = useAsignarProyectosHijos();
+  const removerMutation = useRemoverProyectosHijos();
+  const { data: hijosResponse } = useProyectosHijos(project.id);
+  const hijosFromApi = hijosResponse?.data?.proyectos_hijos || [];
+
+  // Derivar los hijos directamente desde GET /proyectos/{id}/hijos mapeando al shape usado por ProjectCard
   const childProjects: ProyectoListItem[] = useMemo(() => {
-    if (folders.length === 0 || allProjects.length === 0) return [];
-    const result: ProyectoListItem[] = [];
-    folders.forEach((folder) => {
-      const exact = allProjects.find((p) => p.nombre.toLowerCase() === folder.nombre.toLowerCase());
-      if (exact) {
-        result.push(exact);
-        return;
-      }
-      const partial = allProjects.find((p) => p.nombre.toLowerCase().includes(folder.nombre.toLowerCase()));
-      if (partial) {
-        result.push(partial);
-      }
+    return (hijosFromApi as any[]).map((h) => {
+      const etapaTipo = h?.etapas_registro?.[0]?.etapa_tipo ?? undefined;
+      return {
+        id: h.id,
+        nombre: h.nombre,
+        created_at: h.created_at,
+        carpeta_raiz_id: h.carpeta_raiz_id,
+        es_proyecto_padre: h.es_proyecto_padre ?? false,
+        proyectos_hijos_count: undefined,
+        proyectos_hijos: undefined,
+        etapas_registro: [
+          {
+            id: 0,
+            etapa_tipo: etapaTipo,
+            etapas_regiones: [],
+          },
+        ],
+        creador: h.creador,
+      } as ProyectoListItem;
     });
-    // Eliminar duplicados por id
-    const unique = Array.from(new Map(result.map((p) => [p.id, p])).values());
-    return unique;
-  }, [folders, allProjects]);
+  }, [hijosFromApi]);
 
   const filteredChildren = useMemo(() => {
     const term = projectSearchTerm.trim().toLowerCase();
     if (!term) return childProjects;
     return childProjects.filter((p) => p.nombre.toLowerCase().includes(term));
   }, [childProjects, projectSearchTerm]);
-
-  const asignarMutation = useAsignarProyectosHijos();
-  const removerMutation = useRemoverProyectosHijos();
-  const { data: hijosResponse } = useProyectosHijos(project.id);
-  const hijosFromApi = hijosResponse?.data?.proyectos_hijos || [];
   const selectedToAssignProjects = useMemo(
     () => allProjects.filter((p) => selectedToAssign.includes(p.id)),
     [selectedToAssign, allProjects]

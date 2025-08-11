@@ -110,7 +110,7 @@ export default function HomePage() {
           onBack={() => setSelectedProject(null)}
           onOpenChild={(child) => {
             const found = projects.find((p) => p.id === child.id)
-            if (found) setSelectedProject(found)
+            setSelectedProject(found ?? child)
           }}
         />
       )
