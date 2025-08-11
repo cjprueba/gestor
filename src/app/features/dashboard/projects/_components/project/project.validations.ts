@@ -8,9 +8,10 @@ export const advanceStageSchema = z.object({
   stepOne: z.object({
     tipo_iniciativa_id: z.number().optional(),
     tipo_obra_id: z.number().optional(),
-    region_id: z.number().optional(),
-    provincia_id: z.number().optional(),
-    comuna_id: z.number().optional(),
+    // Multi-select de ubicación (nuevo)
+    regiones_ids: z.array(z.number()).optional(),
+    provincias_ids: z.array(z.number()).optional(),
+    comunas_ids: z.array(z.number()).optional(),
     volumen: z.string().optional(),
     presupuesto_oficial: z.string().optional(),
     valor_referencia: z.string().optional(),

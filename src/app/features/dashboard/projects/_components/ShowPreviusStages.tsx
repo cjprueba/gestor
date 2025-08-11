@@ -38,6 +38,50 @@ const ShowPreviusStages = ({ etapasAnteriores }: ShowPreviusStagesProps) => {
   const etapas = etapasAnteriores || []
   if (!etapas.length) return null
 
+  const renderUbicacionEtapa = (etapa: EtapaRegistro) => {
+    const regiones = (etapa as any)?.etapas_regiones || []
+    if (!regiones.length) return null
+    return (
+      <div className="space-y-3">
+        {regiones.map((reg: any, ridx: number) => {
+          const provincias = reg?.etapas_provincias || []
+          const comunasCount = provincias.reduce((acc: number, p: any) => acc + ((p?.provincia?.etapas_comunas || []).length || 0), 0)
+          return (
+            <div key={`${reg.id}-${ridx}`} className="group border rounded p-2">
+              <div className="w-full text-left">
+                <div className="flex items-center justify-between w-full">
+                  <h4 className="text-sm font-medium text-gray-800">Región de {reg?.nombre || `${reg?.id}`}</h4>
+                </div>
+                <div className="text-xs text-muted-foreground mt-1 pl-0 text-left">
+                  {provincias.length} provincia(s) · {comunasCount} comuna(s)
+                </div>
+              </div>
+              <div className="mt-2">
+                {provincias.length === 0 ? (
+                  <div className="text-xs text-muted-foreground">Sin provincias</div>
+                ) : (
+                  <div className="space-y-3">
+                    {provincias.map((ep: any, pidx: number) => {
+                      const comunas = ep?.provincia?.etapas_comunas || []
+                      return (
+                        <div key={`${reg.id}-prov-${pidx}`} className="rounded p-2">
+                          <div className="text-sm font-medium">Provincia: {ep?.provincia?.nombre || '-'}</div>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            Comunas: {comunas.map((c: any) => c?.comuna?.nombre).filter(Boolean).join(', ') || '-'}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
@@ -72,7 +116,8 @@ const ShowPreviusStages = ({ etapasAnteriores }: ShowPreviusStagesProps) => {
               style={{ borderLeftColor: etapa.etapa_tipo?.color }}
             >
               <CardContent className="pt-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {renderUbicacionEtapa(etapa)}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                   <Item
                     label="Tipo de iniciativa"
                     value={etapa.tipo_iniciativa?.nombre}
@@ -80,18 +125,6 @@ const ShowPreviusStages = ({ etapasAnteriores }: ShowPreviusStagesProps) => {
                   <Item
                     label="Tipo de obra"
                     value={etapa.tipo_obra?.nombre}
-                  />
-                  <Item
-                    label="Región"
-                    value={etapa.region?.nombre}
-                  />
-                  <Item
-                    label="Provincia"
-                    value={etapa.provincia?.nombre}
-                  />
-                  <Item
-                    label="Comuna"
-                    value={etapa.comuna?.nombre}
                   />
                   <Item
                     label="Volumen"

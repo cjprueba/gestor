@@ -10,6 +10,7 @@ import {
   advanceStageSchema,
   type AdvanceStageFormData,
 } from "../project.validations";
+import { ProjectsService } from "@/lib/api/services/projects.service";
 
 interface UseAdvanceStageFormProps {
   project: ProyectoListItem | null;
@@ -164,16 +165,26 @@ export const useAdvanceStageForm = ({
       return false;
     }
 
-    if (siguienteEtapa.region && !stepOneData.region_id) {
-      return false;
+    // Validación de ubicación: usar arrays (nuevo)
+    if (siguienteEtapa.region) {
+      const ok =
+        Array.isArray(stepOneData.regiones_ids) &&
+        stepOneData.regiones_ids.length > 0;
+      if (!ok) return false;
     }
 
-    if (siguienteEtapa.provincia && !stepOneData.provincia_id) {
-      return false;
+    if (siguienteEtapa.provincia) {
+      const ok =
+        Array.isArray(stepOneData.provincias_ids) &&
+        stepOneData.provincias_ids.length > 0;
+      if (!ok) return false;
     }
 
-    if (siguienteEtapa.comuna && !stepOneData.comuna_id) {
-      return false;
+    if (siguienteEtapa.comuna) {
+      const ok =
+        Array.isArray(stepOneData.comunas_ids) &&
+        stepOneData.comunas_ids.length > 0;
+      if (!ok) return false;
     }
 
     return true;
@@ -216,16 +227,90 @@ export const useAdvanceStageForm = ({
       submitData.tipo_obra_id = stepOneData.tipo_obra_id;
     }
 
-    if (siguienteEtapa.region && stepOneData.region_id) {
-      submitData.region_id = stepOneData.region_id;
-    }
+    // Ubicación: construir estructura anidada regiones -> provincias -> comunas
+    if (
+      siguienteEtapa.region ||
+      siguienteEtapa.provincia ||
+      siguienteEtapa.comuna
+    ) {
+      const selectedRegionIds = Array.isArray(stepOneData.regiones_ids)
+        ? stepOneData.regiones_ids
+        : [];
+      const selectedProvinciaIds = Array.isArray(stepOneData.provincias_ids)
+        ? stepOneData.provincias_ids
+        : [];
+      const selectedComunaIds = Array.isArray(stepOneData.comunas_ids)
+        ? stepOneData.comunas_ids
+        : [];
 
-    if (siguienteEtapa.provincia && stepOneData.provincia_id) {
-      submitData.provincia_id = stepOneData.provincia_id;
-    }
+      if (
+        selectedRegionIds.length +
+          selectedProvinciaIds.length +
+          selectedComunaIds.length >
+        0
+      ) {
+        // Fetch provincias por región en paralelo
+        const provinciasResponses = await Promise.all(
+          Array.from(new Set(selectedRegionIds)).map((rid) =>
+            ProjectsService.getProvincias(rid)
+          )
+        );
+        const provinciasAll: any[] = provinciasResponses.flatMap(
+          (r: any) => r?.data || []
+        );
+        const provinciaIdToRegionId = new Map<number, number>();
+        provinciasAll.forEach((p: any) => {
+          const rid = p?.region_id ?? p?.region?.id;
+          if (rid) provinciaIdToRegionId.set(p.id, Number(rid));
+        });
 
-    if (siguienteEtapa.comuna && stepOneData.comuna_id) {
-      submitData.comuna_id = stepOneData.comuna_id;
+        // Fetch comunas por (region, provincia) necesarios
+        const comunaFetchPairs = Array.from(new Set(selectedProvinciaIds))
+          .map((pid) => ({
+            provinciaId: pid,
+            regionId: provinciaIdToRegionId.get(pid),
+          }))
+          .filter((x) => x.regionId);
+
+        const comunasResponses = await Promise.all(
+          comunaFetchPairs.map(({ regionId, provinciaId }) =>
+            ProjectsService.getComunas(
+              regionId as number,
+              provinciaId as number
+            )
+          )
+        );
+        const comunasAll: any[] = comunasResponses.flatMap(
+          (r: any) => r?.data || []
+        );
+        const comunaIdToProvinciaId = new Map<number, number>();
+        comunasAll.forEach((c: any) => {
+          const pid = c?.provincia_id ?? c?.provincia?.id;
+          if (pid) comunaIdToProvinciaId.set(c.id, Number(pid));
+        });
+
+        const regionesNested = Array.from(new Set(selectedRegionIds)).map(
+          (rid) => {
+            const provinciasForRegion = selectedProvinciaIds.filter(
+              (pid) => provinciaIdToRegionId.get(pid) === rid
+            );
+            const provinciasNested = Array.from(
+              new Set(provinciasForRegion)
+            ).map((pid) => {
+              const comunasForProvincia = selectedComunaIds.filter(
+                (cid) => comunaIdToProvinciaId.get(cid) === pid
+              );
+              const comunasNested = Array.from(
+                new Set(comunasForProvincia)
+              ).map((cid) => ({ id: cid }));
+              return { id: pid, comunas: comunasNested };
+            });
+            return { id: rid, provincias: provinciasNested };
+          }
+        );
+
+        submitData.regiones = regionesNested;
+      }
     }
 
     if (siguienteEtapa.volumen && stepOneData.volumen) {
@@ -302,7 +387,7 @@ export const useAdvanceStageForm = ({
       submitData.plazo_total_concesion = stepOneData.plazo_total_concesion;
     }
 
-    console.log("Datos a enviar:", submitData);
+    console.log("Datos a enviar (avanzar etapa):", submitData);
 
     try {
       await cambiarEtapaMutation.mutateAsync({

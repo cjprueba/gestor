@@ -2,12 +2,15 @@ import TagStage from "@/shared/components/TagStage"
 import type { AvanzarEtapaResponse } from "@/app/features/dashboard/projects/_components/project/project.types"
 import { Label } from "@/shared/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"
-import { useComunas, useProvincias, useRegiones, useTiposIniciativa, useTiposObras } from "@/lib/api"
+import { useRegiones, useTiposIniciativa, useTiposObras } from "@/lib/api"
 import { mapStageTypeToFormFields } from "@/shared/utils/stage-form-mapper"
 import { Input } from "@/shared/components/ui/input"
 import { Separator } from "@/shared/components/ui/separator"
 import { useFormContext } from "react-hook-form"
 import type { AdvanceStageFormData } from "../project.validations"
+import { RegionsMultiSelect, ProvinciasMultiSelect, ComunasMultiSelect } from "@/shared/components/multi-select/geography-multi-select"
+import { useQueries } from "@tanstack/react-query"
+import { ProjectsService } from "@/lib/api/services/projects.service"
 
 interface AdvanceStageStepOneProps {
   etapaAvanzarInfo: AvanzarEtapaResponse | null
@@ -23,8 +26,34 @@ const AdvanceStageStepOne = ({ etapaAvanzarInfo, isLoading, error }: AdvanceStag
   const watchedStepOne = watch("stepOne")
 
   const { data: regionesData } = useRegiones()
-  const { data: provinciasData } = useProvincias(watchedStepOne.region_id)
-  const { data: comunasData } = useComunas(watchedStepOne.region_id, watchedStepOne.provincia_id)
+  // Multi-fetch dependiente para provincias y comunas según selección múltiple
+  const regionesIds = Array.isArray(watchedStepOne?.regiones_ids) ? watchedStepOne.regiones_ids : []
+  const provinciasQueries = useQueries({
+    queries: regionesIds.map((rid) => ({
+      queryKey: ["provincias", rid],
+      queryFn: () => ProjectsService.getProvincias(rid),
+      enabled: !!rid,
+      staleTime: 5 * 60 * 1000,
+    })),
+  })
+  const provinciasList: any[] = provinciasQueries.flatMap((q) => q.data?.data || [])
+  const provinciasIds = Array.isArray(watchedStepOne?.provincias_ids) ? watchedStepOne.provincias_ids : []
+  const provinciaPairs = provinciasIds
+    .map((pid) => {
+      const p: any = provinciasList.find((px: any) => px.id === pid) as any
+      const rid = p?.region_id ?? p?.region?.id
+      return { provinciaId: pid, regionId: rid }
+    })
+    .filter((x) => x.regionId)
+  const comunasQueries = useQueries({
+    queries: provinciaPairs.map(({ regionId, provinciaId }) => ({
+      queryKey: ["comunas", regionId, provinciaId],
+      queryFn: () => ProjectsService.getComunas(regionId as number, provinciaId as number),
+      enabled: !!regionId && !!provinciaId,
+      staleTime: 5 * 60 * 1000,
+    })),
+  })
+  const comunasList = comunasQueries.flatMap((q) => q.data?.data || [])
   const { data: tiposIniciativa } = useTiposIniciativa()
   const { data: tiposObra } = useTiposObras()
 
@@ -88,76 +117,52 @@ const AdvanceStageStepOne = ({ etapaAvanzarInfo, isLoading, error }: AdvanceStag
           </div>
         )}
 
-        {/* Sección 2: Selects de ubicación (Región, Provincia, Comuna) - 3 columnas */}
+        {/* Sección 2: Multi-select de ubicación (Región, Provincia, Comuna) - 3 columnas */}
         {(siguienteEtapa?.region || siguienteEtapa?.provincia || siguienteEtapa?.comuna) && (
           <div className="grid grid-cols-3 gap-4">
             {siguienteEtapa?.region && (
               <div className="flex flex-col gap-2">
-                <Label htmlFor="region_id">Región</Label>
-                <Select
-                  value={watchedStepOne.region_id?.toString() || ""}
-                  onValueChange={(value) => {
-                    setValue('stepOne.region_id', parseInt(value))
-                    setValue('stepOne.provincia_id', undefined)
-                    setValue('stepOne.comuna_id', undefined)
+                <Label htmlFor="regiones_ids">Región(es)</Label>
+                <RegionsMultiSelect
+                  regions={regionesData?.data || []}
+                  value={Array.isArray(watchedStepOne?.regiones_ids) ? watchedStepOne.regiones_ids : []}
+                  onChange={(next) => {
+                    setValue('stepOne.regiones_ids', next, { shouldValidate: true })
+                    if (next.length === 0) {
+                      setValue('stepOne.provincias_ids', [])
+                      setValue('stepOne.comunas_ids', [])
+                    }
                   }}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Seleccionar..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {regionesData?.data?.map((region) => (
-                      <SelectItem key={region.id} value={region.id.toString()}>
-                        {region.nombre}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                />
               </div>
             )}
             {siguienteEtapa?.provincia && (
               <div className="flex flex-col gap-2">
-                <Label htmlFor="provincia_id">Provincia</Label>
-                <Select
-                  value={watchedStepOne.provincia_id?.toString() || ""}
-                  onValueChange={(value) => {
-                    setValue('stepOne.provincia_id', parseInt(value))
-                    setValue('stepOne.comuna_id', undefined)
+                <Label htmlFor="provincias_ids">Provincia(s)</Label>
+                <ProvinciasMultiSelect
+                  regiones={regionesData?.data || []}
+                  provincias={provinciasList}
+                  regionesSeleccionadas={Array.isArray(watchedStepOne?.regiones_ids) ? watchedStepOne.regiones_ids : []}
+                  value={Array.isArray(watchedStepOne?.provincias_ids) ? watchedStepOne.provincias_ids : []}
+                  onChange={(next) => {
+                    setValue('stepOne.provincias_ids', next, { shouldValidate: true })
+                    if (next.length === 0) setValue('stepOne.comunas_ids', [])
                   }}
-                  disabled={!watchedStepOne.region_id}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Seleccionar..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {provinciasData?.data?.map((provincia) => (
-                      <SelectItem key={provincia.id} value={provincia.id.toString()}>
-                        {provincia.nombre}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  disabled={!Array.isArray(watchedStepOne?.regiones_ids) || (watchedStepOne?.regiones_ids || []).length === 0}
+                />
               </div>
             )}
             {siguienteEtapa?.comuna && (
               <div className="flex flex-col gap-2">
-                <Label htmlFor="comuna_id">Comuna</Label>
-                <Select
-                  value={watchedStepOne.comuna_id?.toString() || ""}
-                  onValueChange={(value) => setValue('stepOne.comuna_id', parseInt(value))}
-                  disabled={!watchedStepOne.provincia_id}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Seleccionar..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {comunasData?.data?.map((comuna) => (
-                      <SelectItem key={comuna.id} value={comuna.id.toString()}>
-                        {comuna.nombre}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="comunas_ids">Comuna(s)</Label>
+                <ComunasMultiSelect
+                  provincias={provinciasList}
+                  comunas={comunasList}
+                  provinciasSeleccionadas={Array.isArray(watchedStepOne?.provincias_ids) ? watchedStepOne.provincias_ids : []}
+                  value={Array.isArray(watchedStepOne?.comunas_ids) ? watchedStepOne.comunas_ids : []}
+                  onChange={(next) => setValue('stepOne.comunas_ids', next, { shouldValidate: true })}
+                  disabled={!Array.isArray(watchedStepOne?.provincias_ids) || (watchedStepOne?.provincias_ids || []).length === 0}
+                />
               </div>
             )}
           </div>
