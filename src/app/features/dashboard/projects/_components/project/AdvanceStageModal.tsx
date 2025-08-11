@@ -58,16 +58,12 @@ export const AdvanceStageModal: React.FC<AdvanceStageModalProps> = ({
   // Pre-llenar formulario con valores de etapa anterior después de que se carguen los datos
   useEffect(() => {
     if (isOpen && etapaAvanzarInfo && currentStep === 1 && !hasPrefilled.current) {
-      console.log("Modal abierto, datos cargados, ejecutando pre-llenado...")
       // Usar setTimeout para asegurar que el FormProvider esté disponible
       setTimeout(() => {
-        console.log("Ejecutando prefillFormWithPreviousValues...")
         prefillFormWithPreviousValues()
         hasPrefilled.current = true // Marcar como pre-llenado
-        console.log("Pre-llenado completado, hasPrefilled.current =", hasPrefilled.current)
       }, 200)
     } else if (isOpen && etapaAvanzarInfo && currentStep === 1 && hasPrefilled.current) {
-      console.log("Modal abierto, pero ya se pre-llenó anteriormente, saltando...")
     }
   }, [isOpen, etapaAvanzarInfo, currentStep, prefillFormWithPreviousValues])
 

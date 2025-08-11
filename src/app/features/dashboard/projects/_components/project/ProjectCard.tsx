@@ -11,6 +11,7 @@ import { ShowStageDetailsDialog } from "../ShowStageDetailsDialog"
 import { AdvanceStageModal } from "./AdvanceStageModal"
 import type { ProjectCardProps, ProyectoListItem } from "./project.types"
 import RenameProjectDialog from "./RenameProjectDialog"
+import { Badge } from "@/shared/components/ui/badge"
 
 export const ProjectCard: React.FC<ProjectCardProps & { onUpdateProject?: (project: ProyectoListItem) => void }> = ({
   project,
@@ -36,9 +37,11 @@ export const ProjectCard: React.FC<ProjectCardProps & { onUpdateProject?: (proje
   const totalDocuments = carpetaData?.estadisticas?.total_documentos || 0
 
   // Obtener información de la etapa
+  const esProyectoPadre = project.es_proyecto_padre === true
+
   const etapaActual = project.etapas_registro[0]?.etapa_tipo
-  const etapaNombre = etapaActual?.nombre
-  const etapaColor = etapaActual?.color
+  const etapaNombre = esProyectoPadre ? undefined : etapaActual?.nombre
+  const etapaColor = esProyectoPadre ? undefined : etapaActual?.color
 
   // Obtener tipo de obra desde el detalle del proyecto
   const tipoObra = isLoadingTipoObra
@@ -105,18 +108,25 @@ export const ProjectCard: React.FC<ProjectCardProps & { onUpdateProject?: (proje
         <CardHeader>
           <div className="flex justify-between items-start">
             <div className="flex-1 pr-2">
-              <h3 className="text-lg font-semibold">{project.nombre}</h3>
-              <TagStage etapa={etapaNombre} size="xs" />
+              <div className="flex items-center gap-2">
+                <h3 className="text-lg font-semibold">{project.nombre}</h3>
+                {esProyectoPadre && (
+                  <Badge variant="secondary" className="text-[10px]">Proyecto padre</Badge>
+                )}
+              </div>
+              {!esProyectoPadre && <TagStage etapa={etapaNombre ?? ""} size="xs" />}
               <p className="text-xs text-muted-foreground mt-2">
-                Tipo de obra:
+                {!esProyectoPadre ? "Tipo de obra:" : ""}
                 <span className="font-light ml-1">
-                  {isLoadingTipoObra ? (
-                    <span className="flex items-center gap-1">
-                      <Loader2 className="w-3 h-3 animate-spin" />
-                      Cargando...
-                    </span>
-                  ) : (
-                    tipoObra
+                  {!esProyectoPadre && (
+                    isLoadingTipoObra ? (
+                      <span className="flex items-center gap-1">
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                        Cargando...
+                      </span>
+                    ) : (
+                      tipoObra
+                    )
                   )}
                 </span>
               </p>
@@ -135,13 +145,22 @@ export const ProjectCard: React.FC<ProjectCardProps & { onUpdateProject?: (proje
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            <div className="flex items-center text-sm text-muted-foreground">
-              <FolderOpen className="w-4 h-4 mr-2" />
-              {totalFolders} carpetas principales
-            </div>
+            {!esProyectoPadre ? (
+              <div className="flex items-center text-sm text-muted-foreground">
+                <FolderOpen className="w-4 h-4 mr-2" />
+                {totalFolders} carpetas principales
+              </div>
+            ) : (
+              <div className="flex items-center text-sm text-muted-foreground">
+                <FolderOpen className="w-4 h-4 mr-2" />
+                {project.proyectos_hijos_count ?? project.proyectos_hijos?.length ?? 0} proyecto/s hijo/s
+              </div>
+            )}
             <div className="flex items-center text-sm text-muted-foreground">
               <FileText className="w-4 h-4 mr-2" />
-              {totalDocuments === 0 ? "0 documentos" : `${totalDocuments} documentos totales`}
+              {!esProyectoPadre
+                ? (totalDocuments === 0 ? "0 documentos" : `${totalDocuments} documentos totales`)
+                : ""}
             </div>
             <div className="flex items-center text-sm text-muted-foreground">
               <Calendar className="w-4 h-4 mr-2" />

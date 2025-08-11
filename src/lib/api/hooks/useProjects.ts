@@ -11,6 +11,11 @@ import type {
   MoverCarpetaRequest,
   RenombrarCarpetaRequest,
 } from "@/app/features/dashboard/projects/_components/folder/folder.types";
+import type {
+  AssignRemoveChildrenRequest,
+  ProyectosHijosResponse,
+} from "@/app/features/dashboard/projects/_components/project/project.types";
+import type { CreateParentProjectRequest } from "@/app/features/dashboard/projects/_components/project/project.types";
 
 // Hook para obtener la lista de proyectos
 export const useProyectos = () => {
@@ -126,6 +131,26 @@ export const useUpdateProject = () => {
       console.error("Error al actualizar proyecto:", error);
       toast.error(
         error.response?.data?.message || "Error al actualizar el proyecto"
+      );
+    },
+  });
+};
+
+// Hook para crear proyecto padre
+export const useCreateParentProject = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: CreateParentProjectRequest) =>
+      ProjectsService.createParentProject(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["proyectos"] });
+      toast.success("Proyecto padre creado exitosamente");
+    },
+    onError: (error: any) => {
+      console.error("Error al crear proyecto padre:", error);
+      toast.error(
+        error?.response?.data?.message || "Error al crear el proyecto padre"
       );
     },
   });
@@ -302,6 +327,70 @@ export const useMoverCarpeta = () => {
     },
     onError: (error: any) => {
       console.error("Error al mover carpeta:", error);
+    },
+  });
+};
+
+// Hook: obtener hijos de proyecto padre
+export const useProyectosHijos = (parentId: number | undefined) => {
+  return useQuery<ProyectosHijosResponse>({
+    queryKey: ["proyectos-hijos", parentId],
+    queryFn: () => ProjectsService.getChildren(parentId!),
+    enabled: !!parentId,
+    staleTime: 60 * 1000,
+  });
+};
+
+// Hook: asignar hijos a proyecto padre
+export const useAsignarProyectosHijos = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      parentId,
+      data,
+    }: {
+      parentId: number;
+      data: AssignRemoveChildrenRequest;
+    }) => ProjectsService.assignChildren(parentId, data),
+    onSuccess: (_, { parentId }) => {
+      queryClient.invalidateQueries({ queryKey: ["proyectos"] });
+      queryClient.invalidateQueries({
+        queryKey: ["proyectos-hijos", parentId],
+      });
+      toast.success("Proyectos hijos asignados correctamente");
+    },
+    onError: (error: any) => {
+      console.error("Error al asignar proyectos hijos:", error);
+      toast.error(
+        error?.response?.data?.message || "Error al asignar proyectos hijos"
+      );
+    },
+  });
+};
+
+// Hook: remover hijos de proyecto padre
+export const useRemoverProyectosHijos = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      parentId,
+      data,
+    }: {
+      parentId: number;
+      data: AssignRemoveChildrenRequest;
+    }) => ProjectsService.removeChildren(parentId, data),
+    onSuccess: (_, { parentId }) => {
+      queryClient.invalidateQueries({ queryKey: ["proyectos"] });
+      queryClient.invalidateQueries({
+        queryKey: ["proyectos-hijos", parentId],
+      });
+      toast.success("Proyectos hijos removidos correctamente");
+    },
+    onError: (error: any) => {
+      console.error("Error al remover proyectos hijos:", error);
+      toast.error(
+        error?.response?.data?.message || "Error al remover proyectos hijos"
+      );
     },
   });
 };

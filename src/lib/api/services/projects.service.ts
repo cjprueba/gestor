@@ -5,6 +5,11 @@ import type {
   ComunasResponse,
   CreateProjectRequest,
   CreateProjectResponse,
+  CreateParentProjectRequest,
+  CreateParentProjectResponse,
+  AssignRemoveChildrenRequest,
+  AssignRemoveChildrenResponse,
+  ProyectosHijosResponse,
   InspectoresFiscalesResponse,
   InspectorFiscal,
   Provincia,
@@ -319,6 +324,57 @@ export class ProjectsService {
     const response = await apiClient.delete(`${this.BASE_PATH}/${projectId}`, {
       data,
     });
+    return response.data;
+  }
+
+  /**
+   * Crea un nuevo proyecto padre
+   */
+  static async createParentProject(
+    data: CreateParentProjectRequest
+  ): Promise<CreateParentProjectResponse> {
+    const response = await apiClient.post<CreateParentProjectResponse>(
+      `${this.BASE_PATH}/padre`,
+      data
+    );
+    return response.data;
+  }
+
+  /**
+   * Asigna proyectos hijos a un proyecto padre
+   */
+  static async assignChildren(
+    parentId: number,
+    data: AssignRemoveChildrenRequest
+  ): Promise<AssignRemoveChildrenResponse> {
+    const response = await apiClient.post<AssignRemoveChildrenResponse>(
+      `${this.BASE_PATH}/${parentId}/asignar-hijos`,
+      data
+    );
+    return response.data;
+  }
+
+  /**
+   * Remueve proyectos hijos de un proyecto padre
+   */
+  static async removeChildren(
+    parentId: number,
+    data: AssignRemoveChildrenRequest
+  ): Promise<AssignRemoveChildrenResponse> {
+    const response = await apiClient.patch<AssignRemoveChildrenResponse>(
+      `${this.BASE_PATH}/${parentId}/remover-hijos`,
+      data
+    );
+    return response.data;
+  }
+
+  /**
+   * Obtiene los proyectos hijos de un proyecto padre
+   */
+  static async getChildren(parentId: number): Promise<ProyectosHijosResponse> {
+    const response = await apiClient.get<ProyectosHijosResponse>(
+      `${this.BASE_PATH}/${parentId}/hijos`
+    );
     return response.data;
   }
 }

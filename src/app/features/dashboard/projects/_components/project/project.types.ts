@@ -21,6 +21,9 @@ export interface ProyectoListItem {
   nombre: string;
   created_at: string;
   carpeta_raiz_id: number;
+  es_proyecto_padre?: boolean;
+  proyectos_hijos_count?: number;
+  proyectos_hijos?: Array<{ id: number; nombre: string }>;
   etapas_registro: Array<{
     id: number;
     etapa_tipo: EtapaTipoBasica;
@@ -216,6 +219,56 @@ export interface CreateProjectResponse {
     nombre: string;
     created_at: string;
     updated_at: string;
+  };
+}
+
+// Tipos para la API de creación de proyecto padre
+export interface CreateParentProjectRequest {
+  nombre: string;
+  division_id: number;
+  departamento_id: number;
+  unidad_id: number;
+  creado_por: number;
+  proyectos_hijos_ids: number[];
+}
+
+export interface CreateParentProjectResponse {
+  success: boolean;
+  message: string;
+  data: {
+    id: number;
+    nombre: string;
+    created_at: string;
+    updated_at: string;
+    proyectos_hijos?: Array<{ id: number; nombre: string }>;
+  };
+}
+
+// Tipos para asignar/remover proyectos hijos y obtener hijos
+export interface AssignRemoveChildrenRequest {
+  proyectos_hijos_ids: number[];
+  usuario_operacion: number;
+}
+
+export interface AssignRemoveChildrenResponse {
+  success: boolean;
+  message: string;
+  data: any;
+}
+
+export interface ProyectosHijosResponse {
+  success: boolean;
+  message: string;
+  data: {
+    proyecto_padre: { id: number; nombre: string };
+    proyectos_hijos: Array<{
+      id: number;
+      nombre: string;
+      created_at: string;
+      division: { id: number; nombre: string };
+      departamento: { id: number; nombre: string };
+      unidad: { id: number; nombre: string };
+    }>;
   };
 }
 

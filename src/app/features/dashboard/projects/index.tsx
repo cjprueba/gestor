@@ -2,14 +2,17 @@ import { useState } from "react"
 import { Button } from "@/shared/components/design-system/button"
 import { Plus } from "lucide-react"
 import { CreateProjectDialog } from "./_components/project/CreateProjectDialog"
+import CreateParentProjectDialog from "./_components/project/CreateParentProjectDialog"
 import { ProjectList } from "./_components/project/ProjectList"
 import type { ProyectoListItem } from "./_components/project/project.types"
 import { useProyectos } from "@/lib/api/hooks/useProjects"
 import FolderList from "./_components/folder/FolderList"
+import ParentProjectView from "./_components/folder/ParentProjectView"
 
 export default function HomePage() {
   const [selectedProject, setSelectedProject] = useState<ProyectoListItem | null>(null)
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+  const [isCreateParentDialogOpen, setIsCreateParentDialogOpen] = useState(false)
 
   // Obtener datos de la API directamente
   const { data: projectsResponse, isLoading, error } = useProyectos()
@@ -75,10 +78,16 @@ export default function HomePage() {
                 Administra tus proyectos con estructura de carpetas automática y alertas inteligentes
               </p>
             </div>
-            <Button onClick={() => setIsCreateDialogOpen(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Nuevo proyecto
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={() => setIsCreateParentDialogOpen(true)} variant="secundario">
+                <Plus className="w-4 h-4 mr-2" />
+                Proyecto padre
+              </Button>
+              <Button onClick={() => setIsCreateDialogOpen(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Nuevo proyecto
+              </Button>
+            </div>
           </div>
         </div>
         <div className="flex items-center justify-center py-12">
@@ -94,6 +103,19 @@ export default function HomePage() {
   }
 
   if (selectedProject) {
+    if (selectedProject.es_proyecto_padre) {
+      return (
+        <ParentProjectView
+          project={selectedProject}
+          onBack={() => setSelectedProject(null)}
+          onOpenChild={(child) => {
+            const found = projects.find((p) => p.id === child.id)
+            if (found) setSelectedProject(found)
+          }}
+        />
+      )
+    }
+
     return (
       <FolderList
         project={selectedProject}
@@ -113,10 +135,16 @@ export default function HomePage() {
               Administra tus proyectos con estructura de carpetas automática y alertas inteligentes
             </p>
           </div>
-          <Button onClick={() => setIsCreateDialogOpen(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            Nuevo proyecto
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => setIsCreateParentDialogOpen(true)} variant="secundario">
+              <Plus className="w-4 h-4 mr-2" />
+              Proyecto padre
+            </Button>
+            <Button onClick={() => setIsCreateDialogOpen(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Nuevo proyecto
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -129,6 +157,10 @@ export default function HomePage() {
       <CreateProjectDialog
         isOpen={isCreateDialogOpen}
         onClose={() => setIsCreateDialogOpen(false)}
+      />
+      <CreateParentProjectDialog
+        isOpen={isCreateParentDialogOpen}
+        onClose={() => setIsCreateParentDialogOpen(false)}
       />
     </div>
   )

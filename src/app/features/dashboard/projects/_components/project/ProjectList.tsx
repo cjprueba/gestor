@@ -6,6 +6,7 @@ import React, { useMemo, useState } from "react"
 import { SearchHeader } from "../search-header"
 import type { ProjectListProps } from "./project.types"
 import { ProjectCard } from "./ProjectCard"
+import ParentProjectCard from "./ParentProjectCard"
 
 // Función helper para obtener todos los documentos de un proyecto
 // const getAllDocumentsFromProject = (structure: FolderStructure): Array<Document & { folderPath: string }> => {
@@ -341,12 +342,20 @@ export const ProjectList: React.FC<ProjectListProps> = ({
       {filteredProjects.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredProjects.map((project) => (
-            <ProjectCard
-              key={project.id}
-              project={project}
-              onSelect={(project) => onSelectProject(project)}
-              totalAlerts={0}
-            />
+            project.es_proyecto_padre ? (
+              <ParentProjectCard
+                key={project.id}
+                project={project}
+                onSelect={(p) => onSelectProject(p)}
+              />
+            ) : (
+              <ProjectCard
+                key={project.id}
+                project={project}
+                onSelect={(p) => onSelectProject(p)}
+                totalAlerts={0}
+              />
+            )
           ))}
         </div>
       )}
