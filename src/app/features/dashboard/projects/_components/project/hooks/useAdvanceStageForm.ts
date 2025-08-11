@@ -67,17 +67,29 @@ export const useAdvanceStageForm = ({
       values.tipo_obra_id = etapaAnterior.tipo_obra.id;
     }
 
-    if (etapaAnterior.region?.id) {
-      values.region_id = etapaAnterior.region.id;
-    }
-
-    if (etapaAnterior.provincia?.id) {
-      values.provincia_id = etapaAnterior.provincia.id;
-    }
-
-    if (etapaAnterior.comuna?.id) {
-      values.comuna_id = etapaAnterior.comuna.id;
-    }
+    // Ubicación desde estructura anidada nueva
+    const regiones_ids =
+      (etapaAnterior as any)?.etapas_regiones
+        ?.map((r: any) => r.id)
+        .filter(Boolean) || [];
+    const provincias_ids = (
+      (etapaAnterior as any)?.etapas_regiones || []
+    ).flatMap((r: any) =>
+      (r?.etapas_provincias || [])
+        .map((p: any) => p?.provincia?.id)
+        .filter(Boolean)
+    );
+    const comunas_ids = ((etapaAnterior as any)?.etapas_regiones || []).flatMap(
+      (r: any) =>
+        (r?.etapas_provincias || []).flatMap((p: any) =>
+          (p?.provincia?.etapas_comunas || [])
+            .map((c: any) => c?.comuna?.id)
+            .filter(Boolean)
+        )
+    );
+    if (regiones_ids.length) values.regiones_ids = regiones_ids;
+    if (provincias_ids.length) values.provincias_ids = provincias_ids;
+    if (comunas_ids.length) values.comunas_ids = comunas_ids;
 
     if (etapaAnterior.volumen) {
       values.volumen = etapaAnterior.volumen;
